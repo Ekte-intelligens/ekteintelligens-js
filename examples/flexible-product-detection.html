@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>EkteIntelligens SDK - Flexible Product Detection</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                max-width: 1000px;
+                margin: 0 auto;
+                padding: 20px;
+            }
+            .form-group {
+                margin-bottom: 15px;
+            }
+            label {
+                display: block;
+                margin-bottom: 5px;
+                font-weight: bold;
+            }
+            input {
+                width: 100%;
+                padding: 8px;
+                border: 1px solid #ddd;
+                border-radius: 4px;
+            }
+            button {
+                background-color: #007bff;
+                color: white;
+                padding: 10px 20px;
+                border: none;
+                border-radius: 4px;
+                cursor: pointer;
+                margin-right: 10px;
+            }
+            button:hover {
+                background-color: #0056b3;
+            }
+            .status {
+                margin-top: 20px;
+                padding: 10px;
+                border-radius: 4px;
+            }
+            .success {
+                background-color: #d4edda;
+                color: #155724;
+                border: 1px solid #c3e6cb;
+            }
+            .error {
+                background-color: #f8d7da;
+                color: #721c24;
+                border: 1px solid #f5c6cb;
+            }
+            .demo-section {
+                margin: 30px 0;
+                padding: 20px;
+                border: 1px solid #ddd;
+                border-radius: 8px;
+            }
+            .demo-section h3 {
+                margin-top: 0;
+                color: #333;
+            }
+            .bv-flex {
+                display: flex;
+            }
+            .bv-flex-col {
+                flex-direction: column;
+            }
+            .room-details {
+                background: #f8f9fa;
+                padding: 15px;
+                border-radius: 4px;
+                margin: 10px 0;
+            }
+            .product-item {
+                background: #e9ecef;
+                padding: 15px;
+                border-radius: 4px;
+                margin: 10px 0;
+            }
+        </style>
+    </head>
+    <body>
+        <h1>EkteIntelligens SDK - Flexible Product Detection</h1>
+
+        <form id="checkout-form">
+            <div class="form-group">
+                <label for="name">Name:</label>
+                <input
+                    type="text"
+                    id="name"
+                    name="name"
+                    placeholder="Enter your name"
+                />
+            </div>
+
+            <div class="form-group">
+                <label for="email">Email:</label>
+                <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    placeholder="Enter your email"
+                />
+            </div>
+
+            <button type="submit">Submit Order</button>
+        </form>
+
+        <!-- Example 1: Hotel Room Details -->
+        <div class="demo-section">
+            <h3>Hotel Room Details</h3>
+            <div id="room-details-1" class="room-details">
+                <div>
+                    <div class="bv-flex bv-flex-col">
+                        <div>
+                            <p>Room Info:</p>
+                            <p>Deluxe Suite with Ocean View</p>
+                        </div>
+                        <div>
+                            <p>Check-in:</p>
+                            <p>15:00 - 18:00</p>
+                        </div>
+                        <div>
+                            <p>Price:</p>
+                            <p>$299 per night</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Example 2: E-commerce Products -->
+        <div class="demo-section">
+            <h3>E-commerce Products</h3>
+            <div
+                class="product-item"
+                data-product-id="123"
+                data-product-name="Wireless Headphones"
+                data-price="89.99"
+                data-quantity="2"
+            >
+                <span class="product-name">Wireless Headphones</span>
+                <span class="product-price">$89.99</span>
+                <span class="product-quantity">2</span>
+                <span class="product-category">Electronics</span>
+            </div>
+        </div>
+
+        <div id="status" class="status" style="display: none"></div>
+
+        <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+        <script src="../dist/index.js"></script>
+        <script>
+            // Initialize the SDK
+            const sdk = new EkteIntelligensSDK({
+                organizationId: "your-org-id",
+                cartCampaignId: "your-campaign-id",
+                // Supabase credentials are optional - SDK uses our backend by default
+                features: {
+                    abandonedCart: true,
+                },
+            });
+
+            // Initialize the SDK
+            sdk.initialize()
+                .then((success) => {
+                    if (success) {
+                        showStatus("SDK initialized successfully!", "success");
+
+                        // Get the abandoned cart tool
+                        const abandonedCartTool = sdk.getAbandonedCartTool();
+                        if (abandonedCartTool) {
+                            console.log("Abandoned cart tool is ready");
+
+                            // Log detected products
+                            setTimeout(() => {
+                                const content = abandonedCartTool.getContent();
+                                console.log("Current content:", content);
+
+                                // The products will be detected automatically when email/phone is entered
+                                // and sent to the edge function
+                            }, 1000);
+                        }
+                    } else {
+                        showStatus("Failed to initialize SDK", "error");
+                    }
+                })
+                .catch((error) => {
+                    showStatus(
+                        "Error initializing SDK: " + error.message,
+                        "error"
+                    );
+                });
+
+            // Handle form submission
+            document
+                .getElementById("checkout-form")
+                .addEventListener("submit", function (e) {
+                    e.preventDefault();
+
+                    const abandonedCartTool = sdk.getAbandonedCartTool();
+                    if (abandonedCartTool) {
+                        const content = abandonedCartTool.getContent();
+                        const hasContact = abandonedCartTool.hasEmailOrPhone();
+
+                        showStatus(
+                            `Form submitted! Content: ${JSON.stringify(
+                                content
+                            )}. Has contact: ${hasContact}`,
+                            "success"
+                        );
+                    }
+                });
+
+            function showStatus(message, type) {
+                const statusDiv = document.getElementById("status");
+                statusDiv.textContent = message;
+                statusDiv.className = `status ${type}`;
+                statusDiv.style.display = "block";
+            }
+
+            // Demo: Show how the product mapping would work
+            console.log(`
+Product Detection Examples:
+
+1. Hotel Room Details:
+   - Rominfo: "Deluxe Suite with Ocean View"
+   - Innsjekking: "15:00 - 18:00"
+   - Pris: "$299 per night"
+
+2. E-commerce Products:
+   - id: "123"
+   - name: "Wireless Headphones"
+   - price: 89.99
+   - quantity: 2
+   - category: "Electronics"
+
+3. URL Tracking:
+   - Current page URL with query parameters is automatically included
+   - Example: "https://example.com/checkout?utm_source=google&utm_campaign=summer"
+
+The SDK will automatically detect these products when email/phone is entered
+and send them to your Supabase edge function along with the form content and current URL.
+            `);
+        </script>
+    </body>
+</html>

@@ -1,0 +1,42 @@
+{
+    "name": "ekteintelligens-sdk",
+    "version": "1.0.0",
+    "description": "SDK for abandoned cart tracking and other e-commerce tools",
+    "main": "dist/index.js",
+    "module": "dist/index.es.js",
+    "types": "dist/index.d.ts",
+    "files": [
+        "dist"
+    ],
+    "scripts": {
+        "dev": "vite",
+        "build": "tsc && vite build",
+        "preview": "vite preview",
+        "type-check": "tsc --noEmit",
+        "test": "jest"
+    },
+    "keywords": [
+        "sdk",
+        "e-commerce",
+        "abandoned-cart",
+        "typescript"
+    ],
+    "author": "EkteIntelligens",
+    "license": "MIT",
+    "devDependencies": {
+        "@types/jest": "^30.0.0",
+        "@types/node": "^20.10.0",
+        "jest": "^30.0.5",
+        "jest-environment-jsdom": "^30.0.5",
+        "ts-jest": "^29.4.0",
+        "typescript": "^5.3.0",
+        "vite": "^5.0.0",
+        "vite-plugin-dts": "^3.7.0"
+    },
+    "dependencies": {
+        "@supabase/supabase-js": "^2.38.0"
+    },
+    "peerDependencies": {
+        "@supabase/supabase-js": "^2.38.0"
+    }
+}

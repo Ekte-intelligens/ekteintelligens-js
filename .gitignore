@@ -1,0 +1,56 @@
+# Node modules
+node_modules/
+
+# Build outputs
+# dist/ is tracked for jsDelivr CDN delivery from GitHub. Do NOT ignore it!
+build/
+
+# Test outputs
+coverage/
+.nyc_output/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment variables
+.env
+.env.*
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Jest
+jest-cache/
+jest-config/
+jest-test-results.json
+
+# Misc
+*.tgz
+*.pid
+*.seed
+*.pid.lock
+
+# TypeScript
+*.tsbuildinfo
+
+# Output of 'npm pack'
+*.tgz
+
+# Optional npm cache directory
+.npm
+
+# Optional REPL history
+.node_repl_history
+
+# Yarn Integrity file
+.yarn-integrity 
