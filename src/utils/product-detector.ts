@@ -1,4 +1,5 @@
 import { ProductMapping } from "../types";
+import { decodeProductMapping } from "./selector-decoder";
 
 export interface DetectedProduct {
     id?: string;
@@ -12,7 +13,8 @@ export class ProductDetector {
     private productMapping: ProductMapping;
 
     constructor(productMapping: ProductMapping) {
-        this.productMapping = productMapping;
+        // Decode the product mapping selectors
+        this.productMapping = decodeProductMapping(productMapping);
     }
 
     public detectProducts(): DetectedProduct[] {

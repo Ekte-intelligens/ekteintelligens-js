@@ -1,4 +1,5 @@
 import { InputMapping } from "../types";
+import { decodeSelector } from "./selector-decoder";
 
 export class InputDetector {
     private inputMapping: InputMapping | null;
@@ -11,7 +12,34 @@ export class InputDetector {
     ) => void;
 
     constructor(inputMapping: InputMapping | null) {
-        this.inputMapping = inputMapping;
+        // Decode selectors in the input mapping
+        this.inputMapping = this.decodeInputMapping(inputMapping);
+    }
+
+    private decodeInputMapping(
+        inputMapping: InputMapping | null
+    ): InputMapping | null {
+        if (!inputMapping) {
+            return null;
+        }
+
+        const decodedMapping: InputMapping = { ...inputMapping };
+
+        // Decode form_selector if present
+        if (decodedMapping.form_selector) {
+            decodedMapping.form_selector = decodeSelector(
+                decodedMapping.form_selector
+            );
+        }
+
+        // Decode inputs array if present
+        if (decodedMapping.inputs && decodedMapping.inputs.length > 0) {
+            decodedMapping.inputs = decodedMapping.inputs.map((selector) =>
+                decodeSelector(selector)
+            );
+        }
+
+        return decodedMapping;
     }
 
     public setOnContentUpdate(

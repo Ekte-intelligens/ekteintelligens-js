@@ -1,8 +1,13 @@
+import { decodeSelector } from "./selector-decoder";
+
 export class TotalExtractor {
     private totalSelector?: string;
 
     constructor(totalSelector?: string) {
-        this.totalSelector = totalSelector;
+        // Decode the total selector if provided
+        this.totalSelector = totalSelector
+            ? decodeSelector(totalSelector)
+            : undefined;
     }
 
     public extractTotal(): number {
