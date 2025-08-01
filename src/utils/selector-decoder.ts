@@ -1,16 +1,5 @@
-/**
- * Decodes an encoded selector string from the backend
- * @param encoded The encoded selector string
- * @returns The decoded selector string
- */
-export function decodeSelector(encoded: string): string {
-    try {
-        // First decode base64, then decode URI component
-        return decodeURIComponent(atob(encoded));
-    } catch (error) {
-        console.warn("Failed to decode selector:", encoded, error);
-        return encoded; // Return original if decoding fails
-    }
+export function decodeSelector(encoded: string) {
+    return atob(encoded);
 }
 
 /**

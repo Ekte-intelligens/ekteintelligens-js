@@ -12,6 +12,9 @@ export class AbandonedCartTool {
     private totalExtractor?: TotalExtractor;
     private _sessionId?: string;
     private isInitialized = false;
+    private previousContent: Record<string, any> = {};
+    private previousProducts: any[] = [];
+    private previousTotal: number = 0;
 
     constructor(options: SDKOptions) {
         this.options = options;
@@ -76,6 +79,18 @@ export class AbandonedCartTool {
             // Extract cart total
             const total = this.totalExtractor?.extractTotal() || 0;
 
+            // Check if content has actually changed
+            const contentChanged = this.hasContentChanged(
+                content,
+                products,
+                total
+            );
+
+            if (!contentChanged) {
+                console.log("Content unchanged, skipping upload");
+                return;
+            }
+
             // Get current page URL with query parameters
             const currentUrl =
                 typeof window !== "undefined" ? window.location.href : "";
@@ -94,10 +109,16 @@ export class AbandonedCartTool {
                 payload
             );
 
-            if (response && response.success) {
+            if (response && response.id) {
                 // Store the session ID for future updates
                 this._sessionId = response.id;
                 this.inputDetector?.setSessionId(response.id);
+
+                // Update previous content after successful upload
+                this.previousContent = { ...content };
+                this.previousProducts = [...products];
+                this.previousTotal = total;
+
                 console.log("Cart session updated successfully:", response.id);
             } else {
                 console.error("Failed to submit cart session");
@@ -105,6 +126,32 @@ export class AbandonedCartTool {
         } catch (error) {
             console.error("Error handling content update:", error);
         }
+    }
+
+    private hasContentChanged(
+        content: Record<string, any>,
+        products: any[],
+        total: number
+    ): boolean {
+        // If this is the first update (previousContent is empty), always consider it changed
+        if (Object.keys(this.previousContent).length === 0 && 
+            this.previousProducts.length === 0 && 
+            this.previousTotal === 0) {
+            return true;
+        }
+
+        // Check if content has changed
+        const contentChanged =
+            JSON.stringify(content) !== JSON.stringify(this.previousContent);
+
+        // Check if products have changed
+        const productsChanged =
+            JSON.stringify(products) !== JSON.stringify(this.previousProducts);
+
+        // Check if total has changed
+        const totalChanged = total !== this.previousTotal;
+
+        return contentChanged || productsChanged || totalChanged;
     }
 
     public destroy(): void {
@@ -125,5 +172,16 @@ export class AbandonedCartTool {
 
     public getSessionId(): string | undefined {
         return this._sessionId;
+    }
+
+    /**
+     * Reset the change tracking to force the next update to be uploaded
+     * Useful for testing or when you want to ensure the latest data is uploaded
+     */
+    public resetChangeTracking(): void {
+        this.previousContent = {};
+        this.previousProducts = [];
+        this.previousTotal = 0;
+        console.log("Change tracking reset - next update will be uploaded");
     }
 }
