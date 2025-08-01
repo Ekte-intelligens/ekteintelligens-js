@@ -21,7 +21,7 @@ jest.mock("../src/services/supabase-service", () => {
 describe("AbandonedCartTool", () => {
     const options: SDKOptions = {
         organizationId: "test-org-id",
-        cartCampaignId: "test-campaign-id",
+        checkoutCampaignId: "test-campaign-id",
         // Using default backend credentials
         features: { abandonedCart: true },
     };
@@ -78,6 +78,53 @@ describe("AbandonedCartTool", () => {
 
         // The total should be extracted and included in the payload
         // This is tested indirectly through the mock in the test setup
+        expect(tool.hasEmailOrPhone()).toBe(true);
+    });
+
+    it("should apply field mappings when provided", async () => {
+        // Mock with field mappings
+        const mockSupabaseService = require("../src/services/supabase-service");
+        mockSupabaseService.SupabaseService.mockImplementation(() => ({
+            getCheckoutCampaign: jest.fn().mockResolvedValue({
+                id: "test-campaign-id",
+                product_mapping: {},
+                input_mapping: {
+                    inputs: ["#email", "#phone"],
+                    field_mappings: {
+                        emailAddress: "email",
+                        "checkoutField-phoneNumber": "phone_number",
+                    },
+                },
+                total_selector: "#cart-total",
+            }),
+            submitCartSession: jest.fn().mockResolvedValue({
+                id: "test-session-id",
+                success: true,
+            }),
+        }));
+
+        document.body.innerHTML = `
+            <input type="email" id="email" name="emailAddress" />
+            <input type="tel" id="phone" name="checkoutField-phoneNumber" />
+            <div id="cart-total">$299.99</div>
+        `;
+
+        const tool = new AbandonedCartTool(options);
+        await tool.initialize();
+
+        // Simulate user input and blur
+        const emailInput = document.getElementById("email") as HTMLInputElement;
+        emailInput.value = "test@example.com";
+        emailInput.dispatchEvent(new Event("blur"));
+
+        const phoneInput = document.getElementById("phone") as HTMLInputElement;
+        phoneInput.value = "+4712345678";
+        phoneInput.dispatchEvent(new Event("blur"));
+
+        // Should have collected email and phone with mapped field names
+        const content = tool.getContent();
+        expect(content.email).toBe("test@example.com");
+        expect(content.phone_number).toBe("+4712345678");
         expect(tool.hasEmailOrPhone()).toBe(true);
     });
 });

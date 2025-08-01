@@ -29,7 +29,7 @@ export class AbandonedCartTool {
         try {
             // Fetch campaign data from Supabase
             const campaign = await this.supabaseService.getCheckoutCampaign(
-                this.options.cartCampaignId
+                this.options.checkoutCampaignId
             );
 
             if (!campaign) {
@@ -82,7 +82,7 @@ export class AbandonedCartTool {
 
             const payload: CartSessionPayload = {
                 organization_id: this.options.organizationId,
-                cart_campaign_id: this.options.cartCampaignId,
+                checkout_campaign_id: this.options.checkoutCampaignId,
                 content: content,
                 products: products,
                 url: currentUrl,

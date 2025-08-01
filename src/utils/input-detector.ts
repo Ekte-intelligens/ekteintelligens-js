@@ -89,13 +89,22 @@ export class InputDetector {
 
     private getFieldName(input: HTMLInputElement): string {
         // Try to get name from various attributes
-        return (
+        let fieldName =
             input.name ||
             input.id ||
             input.getAttribute("data-field") ||
             input.type ||
-            "unknown"
-        );
+            "unknown";
+
+        // Apply field mapping if available
+        if (
+            this.inputMapping?.field_mappings &&
+            this.inputMapping.field_mappings[fieldName]
+        ) {
+            fieldName = this.inputMapping.field_mappings[fieldName];
+        }
+
+        return fieldName;
     }
 
     private isEmailOrPhone(fieldName: string, value: string): boolean {

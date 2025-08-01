@@ -19,7 +19,7 @@ jest.mock("../src/services/supabase-service", () => {
 describe("EkteIntelligensSDK", () => {
     const options = {
         organizationId: "test-org-id",
-        cartCampaignId: "test-campaign-id",
+        checkoutCampaignId: "test-campaign-id",
         // Using default backend credentials
         features: {
             abandonedCart: true,

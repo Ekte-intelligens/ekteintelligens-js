@@ -1,6 +1,6 @@
 export interface SDKOptions {
     organizationId: string;
-    cartCampaignId: string;
+    checkoutCampaignId: string;
     supabaseUrl?: string; // Optional - will use your backend by default
     supabaseAnonKey?: string; // Optional - will use your backend by default
     features?: {
@@ -11,6 +11,7 @@ export interface SDKOptions {
 export interface InputMapping {
     form_selector?: string;
     inputs?: string[];
+    field_mappings?: Record<string, string>; // Map from user field names to internal field names
 }
 
 export interface ProductMapping {
@@ -38,7 +39,7 @@ export interface DetectedProduct {
 
 export interface CartSessionPayload {
     organization_id: string;
-    cart_campaign_id: string;
+    checkout_campaign_id: string;
     content: Content;
     products?: DetectedProduct[];
     url?: string; // Current page URL with query parameters

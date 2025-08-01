@@ -40,11 +40,13 @@ class f {
     return this.inputMapping.inputs && this.inputMapping.inputs.length > 0 ? this.inputMapping.inputs.map((t) => document.querySelector(t)).filter((t) => t !== null) : Array.from(document.querySelectorAll("input"));
   }
   handleInputBlur(t) {
-    const e = t.target, r = this.getFieldName(e), n = e.value.trim();
-    n && (this.content[r] = n, this.isEmailOrPhone(r, n) && (this.hasEmailOrPhone = !0), this.hasEmailOrPhone && this.onContentUpdate && this.onContentUpdate(this.content, this.sessionId));
+    const e = t.target, r = this.getFieldName(e), i = e.value.trim();
+    i && (this.content[r] = i, this.isEmailOrPhone(r, i) && (this.hasEmailOrPhone = !0), this.hasEmailOrPhone && this.onContentUpdate && this.onContentUpdate(this.content, this.sessionId));
   }
   getFieldName(t) {
-    return t.name || t.id || t.getAttribute("data-field") || t.type || "unknown";
+    var r;
+    let e = t.name || t.id || t.getAttribute("data-field") || t.type || "unknown";
+    return (r = this.inputMapping) != null && r.field_mappings && this.inputMapping.field_mappings[e] && (e = this.inputMapping.field_mappings[e]), e;
   }
   isEmailOrPhone(t, e) {
     const r = t.toLowerCase();
@@ -73,9 +75,9 @@ class g {
     if (!this.productMapping || Object.keys(this.productMapping).length === 0)
       return this.detectCommonProducts();
     for (const [e, r] of Object.entries(this.productMapping)) {
-      const n = e.includes(",") ? e.split(",").map((i) => i.trim()) : [e];
-      for (const i of n)
-        document.querySelectorAll(i).forEach((c) => {
+      const i = e.includes(",") ? e.split(",").map((n) => n.trim()) : [e];
+      for (const n of i)
+        document.querySelectorAll(n).forEach((c) => {
           const l = this.extractProductFromElement(
             c,
             r
@@ -95,8 +97,8 @@ class g {
       ".item"
     ];
     for (const r of e)
-      document.querySelectorAll(r).forEach((i) => {
-        const s = this.extractProductFromCommonElement(i);
+      document.querySelectorAll(r).forEach((n) => {
+        const s = this.extractProductFromCommonElement(n);
         s && t.push(s);
       });
     return t;
@@ -105,15 +107,15 @@ class g {
     try {
       const r = {};
       if (e.id_selector) {
-        const n = this.extractValue(t, e.id_selector);
-        n !== null && (r.id = n);
+        const i = this.extractValue(t, e.id_selector);
+        i !== null && (r.id = i);
       }
       if (e.name_selector) {
-        const n = this.extractValue(
+        const i = this.extractValue(
           t,
           e.name_selector
         );
-        n !== null && (r.name = n);
+        i !== null && (r.name = i);
       }
       if (e.price_selector && (r.price = this.extractPrice(
         t,
@@ -122,27 +124,27 @@ class g {
         t,
         e.quantity_selector
       )), e.fields)
-        for (const [n, i] of Object.entries(
+        for (const [i, n] of Object.entries(
           e.fields
         )) {
           const s = this.extractValue(
             t,
-            i
+            n
           );
-          s !== null && (n.toLowerCase().includes("price") ? r[n] = this.extractPrice(
+          s !== null && (i.toLowerCase().includes("price") ? r[i] = this.extractPrice(
             t,
-            i
-          ) : r[n] = s);
+            n
+          ) : r[i] = s);
         }
       if (e.additional_fields)
-        for (const [n, i] of Object.entries(
+        for (const [i, n] of Object.entries(
           e.additional_fields
         )) {
           const s = this.extractValue(
             t,
-            i
+            n
           );
-          s !== null && (r[n] = s);
+          s !== null && (r[i] = s);
         }
       return Object.keys(r).length > 0 ? r : null;
     } catch (r) {
@@ -169,7 +171,7 @@ class g {
     }
   }
   extractValue(t, e) {
-    var r, n, i;
+    var r, i, n;
     try {
       if (e.startsWith("data-"))
         return t.getAttribute(e) || null;
@@ -186,7 +188,7 @@ class g {
           try {
             const u = t.querySelector(l);
             if (u)
-              return ((n = u.textContent) == null ? void 0 : n.trim()) || null;
+              return ((i = u.textContent) == null ? void 0 : i.trim()) || null;
           } catch (u) {
             console.warn(
               `Invalid selector in comma list: ${l}`,
@@ -197,7 +199,7 @@ class g {
         return null;
       }
       const s = t.querySelector(e);
-      return s && ((i = s.textContent) == null ? void 0 : i.trim()) || null;
+      return s && ((n = s.textContent) == null ? void 0 : n.trim()) || null;
     } catch (s) {
       return console.warn(
         `Error extracting value with selector: ${e}`,
@@ -206,21 +208,21 @@ class g {
     }
   }
   extractTextContent(t, e) {
-    var n;
+    var i;
     const r = t.querySelector(e);
-    return r && ((n = r.textContent) == null ? void 0 : n.trim()) || null;
+    return r && ((i = r.textContent) == null ? void 0 : i.trim()) || null;
   }
   extractPrice(t, e) {
     const r = this.extractValue(t, e);
     if (!r) return 0;
-    const n = r.replace(/[^\d.,]/g, "").replace(",", "."), i = parseFloat(n);
-    return isNaN(i) ? 0 : i;
+    const i = r.replace(/[^\d.,]/g, "").replace(",", "."), n = parseFloat(i);
+    return isNaN(n) ? 0 : n;
   }
   extractQuantity(t, e) {
     const r = this.extractValue(t, e);
     if (!r) return 1;
-    const n = parseInt(r);
-    return isNaN(n) ? 1 : n;
+    const i = parseInt(r);
+    return isNaN(i) ? 1 : i;
   }
 }
 class y {
@@ -241,10 +243,10 @@ class y {
         return console.warn(
           `No text content found for total selector: ${this.totalSelector}`
         ), 0;
-      let n = r.replace(/[^\d.,]/g, "");
-      n.includes(",") && !n.includes(".") ? n = n.replace(",", ".") : n.includes(",") && n.includes(".") && (n = n.replace(",", ""));
-      const i = parseFloat(n);
-      return isNaN(i) ? (console.warn(`Could not parse total value: ${r}`), 0) : i;
+      let i = r.replace(/[^\d.,]/g, "");
+      i.includes(",") && !i.includes(".") ? i = i.replace(",", ".") : i.includes(",") && i.includes(".") && (i = i.replace(",", ""));
+      const n = parseFloat(i);
+      return isNaN(n) ? (console.warn(`Could not parse total value: ${r}`), 0) : n;
     } catch (e) {
       return console.warn(
         `Error extracting total with selector: ${this.totalSelector}`,
@@ -259,8 +261,8 @@ class y {
 class x {
   constructor(t, e) {
     o(this, "client");
-    const r = t || "https://yoflhmaayrceswiwvxba.supabase.co", n = e || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlvZmxobWFheXJjZXN3aXd2eGJhIiwicm9sZSI6ImFub24iLCJpYXQiOjE2NzI5MzQ4MzUsImV4cCI6MTk4ODUxMDgzNX0.dq8OdZylVnB1Gwa_nYLALxUHk2NOPmRlhS_YbA7E8pg";
-    this.client = m(r, n);
+    const r = t || "https://yoflhmaayrceswiwvxba.supabase.co", i = e || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlvZmxobWFheXJjZXN3aXd2eGJhIiwicm9sZSI6ImFub24iLCJpYXQiOjE2NzI5MzQ4MzUsImV4cCI6MTk4ODUxMDgzNX0.dq8OdZylVnB1Gwa_nYLALxUHk2NOPmRlhS_YbA7E8pg";
+    this.client = m(r, i);
   }
   async getCheckoutCampaign(t) {
     try {
@@ -309,7 +311,7 @@ class I {
       return !0;
     try {
       const t = await this.supabaseService.getCheckoutCampaign(
-        this.options.cartCampaignId
+        this.options.checkoutCampaignId
       );
       return t ? (this.inputDetector = new f(t.input_mapping), this.productDetector = new g(
         t.product_mapping
@@ -321,11 +323,11 @@ class I {
     }
   }
   async handleContentUpdate(t, e) {
-    var r, n, i;
+    var r, i, n;
     try {
-      const s = ((r = this.productDetector) == null ? void 0 : r.detectProducts()) || [], c = ((n = this.totalExtractor) == null ? void 0 : n.extractTotal()) || 0, l = typeof window < "u" ? window.location.href : "", u = {
+      const s = ((r = this.productDetector) == null ? void 0 : r.detectProducts()) || [], c = ((i = this.totalExtractor) == null ? void 0 : i.extractTotal()) || 0, l = typeof window < "u" ? window.location.href : "", u = {
         organization_id: this.options.organizationId,
-        cart_campaign_id: this.options.cartCampaignId,
+        checkout_campaign_id: this.options.checkoutCampaignId,
         content: t,
         products: s,
         url: l,
@@ -334,7 +336,7 @@ class I {
       }, d = await this.supabaseService.submitCartSession(
         u
       );
-      d && d.success ? (this._sessionId = d.id, (i = this.inputDetector) == null || i.setSessionId(d.id), console.log("Cart session updated successfully:", d.id)) : console.error("Failed to submit cart session");
+      d && d.success ? (this._sessionId = d.id, (n = this.inputDetector) == null || n.setSessionId(d.id), console.log("Cart session updated successfully:", d.id)) : console.error("Failed to submit cart session");
     } catch (s) {
       console.error("Error handling content update:", s);
     }

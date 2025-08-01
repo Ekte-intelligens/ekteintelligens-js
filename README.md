@@ -25,7 +25,7 @@ import { EkteIntelligensSDK } from "ekteintelligens-sdk";
 
 const sdk = new EkteIntelligensSDK({
     organizationId: "your-org-id",
-    cartCampaignId: "your-campaign-id",
+    checkoutCampaignId: "your-campaign-id",
     // Supabase credentials are optional - SDK uses our backend by default
     features: {
         abandonedCart: true,
@@ -41,7 +41,7 @@ await sdk.initialize();
 <script>
     const sdk = new EkteIntelligensSDK({
         organizationId: "your-org-id",
-        cartCampaignId: "your-campaign-id",
+        checkoutCampaignId: "your-campaign-id",
         // Supabase credentials are optional - SDK uses our backend by default
         features: {
             abandonedCart: true,
@@ -61,7 +61,7 @@ await sdk.initialize();
 ```typescript
 interface SDKOptions {
     organizationId: string; // Your organization ID
-    cartCampaignId: string; // Your cart campaign ID
+    checkoutCampaignId: string; // Your checkout campaign ID
     supabaseUrl?: string; // Optional - SDK uses our backend by default
     supabaseAnonKey?: string; // Optional - SDK uses our backend by default
     features?: {
@@ -89,18 +89,56 @@ The abandoned cart tool automatically tracks user input on your checkout forms a
 
 #### Input Mapping Examples:
 
-```typescript
-// Listen to all inputs
-input_mapping: null;
+The SDK supports four main input mapping scenarios:
 
-// Listen to inputs within a specific form
+**1. Field mapping for email/phone detection:**
+
+```typescript
 input_mapping: {
-    form_selector: "#checkout-form";
+    inputs: ["#email", "#phone", "#name"],
+    field_mappings: {
+        "emailAddress": "email",
+        "checkoutField-phoneNumber": "phone_number",
+        "firstName": "first_name"
+    }
+}
+```
+
+**2. Collecting all input fields on page:**
+
+```typescript
+input_mapping: null; // Listens to all inputs on the page
+```
+
+**3. Collecting all input fields of form/parent:**
+
+```typescript
+input_mapping: {
+    form_selector: "#checkout-form"; // Listens to all inputs within the form
 }
 
-// Listen to specific inputs
+// Or for any parent container:
 input_mapping: {
-    inputs: ["#email", "#phone", "#name", "#address"];
+    form_selector: "#customer-section"; // Listens to all inputs within the section
+}
+```
+
+**4. Collecting specific input fields only:**
+
+```typescript
+input_mapping: {
+    inputs: ["#email", "#phone", "#name", "#address"]
+}
+
+// With field mappings:
+input_mapping: {
+    inputs: ["#email", "#phone", "#name", "#address"],
+    field_mappings: {
+        "emailAddress": "email",
+        "checkoutField-phoneNumber": "phone_number",
+        "firstName": "first_name",
+        "lastName": "last_name"
+    }
 }
 ```
 
@@ -179,18 +217,28 @@ total_selector: ".cart-container .summary .total-value";
 For a BookVisit hotel booking page, the SDK configuration would be:
 
 ```typescript
-// Input mapping for form fields
+// Input mapping for form fields with field mappings
 input_mapping: {
     inputs: [
         "[data-testid='customer_info_form_firstname']",
         "[data-testid='customer_info_form_lastname']",
         "[data-testid='customer_info_form_email']",
         "[data-testid='customer_info_form_validateemail']",
+        "[data-testid='customer_info_form_co_address']",
         "[data-testid='customer_info_form_city']",
         "[data-testid='customer_info_form_postal_code']",
         "[data-testid='customer_info_form_street']",
         "[data-testid='customer_info_form_phone_number']"
-    ]
+    ],
+    field_mappings: {
+        "emailAddress": "email",
+        "checkoutField-phoneNumber": "phone_number",
+        "firstName": "first_name",
+        "lastName": "last_name",
+        "confirmEmailAddress": "confirm_email",
+        "coAddress": "co_address",
+        "postalCode": "postal_code"
+    }
 }
 
 // Product mapping for room details
@@ -283,7 +331,7 @@ The SDK expects a Supabase edge function named `cart-checkout-session` that acce
 ```typescript
 interface CartSessionPayload {
     organization_id: string;
-    cart_campaign_id: string;
+    checkout_campaign_id: string;
     content: Record<string, any>;
     products?: any[];
     url?: string; // Current page URL with query parameters

@@ -39,7 +39,7 @@ describe("SupabaseService", () => {
         const service = new SupabaseService(supabaseUrl, supabaseAnonKey);
         const response = await service.submitCartSession({
             organization_id: "org",
-            cart_campaign_id: "camp",
+            checkout_campaign_id: "camp",
             content: {},
         });
         expect(response).toBeDefined();

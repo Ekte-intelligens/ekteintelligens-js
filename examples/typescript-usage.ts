@@ -3,7 +3,7 @@ import { EkteIntelligensSDK, SDKOptions } from "ekteintelligens-sdk";
 // Configuration
 const options: SDKOptions = {
     organizationId: "your-org-id",
-    cartCampaignId: "your-campaign-id",
+    checkoutCampaignId: "your-campaign-id",
     // Supabase credentials are optional - SDK uses our backend by default
     features: {
         abandonedCart: true,

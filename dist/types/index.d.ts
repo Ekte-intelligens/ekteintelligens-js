@@ -1,6 +1,6 @@
 export interface SDKOptions {
     organizationId: string;
-    cartCampaignId: string;
+    checkoutCampaignId: string;
     supabaseUrl?: string;
     supabaseAnonKey?: string;
     features?: {
@@ -10,6 +10,7 @@ export interface SDKOptions {
 export interface InputMapping {
     form_selector?: string;
     inputs?: string[];
+    field_mappings?: Record<string, string>;
 }
 export interface ProductMapping {
     [key: string]: any;
@@ -32,7 +33,7 @@ export interface DetectedProduct {
 }
 export interface CartSessionPayload {
     organization_id: string;
-    cart_campaign_id: string;
+    checkout_campaign_id: string;
     content: Content;
     products?: DetectedProduct[];
     url?: string;

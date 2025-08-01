@@ -37,6 +37,15 @@ jest.mock("../src/services/supabase-service", () => {
                         "[data-testid='customer_info_form_street']",
                         "[data-testid='customer_info_form_phone_number']",
                     ],
+                    field_mappings: {
+                        emailAddress: "email",
+                        "checkoutField-phoneNumber": "phone_number",
+                        firstName: "first_name",
+                        lastName: "last_name",
+                        confirmEmailAddress: "confirm_email",
+                        coAddress: "co_address",
+                        postalCode: "postal_code",
+                    },
                 },
                 total_selector: "#cart-total",
             }),
@@ -51,7 +60,7 @@ jest.mock("../src/services/supabase-service", () => {
 describe("BookVisit Hotel Booking Scenario", () => {
     const options: SDKOptions = {
         organizationId: "bookvisit-org",
-        cartCampaignId: "bookvisit-hotel-campaign",
+        checkoutCampaignId: "bookvisit-hotel-campaign",
         features: { abandonedCart: true },
     };
 
@@ -250,10 +259,10 @@ describe("BookVisit Hotel Booking Scenario", () => {
             phoneInput.dispatchEvent(new Event("blur"));
 
             const content = tool.getContent();
-            expect(content.firstName).toBe("John");
-            expect(content.lastName).toBe("Doe");
-            expect(content.emailAddress).toBe("john.doe@example.com");
-            expect(content["checkoutField-phoneNumber"]).toBe("12345678");
+            expect(content.first_name).toBe("John");
+            expect(content.last_name).toBe("Doe");
+            expect(content.email).toBe("john.doe@example.com");
+            expect(content.phone_number).toBe("12345678");
             expect(tool.hasEmailOrPhone()).toBe(true);
         });
 
@@ -321,15 +330,15 @@ describe("BookVisit Hotel Booking Scenario", () => {
             });
 
             const content = tool.getContent();
-            expect(content.firstName).toBe("John");
-            expect(content.lastName).toBe("Doe");
-            expect(content.emailAddress).toBe("john@example.com");
-            expect(content.confirmEmailAddress).toBe("john@example.com");
-            expect(content.coAddress).toBe("Apt 4B");
+            expect(content.first_name).toBe("John");
+            expect(content.last_name).toBe("Doe");
+            expect(content.email).toBe("john@example.com");
+            expect(content.confirm_email).toBe("john@example.com");
+            expect(content.co_address).toBe("Apt 4B");
             expect(content.city).toBe("Oslo");
-            expect(content.postalCode).toBe("0001");
+            expect(content.postal_code).toBe("0001");
             expect(content.street).toBe("Karl Johans gate 1");
-            expect(content["checkoutField-phoneNumber"]).toBe("12345678");
+            expect(content.phone_number).toBe("12345678");
         });
     });
 
@@ -451,9 +460,9 @@ describe("BookVisit Hotel Booking Scenario", () => {
 
             // Verify form content is collected
             const content = tool.getContent();
-            expect(content.emailAddress).toBe("guest@example.com");
-            expect(content["checkoutField-phoneNumber"]).toBe("12345678");
-            expect(content.firstName).toBe("Guest");
+            expect(content.email).toBe("guest@example.com");
+            expect(content.phone_number).toBe("12345678");
+            expect(content.first_name).toBe("Guest");
             expect(tool.hasEmailOrPhone()).toBe(true);
 
             // Verify products are detected
@@ -501,7 +510,7 @@ describe("BookVisit Hotel Booking Scenario", () => {
             phoneInput.dispatchEvent(new Event("blur"));
 
             const content = tool.getContent();
-            expect(content["checkoutField-phoneNumber"]).toBe("12345678");
+            expect(content.phone_number).toBe("12345678");
             expect(tool.hasEmailOrPhone()).toBe(true);
         });
 
