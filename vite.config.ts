@@ -15,11 +15,9 @@ export default defineConfig({
             fileName: (format) => `index.${format === "es" ? "es" : "js"}`,
         },
         rollupOptions: {
-            external: ["@supabase/supabase-js"],
+            // Remove external dependency configuration to bundle Supabase
             output: {
-                globals: {
-                    "@supabase/supabase-js": "Supabase",
-                },
+                globals: {},
             },
         },
     },
