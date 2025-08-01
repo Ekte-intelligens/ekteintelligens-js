@@ -5,6 +5,7 @@ export declare class AbandonedCartTool {
     private supabaseService;
     private inputDetector?;
     private productDetector?;
+    private totalExtractor?;
     private _sessionId?;
     private isInitialized;
     constructor(options: SDKOptions);

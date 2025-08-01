@@ -8,6 +8,7 @@ jest.mock("../src/services/supabase-service", () => {
                 id: "test-campaign-id",
                 product_mapping: {},
                 input_mapping: null,
+                total_selector: "#cart-total",
             }),
             submitCartSession: jest.fn().mockResolvedValue({
                 id: "test-session-id",
@@ -32,6 +33,7 @@ describe("AbandonedCartTool", () => {
         <input type="email" id="email" name="email" />
         <input type="tel" id="phone" name="phone" />
       </form>
+      <div id="cart-total">$299.99</div>
     `;
     });
 
@@ -65,15 +67,7 @@ describe("AbandonedCartTool", () => {
         expect(tool.hasEmailOrPhone()).toBe(true);
     });
 
-    it("should include current URL in cart session payload", async () => {
-        // Mock window.location.href
-        Object.defineProperty(window, "location", {
-            value: {
-                href: "https://example.com/checkout?utm_source=google&utm_campaign=summer",
-            },
-            writable: true,
-        });
-
+    it("should include cart total in cart session payload", async () => {
         const tool = new AbandonedCartTool(options);
         await tool.initialize();
 
@@ -82,7 +76,7 @@ describe("AbandonedCartTool", () => {
         emailInput.value = "test@example.com";
         emailInput.dispatchEvent(new Event("blur"));
 
-        // The URL should be included in the payload sent to Supabase
+        // The total should be extracted and included in the payload
         // This is tested indirectly through the mock in the test setup
         expect(tool.hasEmailOrPhone()).toBe(true);
     });

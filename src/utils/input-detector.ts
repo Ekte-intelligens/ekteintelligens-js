@@ -80,7 +80,7 @@ export class InputDetector {
                 this.hasEmailOrPhone = true;
             }
 
-            // Only call the callback if we have email/phone and the callback is set
+            // Call the callback if we have email/phone and the callback is set
             if (this.hasEmailOrPhone && this.onContentUpdate) {
                 this.onContentUpdate(this.content, this.sessionId);
             }

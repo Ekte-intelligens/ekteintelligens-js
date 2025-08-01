@@ -155,6 +155,69 @@ product_mapping: {
 product_mapping: {}
 ```
 
+#### Total Selector Examples:
+
+```typescript
+// Simple ID selector
+total_selector: "#cart-total";
+
+// Class selector
+total_selector: ".cart-total";
+
+// Complex selector
+total_selector: ".checkout-summary .total-amount";
+
+// Data attribute selector
+total_selector: "[data-cart-total]";
+
+// Nested selector
+total_selector: ".cart-container .summary .total-value";
+```
+
+#### Real-World Example: BookVisit Hotel Booking
+
+For a BookVisit hotel booking page, the SDK configuration would be:
+
+```typescript
+// Input mapping for form fields
+input_mapping: {
+    inputs: [
+        "[data-testid='customer_info_form_firstname']",
+        "[data-testid='customer_info_form_lastname']",
+        "[data-testid='customer_info_form_email']",
+        "[data-testid='customer_info_form_validateemail']",
+        "[data-testid='customer_info_form_city']",
+        "[data-testid='customer_info_form_postal_code']",
+        "[data-testid='customer_info_form_street']",
+        "[data-testid='customer_info_form_phone_number']"
+    ]
+}
+
+// Product mapping for room details
+product_mapping: {
+    "#room-details-1": {
+        fields: {
+            Rominfo: ".room-detail-row:nth-child(1) .room-detail-value",
+            Innsjekking: ".room-detail-row:nth-child(2) .room-detail-value",
+            Avreise: ".room-detail-row:nth-child(3) .room-detail-value",
+            Gjester: ".room-detail-row:nth-child(4) .room-detail-value",
+            Inkluderer: ".room-detail-row:nth-child(5) .room-detail-value",
+            Pris: ".room-detail-row:nth-child(6) .room-detail-value"
+        }
+    }
+}
+
+// Total selector for booking price
+total_selector: "#cart-total"
+```
+
+This configuration will extract:
+
+-   **Form Data**: Customer information (name, email, phone, address)
+-   **Product Data**: Room details (type, check-in/out, guests, amenities, price)
+-   **Total**: Booking total price (1 790 NOK)
+-   **URL**: Current page URL with query parameters
+
 ## API Reference
 
 ### EkteIntelligensSDK
@@ -208,7 +271,8 @@ npm run type-check
 CREATE TABLE organizations_checkout_campaigns (
   id UUID PRIMARY KEY,
   product_mapping JSONB,
-  input_mapping JSONB
+  input_mapping JSONB,
+  total_selector TEXT -- Selector for cart total (id, class, or complex selector)
 );
 ```
 
@@ -223,6 +287,7 @@ interface CartSessionPayload {
     content: Record<string, any>;
     products?: any[];
     url?: string; // Current page URL with query parameters
+    total?: number; // Cart total value
     id?: string; // Session ID for updates
 }
 ```

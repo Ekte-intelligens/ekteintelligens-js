@@ -149,6 +149,14 @@
             </div>
         </div>
 
+        <!-- Example 3: Cart Total -->
+        <div class="demo-section">
+            <h3>Cart Total</h3>
+            <div class="checkout-summary">
+                <div class="total-amount">$299.99</div>
+            </div>
+        </div>
+
         <div id="status" class="status" style="display: none"></div>
 
         <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -242,8 +250,12 @@ Product Detection Examples:
    - Current page URL with query parameters is automatically included
    - Example: "https://example.com/checkout?utm_source=google&utm_campaign=summer"
 
+4. Cart Total Tracking:
+   - Cart total is automatically extracted using the configured total_selector
+   - Example: "$299.99" extracted from ".checkout-summary .total-amount"
+
 The SDK will automatically detect these products when email/phone is entered
-and send them to your Supabase edge function along with the form content and current URL.
+and send them to your Supabase edge function along with the form content, current URL, and cart total.
             `);
         </script>
     </body>

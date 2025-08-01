@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>EkteIntelligens SDK - BookVisit Hotel Example</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                max-width: 1200px;
+                margin: 0 auto;
+                padding: 20px;
+                background-color: #f5f5f5;
+            }
+            .container {
+                display: grid;
+                grid-template-columns: 1fr 400px;
+                gap: 30px;
+            }
+            .form-section {
+                background: white;
+                padding: 30px;
+                border-radius: 8px;
+                box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            }
+            .booking-summary {
+                background: white;
+                padding: 25px;
+                border-radius: 8px;
+                box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+                height: fit-content;
+                position: sticky;
+                top: 20px;
+            }
+            .form-group {
+                margin-bottom: 15px;
+            }
+            .form-row {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 15px;
+            }
+            .form-row.full-width {
+                grid-template-columns: 1fr;
+            }
+            label {
+                display: block;
+                margin-bottom: 5px;
+                font-weight: bold;
+                color: #333;
+            }
+            input,
+            select {
+                width: 100%;
+                padding: 12px;
+                border: 1px solid #ddd;
+                border-radius: 4px;
+                font-size: 14px;
+            }
+            input:focus,
+            select:focus {
+                outline: none;
+                border-color: #007bff;
+                box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+            }
+            .phone-input {
+                display: flex;
+                gap: 10px;
+            }
+            .phone-input input:first-child {
+                width: 80px;
+            }
+            .room-details {
+                background: #f8f9fa;
+                padding: 20px;
+                border-radius: 8px;
+                margin: 20px 0;
+            }
+            .room-header {
+                display: flex;
+                align-items: center;
+                gap: 15px;
+                margin-bottom: 15px;
+            }
+            .room-image {
+                width: 50px;
+                height: 50px;
+                background: #e9ecef;
+                border-radius: 4px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 12px;
+                color: #666;
+            }
+            .room-info {
+                flex: 1;
+            }
+            .room-title {
+                font-weight: bold;
+                margin-bottom: 5px;
+            }
+            .room-subtitle {
+                color: #666;
+                font-size: 14px;
+            }
+            .room-detail-row {
+                display: flex;
+                justify-content: space-between;
+                margin-bottom: 8px;
+                font-size: 14px;
+            }
+            .room-detail-label {
+                color: #666;
+            }
+            .room-detail-value {
+                font-weight: 500;
+            }
+            .price-section {
+                border-top: 1px solid #ddd;
+                padding-top: 15px;
+                margin-top: 15px;
+            }
+            .total-price {
+                font-size: 18px;
+                font-weight: bold;
+                color: #333;
+            }
+            .status {
+                margin-top: 20px;
+                padding: 15px;
+                border-radius: 4px;
+                font-weight: bold;
+            }
+            .success {
+                background-color: #d4edda;
+                color: #155724;
+                border: 1px solid #c3e6cb;
+            }
+            .error {
+                background-color: #f8d7da;
+                color: #721c24;
+                border: 1px solid #f5c6cb;
+            }
+            .demo-info {
+                background: #e3f2fd;
+                padding: 20px;
+                border-radius: 8px;
+                margin-bottom: 30px;
+            }
+            .demo-info h3 {
+                margin-top: 0;
+                color: #1976d2;
+            }
+            .demo-info ul {
+                margin: 10px 0;
+                padding-left: 20px;
+            }
+            .demo-info li {
+                margin-bottom: 5px;
+            }
+        </style>
+    </head>
+    <body>
+        <h1>EkteIntelligens SDK - BookVisit Hotel Example</h1>
+
+        <div class="demo-info">
+            <h3>🎯 SDK Configuration for This Example</h3>
+            <p>
+                This example demonstrates how the SDK extracts data from a
+                BookVisit hotel booking page:
+            </p>
+            <ul>
+                <li>
+                    <strong>Input Mapping:</strong> Targets specific form inputs
+                    using data-testid attributes
+                </li>
+                <li>
+                    <strong>Product Mapping:</strong> Extracts room details from
+                    the booking summary
+                </li>
+                <li>
+                    <strong>Total Mapping:</strong> Captures the total price
+                    from the summary
+                </li>
+            </ul>
+        </div>
+
+        <div class="container">
+            <!-- Form Section -->
+            <div class="form-section">
+                <h2>Customer Information</h2>
+
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="i_am_corp_customer" /> Jeg er
+                        en bedriftskunde
+                    </label>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <input
+                            data-testid="customer_info_form_firstname"
+                            placeholder="Fornavn *"
+                            name="firstName"
+                            type="text"
+                        />
+                    </div>
+                    <div class="form-group">
+                        <input
+                            data-testid="customer_info_form_lastname"
+                            placeholder="Etternavn *"
+                            name="lastName"
+                            type="text"
+                        />
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <input
+                            data-testid="customer_info_form_email"
+                            placeholder="E-post *"
+                            name="emailAddress"
+                            type="email"
+                        />
+                    </div>
+                    <div class="form-group">
+                        <input
+                            data-testid="customer_info_form_validateemail"
+                            placeholder="Bekreft epost *"
+                            name="confirmEmailAddress"
+                            type="email"
+                        />
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <input
+                            data-testid="customer_info_form_co_address"
+                            placeholder="Bi-adresse"
+                            name="coAddress"
+                            type="text"
+                        />
+                    </div>
+                    <div class="form-group">
+                        <input
+                            data-testid="customer_info_form_city"
+                            placeholder="By *"
+                            name="city"
+                            type="text"
+                        />
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <input
+                            data-testid="customer_info_form_postal_code"
+                            placeholder="Postnummer *"
+                            name="postalCode"
+                            type="text"
+                        />
+                    </div>
+                    <div class="form-group">
+                        <input
+                            data-testid="customer_info_form_street"
+                            placeholder="Gate *"
+                            name="street"
+                            type="text"
+                        />
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <select
+                            data-testid="customer_info_form_choose_country"
+                            name="checkoutField-chooseCountry"
+                        >
+                            <option value="">Velg land *</option>
+                            <option value="NO">Norge</option>
+                            <option value="SE">Sverige</option>
+                            <option value="DK">Danmark</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <div class="phone-input">
+                            <input
+                                data-testid="customer_info_form_phone_country_code"
+                                placeholder=""
+                                name="checkoutField-phoneCountryCode"
+                                type="number"
+                                value="47"
+                            />
+                            <input
+                                data-testid="customer_info_form_phone_number"
+                                placeholder="Telefonnummer *"
+                                name="checkoutField-phoneNumber"
+                                type="number"
+                            />
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Booking Summary Section -->
+            <div class="booking-summary">
+                <h3>Bestillingssammendrag</h3>
+
+                <div class="room-details">
+                    <div class="room-header">
+                        <div class="room-image">🏨</div>
+                        <div class="room-info">
+                            <div class="room-title">
+                                1x: Dobbeltrom med sovesofa (2 Voksne)
+                            </div>
+                            <div class="room-subtitle">Rom inkl. frokost</div>
+                        </div>
+                    </div>
+
+                    <div id="room-details-1">
+                        <div class="room-detail-row">
+                            <span class="room-detail-label">Rominfo:</span>
+                            <span class="room-detail-value"
+                                >Dobbeltseng, 21m2</span
+                            >
+                        </div>
+                        <div class="room-detail-row">
+                            <span class="room-detail-label">Innsjekking:</span>
+                            <span class="room-detail-value"
+                                >søn. 31. aug. 2025, 16:00</span
+                            >
+                        </div>
+                        <div class="room-detail-row">
+                            <span class="room-detail-label">Avreise:</span>
+                            <span class="room-detail-value"
+                                >man. 1. sep. 2025, 1 Natt</span
+                            >
+                        </div>
+                        <div class="room-detail-row">
+                            <span class="room-detail-label">Gjester:</span>
+                            <span class="room-detail-value">2 Voksne</span>
+                        </div>
+
+                        <div class="room-detail-row">
+                            <span class="room-detail-label">Inkluderer:</span>
+                            <span class="room-detail-value">Frokost</span>
+                        </div>
+
+                        <div class="room-detail-row">
+                            <span class="room-detail-label"
+                                >31. aug. - 01. sep.</span
+                            >
+                            <span class="room-detail-value">1 790 NOK</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="price-section">
+                    <div class="room-detail-row">
+                        <span class="room-detail-label">Totalpris:</span>
+                        <span class="total-price" id="cart-total"
+                            >1 790 NOK</span
+                        >
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="status" class="status" style="display: none"></div>
+
+        <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+        <script src="../dist/index.js"></script>
+        <script>
+            // Initialize the SDK with BookVisit-specific configuration
+            const sdk = new EkteIntelligensSDK({
+                organizationId: "bookvisit-org",
+                cartCampaignId: "bookvisit-hotel-campaign",
+                features: {
+                    abandonedCart: true,
+                },
+            });
+
+            // Initialize the SDK
+            sdk.initialize()
+                .then((success) => {
+                    if (success) {
+                        showStatus("SDK initialized successfully!", "success");
+
+                        // Get the abandoned cart tool
+                        const abandonedCartTool = sdk.getAbandonedCartTool();
+                        if (abandonedCartTool) {
+                            console.log(
+                                "BookVisit hotel booking tool is ready"
+                            );
+
+                            // Log detected products after a delay
+                            setTimeout(() => {
+                                const content = abandonedCartTool.getContent();
+                                console.log("Current form content:", content);
+                            }, 1000);
+                        }
+                    } else {
+                        showStatus("Failed to initialize SDK", "error");
+                    }
+                })
+                .catch((error) => {
+                    showStatus(
+                        "Error initializing SDK: " + error.message,
+                        "error"
+                    );
+                });
+
+            // Handle form submission
+            document.addEventListener("submit", function (e) {
+                e.preventDefault();
+
+                const abandonedCartTool = sdk.getAbandonedCartTool();
+                if (abandonedCartTool) {
+                    const content = abandonedCartTool.getContent();
+                    const hasContact = abandonedCartTool.hasEmailOrPhone();
+
+                    showStatus(
+                        `Form submitted! Content: ${JSON.stringify(
+                            content
+                        )}. Has contact: ${hasContact}`,
+                        "success"
+                    );
+                }
+            });
+
+            function showStatus(message, type) {
+                const statusDiv = document.getElementById("status");
+                statusDiv.textContent = message;
+                statusDiv.className = `status ${type}`;
+                statusDiv.style.display = "block";
+            }
+
+            // Demo: Show the expected SDK configuration
+            console.log(`
+BookVisit Hotel Booking SDK Configuration:
+
+1. Input Mapping (for form fields):
+   input_mapping: {
+       inputs: [
+           "[data-testid='customer_info_form_firstname']",
+           "[data-testid='customer_info_form_lastname']", 
+           "[data-testid='customer_info_form_email']",
+           "[data-testid='customer_info_form_validateemail']",
+           "[data-testid='customer_info_form_city']",
+           "[data-testid='customer_info_form_postal_code']",
+           "[data-testid='customer_info_form_street']",
+           "[data-testid='customer_info_form_phone_number']"
+       ]
+   }
+
+2. Product Mapping (for room details):
+   product_mapping: {
+       "#room-details-1": {
+           fields: {
+               Rominfo: ".room-detail-row:nth-child(1) .room-detail-value",
+               Innsjekking: ".room-detail-row:nth-child(2) .room-detail-value", 
+               Avreise: ".room-detail-row:nth-child(3) .room-detail-value",
+               Gjester: ".room-detail-row:nth-child(4) .room-detail-value",
+               Inkluderer: ".room-detail-row:nth-child(5) .room-detail-value",
+               Pris: ".room-detail-row:nth-child(6) .room-detail-value"
+           }
+       }
+   }
+
+3. Total Selector:
+   total_selector: "#cart-total"
+
+The SDK will automatically:
+- Track form inputs using data-testid selectors
+- Extract room details from the booking summary
+- Capture the total price
+- Send all data to your Supabase edge function when email/phone is entered
+        `);
+        </script>
+    </body>
+</html>

@@ -18,6 +18,7 @@ export interface CheckoutCampaign {
     id: string;
     product_mapping: ProductMapping;
     input_mapping: InputMapping | null;
+    total_selector?: string;
 }
 export interface Content {
     [key: string]: any;
@@ -35,6 +36,7 @@ export interface CartSessionPayload {
     content: Content;
     products?: DetectedProduct[];
     url?: string;
+    total?: number;
     id?: string;
 }
 export interface CartSessionResponse {

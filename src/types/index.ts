@@ -21,6 +21,7 @@ export interface CheckoutCampaign {
     id: string;
     product_mapping: ProductMapping;
     input_mapping: InputMapping | null;
+    total_selector?: string; // Selector for cart total (id, class, or complex selector)
 }
 
 export interface Content {
@@ -41,6 +42,7 @@ export interface CartSessionPayload {
     content: Content;
     products?: DetectedProduct[];
     url?: string; // Current page URL with query parameters
+    total?: number; // Cart total value
     id?: string;
 }
 

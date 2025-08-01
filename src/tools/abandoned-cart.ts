@@ -1,5 +1,6 @@
 import { InputDetector } from "../utils/input-detector";
 import { ProductDetector } from "../utils/product-detector";
+import { TotalExtractor } from "../utils/total-extractor";
 import { SupabaseService } from "../services/supabase-service";
 import { SDKOptions, CartSessionPayload } from "../types";
 
@@ -8,6 +9,7 @@ export class AbandonedCartTool {
     private supabaseService: SupabaseService;
     private inputDetector?: InputDetector;
     private productDetector?: ProductDetector;
+    private totalExtractor?: TotalExtractor;
     private _sessionId?: string;
     private isInitialized = false;
 
@@ -43,6 +45,9 @@ export class AbandonedCartTool {
                 campaign.product_mapping
             );
 
+            // Initialize total extractor with the campaign's total selector
+            this.totalExtractor = new TotalExtractor(campaign.total_selector);
+
             // Set up the content update callback
             this.inputDetector.setOnContentUpdate(
                 this.handleContentUpdate.bind(this)
@@ -68,6 +73,9 @@ export class AbandonedCartTool {
             // Detect products on the page
             const products = this.productDetector?.detectProducts() || [];
 
+            // Extract cart total
+            const total = this.totalExtractor?.extractTotal() || 0;
+
             // Get current page URL with query parameters
             const currentUrl =
                 typeof window !== "undefined" ? window.location.href : "";
@@ -78,6 +86,7 @@ export class AbandonedCartTool {
                 content: content,
                 products: products,
                 url: currentUrl,
+                total: total,
                 id: sessionId,
             };
 

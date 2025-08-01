@@ -1,14 +1,14 @@
-var d = Object.defineProperty;
-var h = (c, t, e) => t in c ? d(c, t, { enumerable: !0, configurable: !0, writable: !0, value: e }) : c[t] = e;
-var s = (c, t, e) => h(c, typeof t != "symbol" ? t + "" : t, e);
-import { createClient as p } from "@supabase/supabase-js";
-class m {
+var h = Object.defineProperty;
+var p = (a, t, e) => t in a ? h(a, t, { enumerable: !0, configurable: !0, writable: !0, value: e }) : a[t] = e;
+var o = (a, t, e) => p(a, typeof t != "symbol" ? t + "" : t, e);
+import { createClient as m } from "@supabase/supabase-js";
+class f {
   constructor(t) {
-    s(this, "inputMapping");
-    s(this, "content", {});
-    s(this, "sessionId");
-    s(this, "hasEmailOrPhone", !1);
-    s(this, "onContentUpdate");
+    o(this, "inputMapping");
+    o(this, "content", {});
+    o(this, "sessionId");
+    o(this, "hasEmailOrPhone", !1);
+    o(this, "onContentUpdate");
     this.inputMapping = t;
   }
   setOnContentUpdate(t) {
@@ -40,15 +40,15 @@ class m {
     return this.inputMapping.inputs && this.inputMapping.inputs.length > 0 ? this.inputMapping.inputs.map((t) => document.querySelector(t)).filter((t) => t !== null) : Array.from(document.querySelectorAll("input"));
   }
   handleInputBlur(t) {
-    const e = t.target, i = this.getFieldName(e), r = e.value.trim();
-    r && (this.content[i] = r, this.isEmailOrPhone(i, r) && (this.hasEmailOrPhone = !0), this.hasEmailOrPhone && this.onContentUpdate && this.onContentUpdate(this.content, this.sessionId));
+    const e = t.target, r = this.getFieldName(e), n = e.value.trim();
+    n && (this.content[r] = n, this.isEmailOrPhone(r, n) && (this.hasEmailOrPhone = !0), this.hasEmailOrPhone && this.onContentUpdate && this.onContentUpdate(this.content, this.sessionId));
   }
   getFieldName(t) {
     return t.name || t.id || t.getAttribute("data-field") || t.type || "unknown";
   }
   isEmailOrPhone(t, e) {
-    const i = t.toLowerCase();
-    return i.includes("email") || i.includes("mail") ? this.isValidEmail(e) : i.includes("phone") || i.includes("tel") ? this.isValidPhone(e) : this.isValidEmail(e) || this.isValidPhone(e);
+    const r = t.toLowerCase();
+    return r.includes("email") || r.includes("mail") ? this.isValidEmail(e) : r.includes("phone") || r.includes("tel") ? this.isValidPhone(e) : this.isValidEmail(e) || this.isValidPhone(e);
   }
   isValidEmail(t) {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(t);
@@ -63,24 +63,24 @@ class m {
     return this.hasEmailOrPhone;
   }
 }
-class f {
+class g {
   constructor(t) {
-    s(this, "productMapping");
+    o(this, "productMapping");
     this.productMapping = t;
   }
   detectProducts() {
     const t = [];
     if (!this.productMapping || Object.keys(this.productMapping).length === 0)
       return this.detectCommonProducts();
-    for (const [e, i] of Object.entries(this.productMapping)) {
-      const r = e.includes(",") ? e.split(",").map((n) => n.trim()) : [e];
-      for (const n of r)
-        document.querySelectorAll(n).forEach((l) => {
-          const a = this.extractProductFromElement(
-            l,
-            i
+    for (const [e, r] of Object.entries(this.productMapping)) {
+      const n = e.includes(",") ? e.split(",").map((i) => i.trim()) : [e];
+      for (const i of n)
+        document.querySelectorAll(i).forEach((c) => {
+          const l = this.extractProductFromElement(
+            c,
+            r
           );
-          a && Object.keys(a).length > 0 && t.push(a);
+          l && Object.keys(l).length > 0 && t.push(l);
         });
     }
     return t;
@@ -94,59 +94,59 @@ class f {
       ".product",
       ".item"
     ];
-    for (const i of e)
-      document.querySelectorAll(i).forEach((n) => {
-        const o = this.extractProductFromCommonElement(n);
-        o && t.push(o);
+    for (const r of e)
+      document.querySelectorAll(r).forEach((i) => {
+        const s = this.extractProductFromCommonElement(i);
+        s && t.push(s);
       });
     return t;
   }
   extractProductFromElement(t, e) {
     try {
-      const i = {};
+      const r = {};
       if (e.id_selector) {
-        const r = this.extractValue(t, e.id_selector);
-        r !== null && (i.id = r);
+        const n = this.extractValue(t, e.id_selector);
+        n !== null && (r.id = n);
       }
       if (e.name_selector) {
-        const r = this.extractValue(
+        const n = this.extractValue(
           t,
           e.name_selector
         );
-        r !== null && (i.name = r);
+        n !== null && (r.name = n);
       }
-      if (e.price_selector && (i.price = this.extractPrice(
+      if (e.price_selector && (r.price = this.extractPrice(
         t,
         e.price_selector
-      )), e.quantity_selector && (i.quantity = this.extractQuantity(
+      )), e.quantity_selector && (r.quantity = this.extractQuantity(
         t,
         e.quantity_selector
       )), e.fields)
-        for (const [r, n] of Object.entries(
+        for (const [n, i] of Object.entries(
           e.fields
         )) {
-          const o = this.extractValue(
+          const s = this.extractValue(
             t,
-            n
+            i
           );
-          o !== null && (r.toLowerCase().includes("price") ? i[r] = this.extractPrice(
+          s !== null && (n.toLowerCase().includes("price") ? r[n] = this.extractPrice(
             t,
-            n
-          ) : i[r] = o);
+            i
+          ) : r[n] = s);
         }
       if (e.additional_fields)
-        for (const [r, n] of Object.entries(
+        for (const [n, i] of Object.entries(
           e.additional_fields
         )) {
-          const o = this.extractValue(
+          const s = this.extractValue(
             t,
-            n
+            i
           );
-          o !== null && (i[r] = o);
+          s !== null && (r[n] = s);
         }
-      return Object.keys(i).length > 0 ? i : null;
-    } catch (i) {
-      return console.warn("Error extracting product from element:", i), null;
+      return Object.keys(r).length > 0 ? r : null;
+    } catch (r) {
+      return console.warn("Error extracting product from element:", r), null;
     }
   }
   extractProductFromCommonElement(t) {
@@ -169,85 +169,118 @@ class f {
     }
   }
   extractValue(t, e) {
-    var i, r, n;
+    var r, n, i;
     try {
       if (e.startsWith("data-"))
         return t.getAttribute(e) || null;
       if (e.startsWith(">"))
         try {
-          const l = t.querySelector(e);
-          return l && ((i = l.textContent) == null ? void 0 : i.trim()) || null;
-        } catch (l) {
-          return console.warn(`Invalid selector: ${e}`, l), null;
+          const c = t.querySelector(e);
+          return c && ((r = c.textContent) == null ? void 0 : r.trim()) || null;
+        } catch (c) {
+          return console.warn(`Invalid selector: ${e}`, c), null;
         }
       if (e.includes(",")) {
-        const l = e.split(",").map((a) => a.trim());
-        for (const a of l)
+        const c = e.split(",").map((l) => l.trim());
+        for (const l of c)
           try {
-            const u = t.querySelector(a);
+            const u = t.querySelector(l);
             if (u)
-              return ((r = u.textContent) == null ? void 0 : r.trim()) || null;
+              return ((n = u.textContent) == null ? void 0 : n.trim()) || null;
           } catch (u) {
             console.warn(
-              `Invalid selector in comma list: ${a}`,
+              `Invalid selector in comma list: ${l}`,
               u
             );
             continue;
           }
         return null;
       }
-      const o = t.querySelector(e);
-      return o && ((n = o.textContent) == null ? void 0 : n.trim()) || null;
-    } catch (o) {
+      const s = t.querySelector(e);
+      return s && ((i = s.textContent) == null ? void 0 : i.trim()) || null;
+    } catch (s) {
       return console.warn(
         `Error extracting value with selector: ${e}`,
-        o
+        s
       ), null;
     }
   }
   extractTextContent(t, e) {
-    var r;
-    const i = t.querySelector(e);
-    return i && ((r = i.textContent) == null ? void 0 : r.trim()) || null;
+    var n;
+    const r = t.querySelector(e);
+    return r && ((n = r.textContent) == null ? void 0 : n.trim()) || null;
   }
   extractPrice(t, e) {
-    const i = this.extractValue(t, e);
-    if (!i) return 0;
-    const r = i.replace(/[^\d.,]/g, "").replace(",", "."), n = parseFloat(r);
-    return isNaN(n) ? 0 : n;
+    const r = this.extractValue(t, e);
+    if (!r) return 0;
+    const n = r.replace(/[^\d.,]/g, "").replace(",", "."), i = parseFloat(n);
+    return isNaN(i) ? 0 : i;
   }
   extractQuantity(t, e) {
-    const i = this.extractValue(t, e);
-    if (!i) return 1;
-    const r = parseInt(i);
-    return isNaN(r) ? 1 : r;
+    const r = this.extractValue(t, e);
+    if (!r) return 1;
+    const n = parseInt(r);
+    return isNaN(n) ? 1 : n;
   }
 }
-class g {
+class y {
+  constructor(t) {
+    o(this, "totalSelector");
+    this.totalSelector = t;
+  }
+  extractTotal() {
+    var t;
+    if (!this.totalSelector)
+      return 0;
+    try {
+      const e = document.querySelector(this.totalSelector);
+      if (!e)
+        return console.warn(`Total selector not found: ${this.totalSelector}`), 0;
+      const r = ((t = e.textContent) == null ? void 0 : t.trim()) || "";
+      if (!r)
+        return console.warn(
+          `No text content found for total selector: ${this.totalSelector}`
+        ), 0;
+      let n = r.replace(/[^\d.,]/g, "");
+      n.includes(",") && !n.includes(".") ? n = n.replace(",", ".") : n.includes(",") && n.includes(".") && (n = n.replace(",", ""));
+      const i = parseFloat(n);
+      return isNaN(i) ? (console.warn(`Could not parse total value: ${r}`), 0) : i;
+    } catch (e) {
+      return console.warn(
+        `Error extracting total with selector: ${this.totalSelector}`,
+        e
+      ), 0;
+    }
+  }
+  hasTotalSelector() {
+    return !!this.totalSelector;
+  }
+}
+class x {
   constructor(t, e) {
-    s(this, "client");
-    const i = t || "https://yoflhmaayrceswiwvxba.supabase.co", r = e || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlvZmxobWFheXJjZXN3aXd2eGJhIiwicm9sZSI6ImFub24iLCJpYXQiOjE2NzI5MzQ4MzUsImV4cCI6MTk4ODUxMDgzNX0.dq8OdZylVnB1Gwa_nYLALxUHk2NOPmRlhS_YbA7E8pg";
-    this.client = p(i, r);
+    o(this, "client");
+    const r = t || "https://yoflhmaayrceswiwvxba.supabase.co", n = e || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlvZmxobWFheXJjZXN3aXd2eGJhIiwicm9sZSI6ImFub24iLCJpYXQiOjE2NzI5MzQ4MzUsImV4cCI6MTk4ODUxMDgzNX0.dq8OdZylVnB1Gwa_nYLALxUHk2NOPmRlhS_YbA7E8pg";
+    this.client = m(r, n);
   }
   async getCheckoutCampaign(t) {
     try {
-      const { data: e, error: i } = await this.client.from("organizations_checkout_campaigns").select("*").eq("id", t).single();
-      return i ? (console.error("Error fetching checkout campaign:", i), null) : e;
+      const { data: e, error: r } = await this.client.from("organizations_checkout_campaigns").select("*").eq("id", t).single();
+      return r ? (console.error("Error fetching checkout campaign:", r), null) : e;
     } catch (e) {
       return console.error("Error fetching checkout campaign:", e), null;
     }
   }
   async submitCartSession(t) {
     try {
-      const { data: e, error: i } = await this.client.functions.invoke(
+      const { data: e, error: r } = await this.client.functions.invoke(
         "cart-checkout-session",
         {
           body: t
         }
       );
-      return i ? (console.error(
+      return r ? (console.error(
         "Error calling cart-checkout-session function:",
-        i
+        r
       ), null) : e;
     } catch (e) {
       return console.error(
@@ -257,15 +290,16 @@ class g {
     }
   }
 }
-class y {
+class I {
   constructor(t) {
-    s(this, "options");
-    s(this, "supabaseService");
-    s(this, "inputDetector");
-    s(this, "productDetector");
-    s(this, "_sessionId");
-    s(this, "isInitialized", !1);
-    this.options = t, this.supabaseService = new g(
+    o(this, "options");
+    o(this, "supabaseService");
+    o(this, "inputDetector");
+    o(this, "productDetector");
+    o(this, "totalExtractor");
+    o(this, "_sessionId");
+    o(this, "isInitialized", !1);
+    this.options = t, this.supabaseService = new x(
       t.supabaseUrl,
       t.supabaseAnonKey
     );
@@ -277,9 +311,9 @@ class y {
       const t = await this.supabaseService.getCheckoutCampaign(
         this.options.cartCampaignId
       );
-      return t ? (this.inputDetector = new m(t.input_mapping), this.productDetector = new f(
+      return t ? (this.inputDetector = new f(t.input_mapping), this.productDetector = new g(
         t.product_mapping
-      ), this.inputDetector.setOnContentUpdate(
+      ), this.totalExtractor = new y(t.total_selector), this.inputDetector.setOnContentUpdate(
         this.handleContentUpdate.bind(this)
       ), this.inputDetector.startListening(), this.isInitialized = !0, console.log("Abandoned cart tool initialized successfully"), !0) : (console.error("Failed to fetch checkout campaign data"), !1);
     } catch (t) {
@@ -287,21 +321,22 @@ class y {
     }
   }
   async handleContentUpdate(t, e) {
-    var i, r;
+    var r, n, i;
     try {
-      const n = ((i = this.productDetector) == null ? void 0 : i.detectProducts()) || [], o = typeof window < "u" ? window.location.href : "", l = {
+      const s = ((r = this.productDetector) == null ? void 0 : r.detectProducts()) || [], c = ((n = this.totalExtractor) == null ? void 0 : n.extractTotal()) || 0, l = typeof window < "u" ? window.location.href : "", u = {
         organization_id: this.options.organizationId,
         cart_campaign_id: this.options.cartCampaignId,
         content: t,
-        products: n,
-        url: o,
+        products: s,
+        url: l,
+        total: c,
         id: e
-      }, a = await this.supabaseService.submitCartSession(
-        l
+      }, d = await this.supabaseService.submitCartSession(
+        u
       );
-      a && a.success ? (this._sessionId = a.id, (r = this.inputDetector) == null || r.setSessionId(a.id), console.log("Cart session updated successfully:", a.id)) : console.error("Failed to submit cart session");
-    } catch (n) {
-      console.error("Error handling content update:", n);
+      d && d.success ? (this._sessionId = d.id, (i = this.inputDetector) == null || i.setSessionId(d.id), console.log("Cart session updated successfully:", d.id)) : console.error("Failed to submit cart session");
+    } catch (s) {
+      console.error("Error handling content update:", s);
     }
   }
   destroy() {
@@ -319,11 +354,11 @@ class y {
     return this._sessionId;
   }
 }
-class I {
+class E {
   constructor(t) {
-    s(this, "options");
-    s(this, "tools", /* @__PURE__ */ new Map());
-    s(this, "_isInitialized", !1);
+    o(this, "options");
+    o(this, "tools", /* @__PURE__ */ new Map());
+    o(this, "_isInitialized", !1);
     this.options = t;
   }
   async initialize() {
@@ -332,7 +367,7 @@ class I {
       return !0;
     try {
       if ((t = this.options.features) != null && t.abandonedCart) {
-        const e = new y(this.options);
+        const e = new I(this.options);
         await e.initialize(), this.tools.set("abandonedCart", e);
       }
       return this._isInitialized = !0, console.log("EkteIntelligens SDK initialized successfully"), !0;
@@ -353,7 +388,7 @@ class I {
     return this._isInitialized;
   }
 }
-typeof window < "u" && (window.EkteIntelligensSDK = I);
+typeof window < "u" && (window.EkteIntelligensSDK = E);
 export {
-  I as EkteIntelligensSDK
+  E as EkteIntelligensSDK
 };
