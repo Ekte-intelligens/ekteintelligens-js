@@ -134,9 +134,11 @@ export class AbandonedCartTool {
         total: number
     ): boolean {
         // If this is the first update (previousContent is empty), always consider it changed
-        if (Object.keys(this.previousContent).length === 0 && 
-            this.previousProducts.length === 0 && 
-            this.previousTotal === 0) {
+        if (
+            Object.keys(this.previousContent).length === 0 &&
+            this.previousProducts.length === 0 &&
+            this.previousTotal === 0
+        ) {
             return true;
         }
 

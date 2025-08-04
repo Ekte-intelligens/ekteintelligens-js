@@ -1,8 +1,4 @@
-/**
- * Decodes an encoded selector string from the backend
- * @param encoded The encoded selector string
- * @returns The decoded selector string
- */
+export declare function encodeSelector(selector: string): string;
 export declare function decodeSelector(encoded: string): string;
 /**
  * Decodes all selectors in a product mapping object

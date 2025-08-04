@@ -1,5 +1,14 @@
+export function encodeSelector(selector: string): string {
+    return btoa(encodeURIComponent(selector));
+}
+
 export function decodeSelector(encoded: string) {
-    return atob(encoded);
+    try {
+        return decodeURIComponent(atob(encoded));
+    } catch (error) {
+        // If decoding fails, return the original string
+        return encoded;
+    }
 }
 
 /**
