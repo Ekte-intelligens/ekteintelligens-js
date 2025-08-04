@@ -94,4 +94,35 @@ describe("TotalExtractor", () => {
         expect(extractor1.hasTotalSelector()).toBe(true);
         expect(extractor2.hasTotalSelector()).toBe(false);
     });
+
+    it("should handle over-escaped selectors from database", () => {
+        // Set up DOM with the target element
+        document.body.innerHTML = `
+            <div id="content_div">
+                <div class="!bv-static bv-mb-[25px] bv_large:!bv-sticky bv_large:bv-top-[20px] bv_large:bv-mb-0 bv_large:bv-min-w-[360px] bv_large:bv-z-[11]">
+                    <div>
+                        <div class="bv-rounded-bl-bv_sidebarRoundedCorners bv-rounded-br-bv_sidebarRoundedCorners bv-text-bv_sidebarColor bv-bg-bv_sidebarContentBackground bv_large:bv-bg-[rgba(var(--bv-sidebarContentBackground,0,0,0,0),var(--bv-sidebarOpacity,1))] bv_large:bv-min-w-[395px] bv_large:bv-max-w-[395px]">
+                            <div class="bv-px-[25px] bv-pb-[15px] bv-pt-[25px]">
+                                <div>
+                                    <p>First paragraph</p>
+                                    <p>$299.99</p>
+                                    <p>Third paragraph</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        // This is the over-escaped selector as it comes from the database
+        const overEscapedSelector =
+            "#content_div > div.\\\\!bv-static.bv-mb-\\\\[25px\\\\].bv_large\\\\:\\\\!bv-sticky.bv_large\\\\:bv-top-\\\\[20px\\\\].bv_large\\\\:bv-mb-0.bv_large\\\\:bv-min-w-\\\\[360px\\\\].bv_large\\\\:bv-z-\\\\[11\\\\] > div > div.bv-rounded-bl-bv_sidebarRoundedCorners.bv-rounded-br-bv_sidebarRoundedCorners.bv-text-bv_sidebarColor.bv-bg-bv_sidebarContentBackground.bv_large\\\\:bv-bg-\\\\[rgba\\\\(var\\\\(--bv-sidebarContentBackground\\\\,0\\\\,0\\\\,0\\\\,0\\\\)\\\\,var\\\\(--bv-sidebarOpacity\\\\,1\\\\)\\\\)\\\\].bv_large\\\\:bv-min-w-\\\\[395px\\\\].bv_large\\\\:bv-max-w-\\\\[395px\\\\] > div.bv-px-\\\\[25px\\\\].bv-pb-\\\\[15px\\\\].bv-pt-\\\\[25px\\\\] > div > p:nth-child(2)";
+
+        const extractor = new TotalExtractor(overEscapedSelector);
+        const total = extractor.extractTotal();
+
+        // Should successfully extract the total despite the over-escaped selector
+        expect(total).toBe(299.99);
+    });
 });

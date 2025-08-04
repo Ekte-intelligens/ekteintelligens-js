@@ -7,6 +7,8 @@ export declare class InputDetector {
     private hasEmailOrPhone;
     private onContentUpdate?;
     constructor(inputMapping: InputMapping | null);
+    private cleanInputMapping;
+    private cleanSelector;
     setOnContentUpdate(callback: (content: Record<string, any>, sessionId?: string) => void): void;
     setSessionId(sessionId: string): void;
     startListening(): void;

@@ -12,7 +12,78 @@ export class ProductDetector {
     private productMapping: ProductMapping;
 
     constructor(productMapping: ProductMapping) {
-        this.productMapping = productMapping;
+        this.productMapping = this.cleanProductMapping(productMapping);
+    }
+
+    private cleanProductMapping(
+        productMapping: ProductMapping
+    ): ProductMapping {
+        if (!productMapping) return productMapping;
+
+        const cleanedMapping: ProductMapping = {};
+
+        for (const [selector, config] of Object.entries(productMapping)) {
+            const cleanedSelector = this.cleanSelector(selector);
+            const cleanedConfig = { ...config };
+
+            // Clean selectors in config
+            if (cleanedConfig.id_selector) {
+                cleanedConfig.id_selector = this.cleanSelector(
+                    cleanedConfig.id_selector
+                );
+            }
+            if (cleanedConfig.name_selector) {
+                cleanedConfig.name_selector = this.cleanSelector(
+                    cleanedConfig.name_selector
+                );
+            }
+            if (cleanedConfig.price_selector) {
+                cleanedConfig.price_selector = this.cleanSelector(
+                    cleanedConfig.price_selector
+                );
+            }
+            if (cleanedConfig.quantity_selector) {
+                cleanedConfig.quantity_selector = this.cleanSelector(
+                    cleanedConfig.quantity_selector
+                );
+            }
+
+            // Clean selectors in fields
+            if (cleanedConfig.fields) {
+                const cleanedFields: any = {};
+                for (const [fieldName, fieldSelector] of Object.entries(
+                    cleanedConfig.fields
+                )) {
+                    cleanedFields[fieldName] = this.cleanSelector(
+                        fieldSelector as string
+                    );
+                }
+                cleanedConfig.fields = cleanedFields;
+            }
+
+            // Clean selectors in additional_fields
+            if (cleanedConfig.additional_fields) {
+                const cleanedAdditionalFields: any = {};
+                for (const [fieldName, fieldSelector] of Object.entries(
+                    cleanedConfig.additional_fields
+                )) {
+                    cleanedAdditionalFields[fieldName] = this.cleanSelector(
+                        fieldSelector as string
+                    );
+                }
+                cleanedConfig.additional_fields = cleanedAdditionalFields;
+            }
+
+            cleanedMapping[cleanedSelector] = cleanedConfig;
+        }
+
+        return cleanedMapping;
+    }
+
+    private cleanSelector(selector: string): string {
+        // Remove excessive backslash escaping that can occur when fetching from database
+        // Convert double backslashes to single backslashes
+        return selector.replace(/\\\\/g, "\\");
     }
 
     public detectProducts(): DetectedProduct[] {

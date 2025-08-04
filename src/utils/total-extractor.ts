@@ -2,7 +2,15 @@ export class TotalExtractor {
     private totalSelector?: string;
 
     constructor(totalSelector?: string) {
-        this.totalSelector = totalSelector;
+        this.totalSelector = totalSelector
+            ? this.cleanSelector(totalSelector)
+            : undefined;
+    }
+
+    private cleanSelector(selector: string): string {
+        // Remove excessive backslash escaping that can occur when fetching from database
+        // Convert double backslashes to single backslashes
+        return selector.replace(/\\\\/g, "\\");
     }
 
     public extractTotal(): number {

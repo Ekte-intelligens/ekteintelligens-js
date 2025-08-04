@@ -11,7 +11,37 @@ export class InputDetector {
     ) => void;
 
     constructor(inputMapping: InputMapping | null) {
-        this.inputMapping = inputMapping;
+        this.inputMapping = this.cleanInputMapping(inputMapping);
+    }
+
+    private cleanInputMapping(
+        inputMapping: InputMapping | null
+    ): InputMapping | null {
+        if (!inputMapping) return inputMapping;
+
+        const cleanedMapping: InputMapping = { ...inputMapping };
+
+        // Clean form_selector if present
+        if (cleanedMapping.form_selector) {
+            cleanedMapping.form_selector = this.cleanSelector(
+                cleanedMapping.form_selector
+            );
+        }
+
+        // Clean inputs array if present
+        if (cleanedMapping.inputs && cleanedMapping.inputs.length > 0) {
+            cleanedMapping.inputs = cleanedMapping.inputs.map((selector) =>
+                this.cleanSelector(selector)
+            );
+        }
+
+        return cleanedMapping;
+    }
+
+    private cleanSelector(selector: string): string {
+        // Remove excessive backslash escaping that can occur when fetching from database
+        // Convert double backslashes to single backslashes
+        return selector.replace(/\\\\/g, "\\");
     }
 
     public setOnContentUpdate(

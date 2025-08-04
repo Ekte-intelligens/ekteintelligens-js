@@ -10,6 +10,8 @@ export interface DetectedProduct {
 export declare class ProductDetector {
     private productMapping;
     constructor(productMapping: ProductMapping);
+    private cleanProductMapping;
+    private cleanSelector;
     detectProducts(): DetectedProduct[];
     private detectCommonProducts;
     private extractProductFromElement;
