@@ -13,8 +13,10 @@ export declare class ProductDetector {
     private cleanProductMapping;
     private cleanSelector;
     detectProducts(): DetectedProduct[];
+    private detectProductsWithFieldsMapping;
+    private findCommonParentSelector;
+    private extractProductFromFieldsMapping;
     private detectCommonProducts;
-    private extractProductFromElement;
     private extractProductFromCommonElement;
     private extractValue;
     private extractTextContent;

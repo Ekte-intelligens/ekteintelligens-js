@@ -15,13 +15,13 @@ describe("ProductDetector", () => {
         `;
     });
 
-    it("should detect products using custom mapping", () => {
+    it("should detect products using fields mapping", () => {
         const productMapping = {
-            ".product-item": {
-                id_selector: "data-product-id",
-                name_selector: ".product-name",
-                price_selector: ".product-price",
-                quantity_selector: ".product-quantity",
+            fields: {
+                id: "data-product-id",
+                name: ".product-name",
+                price: ".product-price",
+                quantity: ".product-quantity",
             },
         };
 
@@ -56,13 +56,11 @@ describe("ProductDetector", () => {
         `;
 
         const productMapping = {
-            "#room-details-1": {
-                fields: {
-                    Rominfo:
-                        "#room-details-1 > div > div.bv-flex.bv-flex-col > div:nth-child(1) > p:nth-child(2)",
-                    Innsjekking:
-                        "#room-details-1 > div > div.bv-flex.bv-flex-col > div:nth-child(2) > p:nth-child(2)",
-                },
+            fields: {
+                Rominfo:
+                    "#room-details-1 > div > div.bv-flex.bv-flex-col > div:nth-child(1) > p:nth-child(2)",
+                Innsjekking:
+                    "#room-details-1 > div > div.bv-flex.bv-flex-col > div:nth-child(2) > p:nth-child(2)",
             },
         };
 

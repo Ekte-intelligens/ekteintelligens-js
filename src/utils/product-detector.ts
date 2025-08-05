@@ -20,64 +20,24 @@ export class ProductDetector {
     ): ProductMapping {
         if (!productMapping) return productMapping;
 
-        const cleanedMapping: ProductMapping = {};
+        // Handle fields structure
+        if (productMapping.fields) {
+            const cleanedMapping: ProductMapping = { ...productMapping };
+            const cleanedFields: any = {};
 
-        for (const [selector, config] of Object.entries(productMapping)) {
-            const cleanedSelector = this.cleanSelector(selector);
-            const cleanedConfig = { ...config };
-
-            // Clean selectors in config
-            if (cleanedConfig.id_selector) {
-                cleanedConfig.id_selector = this.cleanSelector(
-                    cleanedConfig.id_selector
+            for (const [fieldName, fieldSelector] of Object.entries(
+                productMapping.fields
+            )) {
+                cleanedFields[fieldName] = this.cleanSelector(
+                    fieldSelector as string
                 );
             }
-            if (cleanedConfig.name_selector) {
-                cleanedConfig.name_selector = this.cleanSelector(
-                    cleanedConfig.name_selector
-                );
-            }
-            if (cleanedConfig.price_selector) {
-                cleanedConfig.price_selector = this.cleanSelector(
-                    cleanedConfig.price_selector
-                );
-            }
-            if (cleanedConfig.quantity_selector) {
-                cleanedConfig.quantity_selector = this.cleanSelector(
-                    cleanedConfig.quantity_selector
-                );
-            }
+            cleanedMapping.fields = cleanedFields;
 
-            // Clean selectors in fields
-            if (cleanedConfig.fields) {
-                const cleanedFields: any = {};
-                for (const [fieldName, fieldSelector] of Object.entries(
-                    cleanedConfig.fields
-                )) {
-                    cleanedFields[fieldName] = this.cleanSelector(
-                        fieldSelector as string
-                    );
-                }
-                cleanedConfig.fields = cleanedFields;
-            }
-
-            // Clean selectors in additional_fields
-            if (cleanedConfig.additional_fields) {
-                const cleanedAdditionalFields: any = {};
-                for (const [fieldName, fieldSelector] of Object.entries(
-                    cleanedConfig.additional_fields
-                )) {
-                    cleanedAdditionalFields[fieldName] = this.cleanSelector(
-                        fieldSelector as string
-                    );
-                }
-                cleanedConfig.additional_fields = cleanedAdditionalFields;
-            }
-
-            cleanedMapping[cleanedSelector] = cleanedConfig;
+            return cleanedMapping;
         }
 
-        return cleanedMapping;
+        return productMapping;
     }
 
     private cleanSelector(selector: string): string {
@@ -97,29 +57,123 @@ export class ProductDetector {
             return this.detectCommonProducts();
         }
 
-        // Use the product mapping to detect products
-        for (const [selector, config] of Object.entries(this.productMapping)) {
-            // Handle multiple selectors (comma-separated)
-            const selectors = selector.includes(",")
-                ? selector.split(",").map((s) => s.trim())
-                : [selector];
+        // Handle fields mapping structure
+        if (this.productMapping.fields) {
+            return this.detectProductsWithFieldsMapping();
+        }
 
-            for (const sel of selectors) {
-                const elements = document.querySelectorAll(sel);
+        return products;
+    }
 
-                elements.forEach((element) => {
-                    const product = this.extractProductFromElement(
-                        element,
-                        config
-                    );
-                    if (product && Object.keys(product).length > 0) {
-                        products.push(product);
-                    }
-                });
+    private detectProductsWithFieldsMapping(): DetectedProduct[] {
+        const products: DetectedProduct[] = [];
+        const fieldsMapping = this.productMapping.fields;
+
+        if (!fieldsMapping) {
+            return products;
+        }
+
+        // For the new structure, we need to find a common parent element
+        // that contains all the fields. Let's try to find a reasonable selector
+        const allSelectors = Object.values(fieldsMapping) as string[];
+        const commonParent = this.findCommonParentSelector(allSelectors);
+
+        if (commonParent) {
+            const elements = document.querySelectorAll(commonParent);
+            elements.forEach((element) => {
+                const product = this.extractProductFromFieldsMapping(
+                    element,
+                    fieldsMapping
+                );
+                if (product && Object.keys(product).length > 0) {
+                    products.push(product);
+                }
+            });
+        } else {
+            // If we can't find a common parent, try to extract from the document root
+            const product = this.extractProductFromFieldsMapping(
+                document.body,
+                fieldsMapping
+            );
+            if (product && Object.keys(product).length > 0) {
+                products.push(product);
             }
         }
 
         return products;
+    }
+
+    private findCommonParentSelector(selectors: string[]): string | null {
+        // Try to find a common parent by looking for common patterns
+        // This is a simplified approach - in practice, you might need more sophisticated logic
+
+        // Check if all selectors start with the same root
+        const firstSelector = selectors[0];
+        if (!firstSelector) return null;
+
+        // Try to find a common prefix
+        const parts = firstSelector.split(" > ");
+        if (parts.length > 1) {
+            const commonPrefix = parts[0];
+            // Check if all selectors start with this prefix
+            const allStartWithPrefix = selectors.every((selector) =>
+                selector.startsWith(commonPrefix)
+            );
+            if (allStartWithPrefix) {
+                return commonPrefix;
+            }
+        }
+
+        // If no common prefix found, try to find a reasonable parent
+        // Look for common patterns like body, main, #content, etc.
+        const commonParents = [
+            "body",
+            "main",
+            "#content",
+            "#main",
+            ".main",
+            ".content",
+        ];
+        for (const parent of commonParents) {
+            const elements = document.querySelectorAll(parent);
+            if (elements.length > 0) {
+                return parent;
+            }
+        }
+
+        return null;
+    }
+
+    private extractProductFromFieldsMapping(
+        element: Element,
+        fieldsMapping: any
+    ): DetectedProduct | null {
+        try {
+            const product: DetectedProduct = {};
+
+            for (const [fieldName, selector] of Object.entries(fieldsMapping)) {
+                const value = this.extractValue(element, selector as string);
+                if (value !== null) {
+                    // Handle price fields specially
+                    if (fieldName.toLowerCase().includes("price")) {
+                        product[fieldName] = this.extractPrice(
+                            element,
+                            selector as string
+                        );
+                    } else {
+                        product[fieldName] = value;
+                    }
+                }
+            }
+
+            return Object.keys(product).length > 0 ? product : null;
+        } catch (error) {
+            console.warn(
+                "Error extracting product from fields mapping:",
+                error
+            );
+            return null;
+        }
     }
 
     private detectCommonProducts(): DetectedProduct[] {
@@ -147,88 +201,6 @@ export class ProductDetector {
         }
 
         return products;
-    }
-
-    private extractProductFromElement(
-        element: Element,
-        config: any
-    ): DetectedProduct | null {
-        try {
-            const product: DetectedProduct = {};
-
-            // Extract standard fields if provided
-            if (config.id_selector) {
-                const idValue = this.extractValue(element, config.id_selector);
-                if (idValue !== null) {
-                    product.id = idValue;
-                }
-            }
-            if (config.name_selector) {
-                const nameValue = this.extractValue(
-                    element,
-                    config.name_selector
-                );
-                if (nameValue !== null) {
-                    product.name = nameValue;
-                }
-            }
-            if (config.price_selector) {
-                product.price = this.extractPrice(
-                    element,
-                    config.price_selector
-                );
-            }
-            if (config.quantity_selector) {
-                product.quantity = this.extractQuantity(
-                    element,
-                    config.quantity_selector
-                );
-            }
-
-            // Add custom fields from config
-            if (config.fields) {
-                for (const [fieldName, selector] of Object.entries(
-                    config.fields
-                )) {
-                    const value = this.extractValue(
-                        element,
-                        selector as string
-                    );
-                    if (value !== null) {
-                        // Handle price fields specially
-                        if (fieldName.toLowerCase().includes("price")) {
-                            product[fieldName] = this.extractPrice(
-                                element,
-                                selector as string
-                            );
-                        } else {
-                            product[fieldName] = value;
-                        }
-                    }
-                }
-            }
-
-            // Add any additional fields from config (backward compatibility)
-            if (config.additional_fields) {
-                for (const [field, selector] of Object.entries(
-                    config.additional_fields
-                )) {
-                    const value = this.extractValue(
-                        element,
-                        selector as string
-                    );
-                    if (value !== null) {
-                        product[field] = value;
-                    }
-                }
-            }
-
-            // Return product if we have any data
-            return Object.keys(product).length > 0 ? product : null;
-        } catch (error) {
-            console.warn("Error extracting product from element:", error);
-            return null;
-        }
     }
 
     private extractProductFromCommonElement(
@@ -334,7 +306,24 @@ export class ProductDetector {
         if (!priceText) return 0;
 
         // Remove currency symbols and convert to number
-        const cleanPrice = priceText.replace(/[^\d.,]/g, "").replace(",", ".");
+        // First, remove common currency prefixes like NOK, $, €, etc.
+        let cleanPrice = priceText.replace(/^[A-Z]{3}\s*/i, ""); // Remove "NOK " prefix
+        cleanPrice = cleanPrice.replace(/^[€$£¥]\s*/i, ""); // Remove currency symbols
+
+        // Remove any remaining non-digit characters except dots and commas
+        cleanPrice = cleanPrice.replace(/[^\d.,]/g, "");
+
+        // Handle comma as thousand separator (like 1,500 -> 1500)
+        if (cleanPrice.includes(",")) {
+            // If there's a comma and it's followed by exactly 3 digits, it's likely a thousand separator
+            const parts = cleanPrice.split(",");
+            if (parts.length === 2 && parts[1].length === 3) {
+                cleanPrice = parts[0] + parts[1]; // Remove comma for thousand separator
+            } else {
+                cleanPrice = cleanPrice.replace(",", "."); // Replace comma with dot for decimal
+            }
+        }
+
         const price = parseFloat(cleanPrice);
         return isNaN(price) ? 0 : price;
     }
