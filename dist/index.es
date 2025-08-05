@@ -107,22 +107,26 @@ class Ut {
     if (!t)
       return e;
     const s = Object.values(t), r = this.findCommonParentSelector(s);
-    if (r)
-      document.querySelectorAll(r).forEach((o) => {
-        const a = this.extractProductFromFieldsMapping(
-          o,
-          t
-        );
-        a && Object.keys(a).length > 0 && e.push(a);
-      });
-    else {
+    if (r && document.querySelectorAll(r).forEach((o) => {
+      const a = this.extractProductFromFieldsMapping(
+        o,
+        t
+      );
+      a && Object.keys(a).length > 0 && e.push(a);
+    }), e.length === 0) {
       const n = this.extractProductFromFieldsMapping(
         document.body,
         t
       );
       n && Object.keys(n).length > 0 && e.push(n);
     }
-    return e;
+    return e.length === 0 && this.findElementsWithAnySelector(s).forEach((o) => {
+      const a = this.extractProductFromFieldsMapping(
+        o,
+        t
+      );
+      a && Object.keys(a).length > 0 && e.push(a);
+    }), e;
   }
   findCommonParentSelector(e) {
     const t = e[0];
@@ -152,8 +156,19 @@ class Ut {
     try {
       const s = {};
       for (const [r, n] of Object.entries(t)) {
-        const o = this.extractValue(e, n);
+        let o = this.extractValue(e, n);
+        if (o === null && n.startsWith("data-")) {
+          const a = document.querySelectorAll(
+            `[${n}]`
+          );
+          a.length > 0 && (o = a[0].getAttribute(
+            n
+          ));
+        }
         o !== null && (r.toLowerCase().includes("price") ? s[r] = this.extractPrice(
+          e,
+          n
+        ) : r.toLowerCase().includes("quantity") ? s[r] = this.extractQuantity(
           e,
           n
         ) : s[r] = o);
@@ -259,6 +274,16 @@ class Ut {
     if (!s) return 1;
     const r = parseInt(s);
     return isNaN(r) ? 1 : r;
+  }
+  findElementsWithAnySelector(e) {
+    const t = /* @__PURE__ */ new Set();
+    for (const s of e)
+      try {
+        document.querySelectorAll(s).forEach((n) => t.add(n));
+      } catch (r) {
+        console.warn(`Invalid selector: ${s}`, r);
+      }
+    return Array.from(t);
   }
 }
 class Lt {

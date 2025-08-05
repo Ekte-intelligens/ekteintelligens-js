@@ -22,5 +22,6 @@ export declare class ProductDetector {
     private extractTextContent;
     private extractPrice;
     private extractQuantity;
+    private findElementsWithAnySelector;
 }
 //# sourceMappingURL=product-detector.d.ts.map

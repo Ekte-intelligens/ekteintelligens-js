@@ -89,8 +89,10 @@ export class ProductDetector {
                     products.push(product);
                 }
             });
-        } else {
-            // If we can't find a common parent, try to extract from the document root
+        }
+
+        // If no products found with common parent, try to extract from document.body
+        if (products.length === 0) {
             const product = this.extractProductFromFieldsMapping(
                 document.body,
                 fieldsMapping
@@ -98,6 +100,20 @@ export class ProductDetector {
             if (product && Object.keys(product).length > 0) {
                 products.push(product);
             }
+        }
+
+        // If still no products found, try to find elements that match any of the selectors
+        if (products.length === 0) {
+            const elements = this.findElementsWithAnySelector(allSelectors);
+            elements.forEach((element) => {
+                const product = this.extractProductFromFieldsMapping(
+                    element,
+                    fieldsMapping
+                );
+                if (product && Object.keys(product).length > 0) {
+                    products.push(product);
+                }
+            });
         }
 
         return products;
@@ -152,11 +168,33 @@ export class ProductDetector {
             const product: DetectedProduct = {};
 
             for (const [fieldName, selector] of Object.entries(fieldsMapping)) {
-                const value = this.extractValue(element, selector as string);
+                let value = this.extractValue(element, selector as string);
+
+                // If value is null and it's a data attribute, try to find it on the document
+                if (
+                    value === null &&
+                    (selector as string).startsWith("data-")
+                ) {
+                    const dataElements = document.querySelectorAll(
+                        `[${selector}]`
+                    );
+                    if (dataElements.length > 0) {
+                        value = dataElements[0].getAttribute(
+                            selector as string
+                        );
+                    }
+                }
+
                 if (value !== null) {
                     // Handle price fields specially
                     if (fieldName.toLowerCase().includes("price")) {
                         product[fieldName] = this.extractPrice(
+                            element,
+                            selector as string
+                        );
+                    } else if (fieldName.toLowerCase().includes("quantity")) {
+                        // Handle quantity fields specially
+                        product[fieldName] = this.extractQuantity(
                             element,
                             selector as string
                         );
@@ -334,5 +372,20 @@ export class ProductDetector {
 
         const quantity = parseInt(quantityText);
         return isNaN(quantity) ? 1 : quantity;
+    }
+
+    private findElementsWithAnySelector(selectors: string[]): Element[] {
+        const elements = new Set<Element>();
+
+        for (const selector of selectors) {
+            try {
+                const foundElements = document.querySelectorAll(selector);
+                foundElements.forEach((element) => elements.add(element));
+            } catch (error) {
+                console.warn(`Invalid selector: ${selector}`, error);
+            }
+        }
+
+        return Array.from(elements);
     }
 }

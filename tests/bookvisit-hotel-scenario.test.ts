@@ -345,20 +345,15 @@ describe("BookVisit Hotel Booking Scenario", () => {
     describe("Product Detection", () => {
         it("should extract room details from BookVisit booking summary", () => {
             const productMapping = {
-                "#room-details-1": {
-                    fields: {
-                        Rominfo:
-                            ".room-detail-row:nth-child(1) .room-detail-value",
-                        Innsjekking:
-                            ".room-detail-row:nth-child(2) .room-detail-value",
-                        Avreise:
-                            ".room-detail-row:nth-child(3) .room-detail-value",
-                        Gjester:
-                            ".room-detail-row:nth-child(4) .room-detail-value",
-                        Inkluderer:
-                            ".room-detail-row:nth-child(5) .room-detail-value",
-                        Pris: ".room-detail-row:nth-child(6) .room-detail-value",
-                    },
+                fields: {
+                    Rominfo: ".room-detail-row:nth-child(1) .room-detail-value",
+                    Innsjekking:
+                        ".room-detail-row:nth-child(2) .room-detail-value",
+                    Avreise: ".room-detail-row:nth-child(3) .room-detail-value",
+                    Gjester: ".room-detail-row:nth-child(4) .room-detail-value",
+                    Inkluderer:
+                        ".room-detail-row:nth-child(5) .room-detail-value",
+                    Pris: ".room-detail-row:nth-child(6) .room-detail-value",
                 },
             };
 
@@ -378,20 +373,15 @@ describe("BookVisit Hotel Booking Scenario", () => {
 
         it("should handle complex nested selectors for room details", () => {
             const productMapping = {
-                "#room-details-1": {
-                    fields: {
-                        Rominfo:
-                            ".room-detail-row:nth-child(1) .room-detail-value",
-                        Innsjekking:
-                            ".room-detail-row:nth-child(2) .room-detail-value",
-                        Avreise:
-                            ".room-detail-row:nth-child(3) .room-detail-value",
-                        Gjester:
-                            ".room-detail-row:nth-child(4) .room-detail-value",
-                        Inkluderer:
-                            ".room-detail-row:nth-child(5) .room-detail-value",
-                        Pris: ".room-detail-row:nth-child(6) .room-detail-value",
-                    },
+                fields: {
+                    Rominfo: ".room-detail-row:nth-child(1) .room-detail-value",
+                    Innsjekking:
+                        ".room-detail-row:nth-child(2) .room-detail-value",
+                    Avreise: ".room-detail-row:nth-child(3) .room-detail-value",
+                    Gjester: ".room-detail-row:nth-child(4) .room-detail-value",
+                    Inkluderer:
+                        ".room-detail-row:nth-child(5) .room-detail-value",
+                    Pris: ".room-detail-row:nth-child(6) .room-detail-value",
                 },
             };
 
@@ -520,11 +510,8 @@ describe("BookVisit Hotel Booking Scenario", () => {
             if (roomDetails) roomDetails.remove();
 
             const productMapping = {
-                "#room-details-1": {
-                    fields: {
-                        Rominfo:
-                            ".room-detail-row:nth-child(1) .room-detail-value",
-                    },
+                fields: {
+                    Rominfo: ".room-detail-row:nth-child(1) .room-detail-value",
                 },
             };
 
