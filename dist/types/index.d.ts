@@ -6,6 +6,9 @@ export interface SDKOptions {
     features?: {
         abandonedCart?: boolean;
     };
+    config?: {
+        completedCheckout?: boolean;
+    };
 }
 export interface InputMapping {
     form_selector?: string;

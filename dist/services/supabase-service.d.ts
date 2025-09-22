@@ -5,5 +5,6 @@ export declare class SupabaseService {
     constructor(supabaseUrl?: string, supabaseAnonKey?: string);
     getCheckoutCampaign(campaignId: string): Promise<CheckoutCampaign | null>;
     submitCartSession(payload: CartSessionPayload): Promise<CartSessionResponse | null>;
+    deleteCartSession(sessionId: string): Promise<boolean>;
 }
 //# sourceMappingURL=supabase-service.d.ts.map

@@ -24,5 +24,21 @@ export declare class AbandonedCartTool {
      * Useful for testing or when you want to ensure the latest data is uploaded
      */
     resetChangeTracking(): void;
+    /**
+     * Load session ID from localStorage
+     */
+    private loadSessionIdFromStorage;
+    /**
+     * Save session ID to localStorage
+     */
+    private saveSessionIdToStorage;
+    /**
+     * Clear session ID from localStorage
+     */
+    private clearSessionIdFromStorage;
+    /**
+     * Handle completed checkout by deleting the session from database and clearing localStorage
+     */
+    private handleCompletedCheckout;
 }
 //# sourceMappingURL=abandoned-cart.d.ts.map
