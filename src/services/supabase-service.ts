@@ -67,4 +67,29 @@ export class SupabaseService {
             return null;
         }
     }
+
+    async deleteCartSession(sessionId: string): Promise<boolean> {
+        try {
+            const { error } = await this.client.functions.invoke(
+                "delete-checkout-session",
+                {
+                    body: { session_id: sessionId },
+                }
+            );
+
+            if (error) {
+                console.error(
+                    "Error calling delete-cart-session function:",
+                    error
+                );
+                return false;
+            }
+
+            console.log("Cart session deleted successfully:", sessionId);
+            return true;
+        } catch (error) {
+            console.error("Error calling delete-cart-session function:", error);
+            return false;
+        }
+    }
 }

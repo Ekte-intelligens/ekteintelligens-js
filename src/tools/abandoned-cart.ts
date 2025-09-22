@@ -30,6 +30,15 @@ export class AbandonedCartTool {
         }
 
         try {
+            // Check for existing session ID in localStorage
+            this.loadSessionIdFromStorage();
+
+            // Check if checkout is completed and clean up session if needed
+            if (this.options.config?.completedCheckout && this._sessionId) {
+                await this.handleCompletedCheckout();
+                return true; // Return early since checkout is completed
+            }
+
             // Fetch campaign data from Supabase
             const campaign = await this.supabaseService.getCheckoutCampaign(
                 this.options.checkoutCampaignId
@@ -55,6 +64,11 @@ export class AbandonedCartTool {
             this.inputDetector.setOnContentUpdate(
                 this.handleContentUpdate.bind(this)
             );
+
+            // Set session ID if we have one from localStorage
+            if (this._sessionId) {
+                this.inputDetector.setSessionId(this._sessionId);
+            }
 
             // Start listening to input events
             this.inputDetector.startListening();
@@ -114,6 +128,9 @@ export class AbandonedCartTool {
                 this._sessionId = response.id;
                 this.inputDetector?.setSessionId(response.id);
 
+                // Store session ID in localStorage for persistence
+                this.saveSessionIdToStorage(response.id);
+
                 // Update previous content after successful upload
                 this.previousContent = { ...content };
                 this.previousProducts = [...products];
@@ -162,6 +179,9 @@ export class AbandonedCartTool {
         }
         this.isInitialized = false;
         this._sessionId = undefined;
+
+        // Clear session ID from localStorage
+        this.clearSessionIdFromStorage();
     }
 
     public getContent(): Record<string, any> {
@@ -185,5 +205,97 @@ export class AbandonedCartTool {
         this.previousProducts = [];
         this.previousTotal = 0;
         console.log("Change tracking reset - next update will be uploaded");
+    }
+
+    /**
+     * Load session ID from localStorage
+     */
+    private loadSessionIdFromStorage(): void {
+        if (typeof window !== "undefined" && window.localStorage) {
+            try {
+                const storedSessionId = localStorage.getItem("ei_session_id");
+                if (storedSessionId) {
+                    this._sessionId = storedSessionId;
+                    console.log(
+                        "Loaded session ID from localStorage:",
+                        storedSessionId
+                    );
+                }
+            } catch (error) {
+                console.warn(
+                    "Failed to load session ID from localStorage:",
+                    error
+                );
+            }
+        }
+    }
+
+    /**
+     * Save session ID to localStorage
+     */
+    private saveSessionIdToStorage(sessionId: string): void {
+        if (typeof window !== "undefined" && window.localStorage) {
+            try {
+                localStorage.setItem("ei_session_id", sessionId);
+                console.log("Saved session ID to localStorage:", sessionId);
+            } catch (error) {
+                console.warn(
+                    "Failed to save session ID to localStorage:",
+                    error
+                );
+            }
+        }
+    }
+
+    /**
+     * Clear session ID from localStorage
+     */
+    private clearSessionIdFromStorage(): void {
+        if (typeof window !== "undefined" && window.localStorage) {
+            try {
+                localStorage.removeItem("ei_session_id");
+                console.log("Cleared session ID from localStorage");
+            } catch (error) {
+                console.warn(
+                    "Failed to clear session ID from localStorage:",
+                    error
+                );
+            }
+        }
+    }
+
+    /**
+     * Handle completed checkout by deleting the session from database and clearing localStorage
+     */
+    private async handleCompletedCheckout(): Promise<void> {
+        if (!this._sessionId) {
+            console.log("No session ID found for completed checkout cleanup");
+            return;
+        }
+
+        try {
+            // Delete the session from the database
+            const deleted = await this.supabaseService.deleteCartSession(
+                this._sessionId
+            );
+
+            if (deleted) {
+                console.log(
+                    "Successfully deleted completed checkout session:",
+                    this._sessionId
+                );
+            } else {
+                console.warn(
+                    "Failed to delete completed checkout session from database"
+                );
+            }
+        } catch (error) {
+            console.error("Error deleting completed checkout session:", error);
+        } finally {
+            // Always clear the session from localStorage and memory, even if database deletion failed
+            this.clearSessionIdFromStorage();
+            this._sessionId = undefined;
+            console.log("Completed checkout cleanup finished");
+        }
     }
 }

@@ -24,10 +24,10 @@ export class EkteIntelligensSDK {
             }
 
             this._isInitialized = true;
-            console.log("EkteIntelligens SDK initialized successfully");
+            // console.log("EkteIntelligens SDK initialized successfully");
             return true;
         } catch (error) {
-            console.error("Failed to initialize EkteIntelligens SDK:", error);
+            // console.error("Failed to initialize EkteIntelligens SDK:", error);
             return false;
         }
     }
