@@ -1,6 +1,6 @@
 {
     "name": "ekteintelligens-sdk",
-    "version": "1.0.2",
+    "version": "1.0.8",
     "description": "SDK for abandoned cart tracking and other e-commerce tools",
     "main": "dist/index.js",
     "module": "dist/index.es.js",
