@@ -60,11 +60,12 @@ export interface CartSessionResponse {
 
 export interface OrganizationPipelineInputMapping {
     [fieldName: string]: {
-        type: "input" | "button";
+        type: "input" | "button" | "checkbox";
         selector_type: "name" | "id" | "querySelector" | "class" | string;
         selector_value: string;
         default_value?: any;
         mode?: "toggle";
+        true_value?: string; // For checkbox type: value that represents true
     };
 }
 

@@ -256,6 +256,45 @@
                     </button>
                 </form>
             </div>
+
+            <!-- Campaign 3: Checkbox with true_value -->
+            <div class="campaign-section" style="margin-top: 30px">
+                <h3>Campaign 3: Checkbox with true_value</h3>
+                <p>
+                    <strong>Test Case:</strong> Checkbox input with
+                    <code>true_value: "on"</code>
+                </p>
+                <p>
+                    Tests: <code>checkbox</code> type input,
+                    <code>id</code> selector, <code>true_value</code> matching
+                </p>
+
+                <form id="checkbox-form">
+                    <div class="form-group">
+                        <label for="checkbox-email">Email:</label>
+                        <input
+                            type="email"
+                            name="email"
+                            id="checkbox-email"
+                            placeholder="Enter your email"
+                        />
+                    </div>
+
+                    <div class="checkbox-group">
+                        <input
+                            type="checkbox"
+                            id="newletter_cb"
+                            value="on"
+                            name="newsletter"
+                        />
+                        <label for="newletter_cb"
+                            >Enable pipeline (value="on")</label
+                        >
+                    </div>
+
+                    <button type="button" name="submit_button">Submit</button>
+                </form>
+            </div>
         </div>
 
         <!-- Additional Test Elements -->
@@ -397,6 +436,32 @@
 
             // Log expected campaign configurations
             console.log(`
+Campaign 3 Configuration (Checkbox with true_value):
+{
+    "input_mapping": {
+        "email": {
+            "type": "input",
+            "selector_type": "name",
+            "selector_value": "email",
+            "default_value": ""
+        },
+        "ainternal_run_pipeline": {
+            "type": "checkbox",
+            "selector_type": "id",
+            "selector_value": "newletter_cb",
+            "true_value": "on"
+        }
+    },
+    "button_mapping": {
+        "selector_type": "name",
+        "selector_value": "submit_button"
+    },
+    "additional_properties": {
+        "form_id": 79,
+        "from_element": "checkbox_form"
+    }
+}
+
 Campaign 1 Configuration:
 {
     "id": "30893953-c953-4137-b9aa-2a2ff3f9f2e9",

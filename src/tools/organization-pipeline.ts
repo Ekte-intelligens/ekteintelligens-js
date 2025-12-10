@@ -90,7 +90,31 @@ export class OrganizationPipelineTool {
 
         Object.keys(input_mapping).forEach((fieldName) => {
             const mapping = input_mapping[fieldName];
-            if (mapping.default_value !== undefined) {
+
+            // For checkbox type, initialize based on current checkbox state
+            if (mapping.type === "checkbox") {
+                const element = this.getElementBySelector(
+                    mapping.selector_type,
+                    mapping.selector_value
+                );
+                if (
+                    element instanceof HTMLInputElement &&
+                    element.type === "checkbox"
+                ) {
+                    const trueValue = mapping.true_value || "on";
+                    if (element.checked && element.value === trueValue) {
+                        this.formData[fieldName] = true;
+                    } else {
+                        this.formData[fieldName] = false;
+                    }
+                } else {
+                    // Element not found or not a checkbox, use default or false
+                    this.formData[fieldName] =
+                        mapping.default_value !== undefined
+                            ? mapping.default_value
+                            : false;
+                }
+            } else if (mapping.default_value !== undefined) {
                 this.formData[fieldName] = mapping.default_value;
             }
         });
@@ -104,7 +128,8 @@ export class OrganizationPipelineTool {
         Object.keys(input_mapping).forEach((fieldName) => {
             const mapping = input_mapping[fieldName];
 
-            if (mapping.type !== "input") return;
+            // Handle both "input" and "checkbox" types
+            if (mapping.type !== "input" && mapping.type !== "checkbox") return;
 
             const element = this.getElementBySelector(
                 mapping.selector_type,
@@ -119,11 +144,23 @@ export class OrganizationPipelineTool {
             }
 
             const handler = (event: Event) => {
-                this.handleInputChange(fieldName, event.target as HTMLElement);
+                this.handleInputChange(
+                    fieldName,
+                    event.target as HTMLElement,
+                    mapping
+                );
             };
 
-            element.addEventListener("blur", handler);
-            element.addEventListener("change", handler);
+            // For checkboxes, we primarily listen to change events
+            // For regular inputs, we listen to both blur and change
+            if (mapping.type === "checkbox") {
+                element.addEventListener("change", handler);
+                // Also initialize the value immediately
+                this.handleInputChange(fieldName, element, mapping);
+            } else {
+                element.addEventListener("blur", handler);
+                element.addEventListener("change", handler);
+            }
 
             this.inputListeners.push({ element, fieldName, handler });
         });
@@ -234,7 +271,31 @@ export class OrganizationPipelineTool {
         }
     }
 
-    private handleInputChange(fieldName: string, element: HTMLElement): void {
+    private handleInputChange(
+        fieldName: string,
+        element: HTMLElement,
+        mapping?: {
+            type?: string;
+            true_value?: string;
+        }
+    ): void {
+        // Handle checkbox type with true_value
+        if (
+            mapping?.type === "checkbox" &&
+            element instanceof HTMLInputElement &&
+            element.type === "checkbox"
+        ) {
+            const trueValue = mapping.true_value || "on";
+            // Checkbox is checked and value matches true_value
+            if (element.checked && element.value === trueValue) {
+                this.formData[fieldName] = true;
+            } else {
+                this.formData[fieldName] = false;
+            }
+            return;
+        }
+
+        // Handle regular input elements
         if (element instanceof HTMLInputElement) {
             this.formData[fieldName] = element.value;
         } else if (element instanceof HTMLSelectElement) {

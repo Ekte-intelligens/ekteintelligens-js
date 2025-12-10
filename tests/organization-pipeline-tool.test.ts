@@ -226,6 +226,216 @@ describe("OrganizationPipelineTool", () => {
         });
     });
 
+    describe("Checkbox Input Functionality", () => {
+        it("should set value to true when checkbox is checked with matching true_value", async () => {
+            mockSupabaseService.SupabaseService.mockImplementation(() => ({
+                getPipelineCampaign: jest.fn().mockResolvedValue({
+                    id: "test-pipeline-id",
+                    input_mapping: {
+                        email: {
+                            type: "input",
+                            selector_type: "name",
+                            selector_value: "emailAddress",
+                            default_value: "",
+                        },
+                        ainternal_run_pipeline: {
+                            type: "checkbox",
+                            selector_type: "id",
+                            selector_value: "newletter_cb",
+                            true_value: "on",
+                        },
+                    },
+                    button_mapping: {
+                        selector_type: "name",
+                        selector_value: "confirm_booking_button",
+                    },
+                    additional_properties: {
+                        status: "Booket",
+                        form_id: 79,
+                        from_element: "booking_form",
+                    },
+                    organization_id: "test-org-id",
+                }),
+                runOrganizationPipeline: jest.fn().mockResolvedValue(true),
+            }));
+
+            document.body.innerHTML = `
+                <form>
+                    <input type="email" name="emailAddress" />
+                    <input type="checkbox" id="newletter_cb" value="on" />
+                    <button type="button" name="confirm_booking_button">Confirm Booking</button>
+                </form>
+            `;
+
+            const options: SDKOptions = {
+                organizationId: "test-org-id",
+                checkoutCampaignId: "test-checkout-id",
+                pipelineCampaignId: "test-pipeline-id",
+                features: { organizationPipeline: true },
+            };
+
+            const tool = new OrganizationPipelineTool(options);
+            await tool.initialize();
+
+            // Initially checkbox is unchecked, so value should be false
+            let formData = tool.getFormData();
+            expect(formData.ainternal_run_pipeline).toBe(false);
+
+            // Check the checkbox
+            const checkbox = document.getElementById(
+                "newletter_cb"
+            ) as HTMLInputElement;
+            checkbox.checked = true;
+            checkbox.dispatchEvent(new Event("change"));
+
+            // Value should be true since checkbox is checked and value is "on"
+            formData = tool.getFormData();
+            expect(formData.ainternal_run_pipeline).toBe(true);
+
+            // Uncheck the checkbox
+            checkbox.checked = false;
+            checkbox.dispatchEvent(new Event("change"));
+
+            // Value should be false again
+            formData = tool.getFormData();
+            expect(formData.ainternal_run_pipeline).toBe(false);
+        });
+
+        it("should set value to false when checkbox value does not match true_value", async () => {
+            mockSupabaseService.SupabaseService.mockImplementation(() => ({
+                getPipelineCampaign: jest.fn().mockResolvedValue({
+                    id: "test-pipeline-id",
+                    input_mapping: {
+                        ainternal_run_pipeline: {
+                            type: "checkbox",
+                            selector_type: "id",
+                            selector_value: "newletter_cb",
+                            true_value: "on",
+                        },
+                    },
+                    button_mapping: {
+                        selector_type: "name",
+                        selector_value: "submit_button",
+                    },
+                    additional_properties: {},
+                    organization_id: "test-org-id",
+                }),
+                runOrganizationPipeline: jest.fn().mockResolvedValue(true),
+            }));
+
+            document.body.innerHTML = `
+                <form>
+                    <input type="checkbox" id="newletter_cb" value="off" />
+                    <button type="button" name="submit_button">Submit</button>
+                </form>
+            `;
+
+            const options: SDKOptions = {
+                organizationId: "test-org-id",
+                checkoutCampaignId: "test-checkout-id",
+                pipelineCampaignId: "test-pipeline-id",
+                features: { organizationPipeline: true },
+            };
+
+            const tool = new OrganizationPipelineTool(options);
+            await tool.initialize();
+
+            // Check the checkbox, but value is "off" not "on"
+            const checkbox = document.getElementById(
+                "newletter_cb"
+            ) as HTMLInputElement;
+            checkbox.checked = true;
+            checkbox.dispatchEvent(new Event("change"));
+
+            // Value should still be false since value doesn't match true_value
+            const formData = tool.getFormData();
+            expect(formData.ainternal_run_pipeline).toBe(false);
+        });
+
+        it("should call edge function when checkbox with true_value is checked and submitted", async () => {
+            const runPipelineMock = jest.fn().mockResolvedValue(true);
+
+            mockSupabaseService.SupabaseService.mockImplementation(() => ({
+                getPipelineCampaign: jest.fn().mockResolvedValue({
+                    id: "test-pipeline-id",
+                    input_mapping: {
+                        email: {
+                            type: "input",
+                            selector_type: "name",
+                            selector_value: "email",
+                            default_value: "",
+                        },
+                        ainternal_run_pipeline: {
+                            type: "checkbox",
+                            selector_type: "id",
+                            selector_value: "newletter_cb",
+                            true_value: "on",
+                        },
+                    },
+                    button_mapping: {
+                        selector_type: "name",
+                        selector_value: "submit_button",
+                    },
+                    additional_properties: {
+                        form_id: 79,
+                        from_element: "signup_form",
+                    },
+                    organization_id: "test-org-id",
+                }),
+                runOrganizationPipeline: runPipelineMock,
+            }));
+
+            document.body.innerHTML = `
+                <form>
+                    <input type="email" name="email" />
+                    <input type="checkbox" id="newletter_cb" value="on" />
+                    <button type="button" name="submit_button">Submit</button>
+                </form>
+            `;
+
+            const options: SDKOptions = {
+                organizationId: "test-org-id",
+                checkoutCampaignId: "test-checkout-id",
+                pipelineCampaignId: "test-pipeline-id",
+                features: { organizationPipeline: true },
+            };
+
+            const tool = new OrganizationPipelineTool(options);
+            await tool.initialize();
+
+            // Fill in email
+            const emailInput = document.querySelector(
+                'input[name="email"]'
+            ) as HTMLInputElement;
+            emailInput.value = "test@example.com";
+            emailInput.dispatchEvent(new Event("blur"));
+
+            // Check the checkbox
+            const checkbox = document.getElementById(
+                "newletter_cb"
+            ) as HTMLInputElement;
+            checkbox.checked = true;
+            checkbox.dispatchEvent(new Event("change"));
+
+            // Click submit button
+            const submitButton = document.querySelector(
+                'button[name="submit_button"]'
+            ) as HTMLElement;
+            submitButton.dispatchEvent(
+                new Event("click", { cancelable: true })
+            );
+
+            // Wait for async operations
+            await new Promise((resolve) => setTimeout(resolve, 100));
+
+            // Should have called the edge function since checkbox is checked
+            expect(runPipelineMock).toHaveBeenCalledTimes(1);
+            const payload = runPipelineMock.mock.calls[0][0];
+            expect(payload.ainternal_run_pipeline).toBe(true);
+            expect(payload.email).toBe("test@example.com");
+        });
+    });
+
     describe("Button Toggle Functionality", () => {
         it("should toggle boolean value when button with toggle mode is clicked", async () => {
             mockSupabaseService.SupabaseService.mockImplementation(() => ({
