@@ -11,8 +11,15 @@ export declare class AbandonedCartTool {
     private previousContent;
     private previousProducts;
     private previousTotal;
+    private debounceTimer?;
+    private pendingContentUpdate?;
     constructor(options: SDKOptions);
     initialize(): Promise<boolean>;
+    /**
+     * Debounced version of handleContentUpdate to prevent multiple rapid calls
+     * from auto-fill operations from creating multiple session IDs
+     */
+    private debouncedHandleContentUpdate;
     private handleContentUpdate;
     private hasContentChanged;
     destroy(): void;

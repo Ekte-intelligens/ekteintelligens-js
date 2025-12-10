@@ -15,6 +15,11 @@ export class AbandonedCartTool {
     private previousContent: Record<string, any> = {};
     private previousProducts: any[] = [];
     private previousTotal: number = 0;
+    private debounceTimer?: ReturnType<typeof setTimeout>;
+    private pendingContentUpdate?: {
+        content: Record<string, any>;
+        sessionId?: string;
+    };
 
     constructor(options: SDKOptions) {
         this.options = options;
@@ -60,9 +65,9 @@ export class AbandonedCartTool {
             // Initialize total extractor with the campaign's total selector
             this.totalExtractor = new TotalExtractor(campaign.total_selector);
 
-            // Set up the content update callback
+            // Set up the content update callback with debouncing
             this.inputDetector.setOnContentUpdate(
-                this.handleContentUpdate.bind(this)
+                this.debouncedHandleContentUpdate.bind(this)
             );
 
             // Set session ID if we have one from localStorage
@@ -80,6 +85,35 @@ export class AbandonedCartTool {
             console.error("Failed to initialize abandoned cart tool:", error);
             return false;
         }
+    }
+
+    /**
+     * Debounced version of handleContentUpdate to prevent multiple rapid calls
+     * from auto-fill operations from creating multiple session IDs
+     */
+    private debouncedHandleContentUpdate(
+        content: Record<string, any>,
+        sessionId?: string
+    ) {
+        // Store the latest content update
+        this.pendingContentUpdate = { content, sessionId };
+
+        // Clear existing timer if any
+        if (this.debounceTimer) {
+            clearTimeout(this.debounceTimer);
+        }
+
+        // Set a new timer to process the update after a delay
+        // This batches rapid auto-fill events into a single update
+        this.debounceTimer = setTimeout(() => {
+            if (this.pendingContentUpdate) {
+                this.handleContentUpdate(
+                    this.pendingContentUpdate.content,
+                    this.pendingContentUpdate.sessionId
+                );
+                this.pendingContentUpdate = undefined;
+            }
+        }, 300); // 300ms debounce delay
     }
 
     private async handleContentUpdate(
@@ -174,6 +208,21 @@ export class AbandonedCartTool {
     }
 
     public destroy(): void {
+        // Clear any pending debounce timer
+        if (this.debounceTimer) {
+            clearTimeout(this.debounceTimer);
+            this.debounceTimer = undefined;
+        }
+
+        // Process any pending content update before destroying
+        if (this.pendingContentUpdate) {
+            this.handleContentUpdate(
+                this.pendingContentUpdate.content,
+                this.pendingContentUpdate.sessionId
+            );
+            this.pendingContentUpdate = undefined;
+        }
+
         if (this.inputDetector) {
             this.inputDetector.stopListening();
         }

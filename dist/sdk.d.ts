@@ -1,5 +1,6 @@
 import { SDKOptions } from './types';
 import { AbandonedCartTool } from './tools/abandoned-cart';
+import { OrganizationPipelineTool } from './tools/organization-pipeline';
 
 export declare class EkteIntelligensSDK {
     private options;
@@ -8,6 +9,7 @@ export declare class EkteIntelligensSDK {
     constructor(options: SDKOptions);
     initialize(): Promise<boolean>;
     getAbandonedCartTool(): AbandonedCartTool | undefined;
+    getOrganizationPipelineTool(): OrganizationPipelineTool | undefined;
     destroy(): void;
     isInitialized(): boolean;
 }

@@ -1,5 +1,6 @@
 import { SDKOptions } from "./types";
 import { AbandonedCartTool } from "./tools/abandoned-cart";
+import { OrganizationPipelineTool } from "./tools/organization-pipeline";
 
 export class EkteIntelligensSDK {
     private options: SDKOptions;
@@ -23,6 +24,17 @@ export class EkteIntelligensSDK {
                 this.tools.set("abandonedCart", abandonedCartTool);
             }
 
+            if (this.options.features?.organizationPipeline) {
+                const organizationPipelineTool = new OrganizationPipelineTool(
+                    this.options
+                );
+                await organizationPipelineTool.initialize();
+                this.tools.set(
+                    "organizationPipeline",
+                    organizationPipelineTool
+                );
+            }
+
             this._isInitialized = true;
             // console.log("EkteIntelligens SDK initialized successfully");
             return true;
@@ -35,6 +47,10 @@ export class EkteIntelligensSDK {
     // Public API methods
     public getAbandonedCartTool(): AbandonedCartTool | undefined {
         return this.tools.get("abandonedCart");
+    }
+
+    public getOrganizationPipelineTool(): OrganizationPipelineTool | undefined {
+        return this.tools.get("organizationPipeline");
     }
 
     public destroy(): void {

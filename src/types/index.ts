@@ -1,10 +1,12 @@
 export interface SDKOptions {
     organizationId: string;
     checkoutCampaignId: string;
+    pipelineCampaignId?: string;
     supabaseUrl?: string; // Optional - will use your backend by default
     supabaseAnonKey?: string; // Optional - will use your backend by default
     features?: {
         abandonedCart?: boolean;
+        organizationPipeline?: boolean;
     };
     config?: {
         completedCheckout?: boolean;
@@ -54,4 +56,30 @@ export interface CartSessionResponse {
     id: string;
     success: boolean;
     message?: string;
+}
+
+export interface OrganizationPipelineInputMapping {
+    [fieldName: string]: {
+        type: "input" | "button";
+        selector_type: "name" | "id" | "querySelector" | "class" | string;
+        selector_value: string;
+        default_value?: any;
+        mode?: "toggle";
+    };
+}
+
+export interface OrganizationPipelineCampaign {
+    id: string;
+    input_mapping: OrganizationPipelineInputMapping;
+    button_mapping: {
+        selector_type: string;
+        selector_value: string;
+    };
+    additional_properties?: Record<string, any>;
+    organization_id: string;
+}
+
+export interface OrganizationPipelinePayload {
+    [key: string]: any;
+    ainternal_pipeline_id: string;
 }

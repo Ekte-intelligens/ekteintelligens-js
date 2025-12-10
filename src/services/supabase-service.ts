@@ -3,6 +3,8 @@ import {
     CheckoutCampaign,
     CartSessionPayload,
     CartSessionResponse,
+    OrganizationPipelineCampaign,
+    OrganizationPipelinePayload,
 } from "../types";
 
 export class SupabaseService {
@@ -89,6 +91,58 @@ export class SupabaseService {
             return true;
         } catch (error) {
             console.error("Error calling delete-cart-session function:", error);
+            return false;
+        }
+    }
+
+    async getPipelineCampaign(
+        campaignId: string
+    ): Promise<OrganizationPipelineCampaign | null> {
+        try {
+            const { data, error } = await this.client
+                .from("organizations_pipelines_campaigns")
+                .select("*")
+                .eq("id", campaignId)
+                .single();
+
+            if (error) {
+                console.error("Error fetching pipeline campaign:", error);
+                return null;
+            }
+
+            return data as OrganizationPipelineCampaign;
+        } catch (error) {
+            console.error("Error fetching pipeline campaign:", error);
+            return null;
+        }
+    }
+
+    async runOrganizationPipeline(
+        payload: OrganizationPipelinePayload
+    ): Promise<boolean> {
+        try {
+            const { error } = await this.client.functions.invoke(
+                "run-organization-pipeline",
+                {
+                    body: payload,
+                }
+            );
+
+            if (error) {
+                console.error(
+                    "Error calling run-organization-pipeline function:",
+                    error
+                );
+                return false;
+            }
+
+            console.log("Organization pipeline executed successfully");
+            return true;
+        } catch (error) {
+            console.error(
+                "Error calling run-organization-pipeline function:",
+                error
+            );
             return false;
         }
     }
