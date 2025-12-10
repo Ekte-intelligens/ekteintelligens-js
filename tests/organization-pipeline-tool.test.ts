@@ -370,7 +370,7 @@ describe("OrganizationPipelineTool", () => {
             // Should have called the edge function
             expect(runPipelineMock).toHaveBeenCalledTimes(1);
             const payload = runPipelineMock.mock.calls[0][0];
-            expect(payload.ainternal_pipeline_id).toBe(
+            expect(payload.ainternal_pipeline_campaign_id).toBe(
                 "30893953-c953-4137-b9aa-2a2ff3f9f2e9"
             );
             expect(payload.ainternal_run_pipeline).toBe(true);
@@ -461,7 +461,7 @@ describe("OrganizationPipelineTool", () => {
             // Should have called the edge function
             expect(runPipelineMock).toHaveBeenCalledTimes(1);
             const payload = runPipelineMock.mock.calls[0][0];
-            expect(payload.ainternal_pipeline_id).toBe(
+            expect(payload.ainternal_pipeline_campaign_id).toBe(
                 "c9edaae1-42e5-4115-b680-b5e22b049411"
             );
             expect(payload.ainternal_run_pipeline).toBe(true);
@@ -605,7 +605,9 @@ describe("OrganizationPipelineTool", () => {
             await new Promise((resolve) => setTimeout(resolve, 100));
 
             const payload = runPipelineMock.mock.calls[0][0];
-            expect(payload.ainternal_pipeline_id).toBe("test-pipeline-id");
+            expect(payload.ainternal_pipeline_campaign_id).toBe(
+                "test-pipeline-id"
+            );
             expect(payload.email).toBe("user@example.com");
             expect(payload.form_id).toBe(79);
             expect(payload.from_element).toBe("signup_form");

@@ -6137,14 +6137,19 @@ class Yr {
     if (this.isInitialized)
       return !0;
     if (!this.options.pipelineCampaignId)
-      return console.error("pipelineCampaignId is required for organization pipeline"), !1;
+      return console.error(
+        "pipelineCampaignId is required for organization pipeline"
+      ), !1;
     try {
       const e = await this.supabaseService.getPipelineCampaign(
         this.options.pipelineCampaignId
       );
       return e ? (this.campaign = e, this.initializeFormData(), this.setupInputListeners(), this.setupButtonListeners(), this.setupSubmitListener(), this.isInitialized = !0, console.log("Organization pipeline tool initialized successfully"), !0) : (console.error("Failed to fetch pipeline campaign data"), !1);
     } catch (e) {
-      return console.error("Failed to initialize organization pipeline tool:", e), !1;
+      return console.error(
+        "Failed to initialize organization pipeline tool:",
+        e
+      ), !1;
     }
   }
   initializeFormData() {
@@ -6229,10 +6234,15 @@ class Yr {
         try {
           return document.querySelector(s);
         } catch (r) {
-          return console.warn(`Invalid querySelector: ${s}`, r), null;
+          return console.warn(
+            `Invalid querySelector: ${s}`,
+            r
+          ), null;
         }
       case "class":
-        return document.querySelector(`.${s}`);
+        return document.querySelector(
+          `.${s}`
+        );
       default:
         return e.startsWith("data-") ? document.querySelector(
           `[${e}="${s}"]`
@@ -6254,7 +6264,7 @@ class Yr {
     const e = {
       ...((t = this.campaign) == null ? void 0 : t.additional_properties) || {}
     };
-    return Object.assign(e, this.formData), this.campaign && (e.ainternal_pipeline_id = this.campaign.id), e;
+    return Object.assign(e, this.formData), this.campaign && (e.ainternal_pipeline_campaign_id = this.campaign.id), e;
   }
   async handleSubmit(e) {
     e.cancelable && e.preventDefault();

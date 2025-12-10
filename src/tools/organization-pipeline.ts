@@ -40,7 +40,9 @@ export class OrganizationPipelineTool {
         }
 
         if (!this.options.pipelineCampaignId) {
-            console.error("pipelineCampaignId is required for organization pipeline");
+            console.error(
+                "pipelineCampaignId is required for organization pipeline"
+            );
             return false;
         }
 
@@ -73,7 +75,10 @@ export class OrganizationPipelineTool {
             console.log("Organization pipeline tool initialized successfully");
             return true;
         } catch (error) {
-            console.error("Failed to initialize organization pipeline tool:", error);
+            console.error(
+                "Failed to initialize organization pipeline tool:",
+                error
+            );
             return false;
         }
     }
@@ -203,12 +208,17 @@ export class OrganizationPipelineTool {
                 try {
                     return document.querySelector(cleanedValue) as HTMLElement;
                 } catch (error) {
-                    console.warn(`Invalid querySelector: ${cleanedValue}`, error);
+                    console.warn(
+                        `Invalid querySelector: ${cleanedValue}`,
+                        error
+                    );
                     return null;
                 }
 
             case "class":
-                return document.querySelector(`.${cleanedValue}`) as HTMLElement;
+                return document.querySelector(
+                    `.${cleanedValue}`
+                ) as HTMLElement;
 
             default:
                 // Handle data-* attributes and other custom selectors
@@ -234,7 +244,9 @@ export class OrganizationPipelineTool {
         } else {
             // For other elements, try to get text content or value attribute
             this.formData[fieldName] =
-                element.getAttribute("value") || element.textContent?.trim() || "";
+                element.getAttribute("value") ||
+                element.textContent?.trim() ||
+                "";
         }
     }
 
@@ -257,7 +269,7 @@ export class OrganizationPipelineTool {
 
         // Add pipeline campaign ID
         if (this.campaign) {
-            payload.ainternal_pipeline_id = this.campaign.id;
+            payload.ainternal_pipeline_campaign_id = this.campaign.id;
         }
 
         return payload;
@@ -276,9 +288,10 @@ export class OrganizationPipelineTool {
             // Check if we should run the pipeline
             if (payload.ainternal_run_pipeline === true) {
                 // Send to Supabase edge function
-                const success = await this.supabaseService.runOrganizationPipeline(
-                    payload as OrganizationPipelinePayload
-                );
+                const success =
+                    await this.supabaseService.runOrganizationPipeline(
+                        payload as OrganizationPipelinePayload
+                    );
 
                 if (success) {
                     console.log("Organization pipeline executed successfully");
@@ -327,4 +340,3 @@ export class OrganizationPipelineTool {
         return { ...this.formData };
     }
 }
-

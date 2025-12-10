@@ -71,6 +71,6 @@ export interface OrganizationPipelineCampaign {
 }
 export interface OrganizationPipelinePayload {
     [key: string]: any;
-    ainternal_pipeline_id: string;
+    ainternal_pipeline_campaign_id: string;
 }
 //# sourceMappingURL=index.d.ts.map
