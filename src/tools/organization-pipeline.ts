@@ -282,8 +282,7 @@ export class OrganizationPipelineTool {
         // Handle checkbox type with true_value
         if (
             mapping?.type === "checkbox" &&
-            element instanceof HTMLInputElement &&
-            element.type === "checkbox"
+            element instanceof HTMLInputElement
         ) {
             const trueValue = mapping.true_value || "on";
             // Checkbox is checked and value matches true_value

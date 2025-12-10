@@ -6267,7 +6267,7 @@ class Yr {
   }
   handleInputChange(e, t, s) {
     var r;
-    if ((s == null ? void 0 : s.type) === "checkbox" && t instanceof HTMLInputElement && t.type === "checkbox") {
+    if ((s == null ? void 0 : s.type) === "checkbox" && t instanceof HTMLInputElement) {
       const n = s.true_value || "on";
       t.checked && t.value === n ? this.formData[e] = !0 : this.formData[e] = !1;
       return;
