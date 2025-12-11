@@ -352,6 +352,181 @@ describe("OrganizationPipelineTool", () => {
             expect(formData.ainternal_run_pipeline).toBe(false);
         });
 
+        it("should handle custom checkbox button with role='checkbox' and aria-checked", async () => {
+            mockSupabaseService.SupabaseService.mockImplementation(() => ({
+                getPipelineCampaign: jest.fn().mockResolvedValue({
+                    id: "test-pipeline-id",
+                    input_mapping: {
+                        email: {
+                            type: "input",
+                            selector_type: "name",
+                            selector_value: "email",
+                            default_value: "",
+                        },
+                        ainternal_run_pipeline: {
+                            type: "checkbox",
+                            selector_type: "id",
+                            selector_value: "newletter_cb",
+                            true_value: "on",
+                        },
+                    },
+                    button_mapping: {
+                        selector_type: "name",
+                        selector_value: "submit_button",
+                    },
+                    additional_properties: {
+                        form_id: 79,
+                        from_element: "signup_form",
+                    },
+                    organization_id: "test-org-id",
+                }),
+                runOrganizationPipeline: jest.fn().mockResolvedValue(true),
+            }));
+
+            document.body.innerHTML = `
+                <form>
+                    <input type="email" name="email" />
+                    <div class="bv-my-[10px]">
+                        <div class="bv-relative bv-flex bv-items-center bv-space-x-2 bv-border-bv_darkSelectedColor">
+                            <button type="button" role="checkbox" aria-checked="false" data-state="unchecked" value="on" class="bv-peer bv-h-[20px] bv-w-[20px] bv-shrink-0 bv-rounded-bv_inputCheckBoxBorderRadius bv-border-bv_inputBorderWidth bv-border-solid bv-border-bv_inputBorderColor bv-bg-bv_inputBackground" id="newletter_cb"></button>
+                            <label class="bv-m-0 bv-bv_text bv-text-bv_bodyFontSize bv-font-bv_bodyFontFamily bv-text-bv_bodyColor bv-cursor-pointer" for="newletter_cb">Jeg ønsker å abonnere på deres nyhetsbrev og motta e-posttilbud og -informasjon.</label>
+                        </div>
+                    </div>
+                    <button type="button" name="submit_button">Submit</button>
+                </form>
+            `;
+
+            const options: SDKOptions = {
+                organizationId: "test-org-id",
+                checkoutCampaignId: "test-checkout-id",
+                pipelineCampaignId: "test-pipeline-id",
+                features: { organizationPipeline: true },
+            };
+
+            const tool = new OrganizationPipelineTool(options);
+            await tool.initialize();
+
+            // Initially checkbox button is unchecked (aria-checked="false"), so value should be false
+            let formData = tool.getFormData();
+            expect(formData.ainternal_run_pipeline).toBe(false);
+
+            // Check the checkbox button by updating aria-checked and data-state
+            const checkboxButton = document.getElementById(
+                "newletter_cb"
+            ) as HTMLElement;
+            checkboxButton.setAttribute("aria-checked", "true");
+            checkboxButton.setAttribute("data-state", "checked");
+            checkboxButton.dispatchEvent(
+                new Event("click", { cancelable: true })
+            );
+
+            // Value should be true since checkbox is checked and value is "on"
+            formData = tool.getFormData();
+            expect(formData.ainternal_run_pipeline).toBe(true);
+
+            // Uncheck the checkbox button
+            checkboxButton.setAttribute("aria-checked", "false");
+            checkboxButton.setAttribute("data-state", "unchecked");
+            checkboxButton.dispatchEvent(
+                new Event("click", { cancelable: true })
+            );
+
+            // Value should be false again
+            formData = tool.getFormData();
+            expect(formData.ainternal_run_pipeline).toBe(false);
+        });
+
+        it("should call edge function when custom checkbox button is checked and submitted", async () => {
+            const runPipelineMock = jest.fn().mockResolvedValue(true);
+
+            mockSupabaseService.SupabaseService.mockImplementation(() => ({
+                getPipelineCampaign: jest.fn().mockResolvedValue({
+                    id: "test-pipeline-id",
+                    input_mapping: {
+                        email: {
+                            type: "input",
+                            selector_type: "name",
+                            selector_value: "email",
+                            default_value: "",
+                        },
+                        ainternal_run_pipeline: {
+                            type: "checkbox",
+                            selector_type: "id",
+                            selector_value: "newletter_cb",
+                            true_value: "on",
+                        },
+                    },
+                    button_mapping: {
+                        selector_type: "name",
+                        selector_value: "submit_button",
+                    },
+                    additional_properties: {
+                        form_id: 79,
+                        from_element: "signup_form",
+                    },
+                    organization_id: "test-org-id",
+                }),
+                runOrganizationPipeline: runPipelineMock,
+            }));
+
+            document.body.innerHTML = `
+                <form>
+                    <input type="email" name="email" />
+                    <div class="bv-my-[10px]">
+                        <div class="bv-relative bv-flex bv-items-center bv-space-x-2">
+                            <button type="button" role="checkbox" aria-checked="false" data-state="unchecked" value="on" id="newletter_cb"></button>
+                            <label for="newletter_cb">Subscribe to newsletter</label>
+                        </div>
+                    </div>
+                    <button type="button" name="submit_button">Submit</button>
+                </form>
+            `;
+
+            const options: SDKOptions = {
+                organizationId: "test-org-id",
+                checkoutCampaignId: "test-checkout-id",
+                pipelineCampaignId: "test-pipeline-id",
+                features: { organizationPipeline: true },
+            };
+
+            const tool = new OrganizationPipelineTool(options);
+            await tool.initialize();
+
+            // Fill in email
+            const emailInput = document.querySelector(
+                'input[name="email"]'
+            ) as HTMLInputElement;
+            emailInput.value = "test@example.com";
+            emailInput.dispatchEvent(new Event("blur"));
+
+            // Check the custom checkbox button
+            const checkboxButton = document.getElementById(
+                "newletter_cb"
+            ) as HTMLElement;
+            checkboxButton.setAttribute("aria-checked", "true");
+            checkboxButton.setAttribute("data-state", "checked");
+            checkboxButton.dispatchEvent(
+                new Event("click", { cancelable: true })
+            );
+
+            // Click submit button
+            const submitButton = document.querySelector(
+                'button[name="submit_button"]'
+            ) as HTMLElement;
+            submitButton.dispatchEvent(
+                new Event("click", { cancelable: true })
+            );
+
+            // Wait for async operations
+            await new Promise((resolve) => setTimeout(resolve, 100));
+
+            // Should have called the edge function since checkbox is checked
+            expect(runPipelineMock).toHaveBeenCalledTimes(1);
+            const payload = runPipelineMock.mock.calls[0][0];
+            expect(payload.ainternal_run_pipeline).toBe(true);
+            expect(payload.email).toBe("test@example.com");
+        });
+
         it("should call edge function when checkbox with true_value is checked and submitted", async () => {
             const runPipelineMock = jest.fn().mockResolvedValue(true);
 

@@ -97,18 +97,18 @@ export class OrganizationPipelineTool {
                     mapping.selector_type,
                     mapping.selector_value
                 );
-                if (
-                    element instanceof HTMLInputElement &&
-                    element.type === "checkbox"
-                ) {
+                if (element) {
                     const trueValue = mapping.true_value || "on";
-                    if (element.checked && element.value === trueValue) {
+                    const isChecked = this.isCheckboxChecked(element);
+                    const elementValue = this.getCheckboxValue(element);
+
+                    if (isChecked && elementValue === trueValue) {
                         this.formData[fieldName] = true;
                     } else {
                         this.formData[fieldName] = false;
                     }
                 } else {
-                    // Element not found or not a checkbox, use default or false
+                    // Element not found, use default or false
                     this.formData[fieldName] =
                         mapping.default_value !== undefined
                             ? mapping.default_value
@@ -151,10 +151,19 @@ export class OrganizationPipelineTool {
                 );
             };
 
-            // For checkboxes, we primarily listen to change events
+            // For checkboxes, listen to appropriate events
             // For regular inputs, we listen to both blur and change
             if (mapping.type === "checkbox") {
-                element.addEventListener("change", handler);
+                // For button-based checkboxes (role="checkbox"), listen to click events
+                // For standard checkboxes, listen to change events
+                if (
+                    element instanceof HTMLButtonElement ||
+                    element.getAttribute("role") === "checkbox"
+                ) {
+                    element.addEventListener("click", handler);
+                } else {
+                    element.addEventListener("change", handler);
+                }
                 // Also initialize the value immediately
                 this.handleInputChange(fieldName, element, mapping);
             } else {
@@ -271,6 +280,53 @@ export class OrganizationPipelineTool {
         }
     }
 
+    private isCheckboxChecked(element: HTMLElement): boolean {
+        // Standard HTML checkbox
+        if (
+            element instanceof HTMLInputElement &&
+            element.type === "checkbox"
+        ) {
+            return element.checked;
+        }
+
+        // Custom checkbox button with role="checkbox"
+        if (element.getAttribute("role") === "checkbox") {
+            const ariaChecked = element.getAttribute("aria-checked");
+            const dataState = element.getAttribute("data-state");
+
+            // Check aria-checked attribute
+            if (ariaChecked === "true") {
+                return true;
+            }
+            if (ariaChecked === "false") {
+                return false;
+            }
+
+            // Check data-state attribute
+            if (dataState === "checked") {
+                return true;
+            }
+            if (dataState === "unchecked") {
+                return false;
+            }
+        }
+
+        return false;
+    }
+
+    private getCheckboxValue(element: HTMLElement): string {
+        // Standard HTML checkbox
+        if (
+            element instanceof HTMLInputElement &&
+            element.type === "checkbox"
+        ) {
+            return element.value || "on";
+        }
+
+        // Custom checkbox button - get value attribute
+        return element.getAttribute("value") || "on";
+    }
+
     private handleInputChange(
         fieldName: string,
         element: HTMLElement,
@@ -280,13 +336,13 @@ export class OrganizationPipelineTool {
         }
     ): void {
         // Handle checkbox type with true_value
-        if (
-            mapping?.type === "checkbox" &&
-            element instanceof HTMLInputElement
-        ) {
+        if (mapping?.type === "checkbox") {
             const trueValue = mapping.true_value || "on";
+            const isChecked = this.isCheckboxChecked(element);
+            const elementValue = this.getCheckboxValue(element);
+
             // Checkbox is checked and value matches true_value
-            if (element.checked && element.value === trueValue) {
+            if (isChecked && elementValue === trueValue) {
                 this.formData[fieldName] = true;
             } else {
                 this.formData[fieldName] = false;
@@ -371,8 +427,10 @@ export class OrganizationPipelineTool {
     public destroy(): void {
         // Remove input listeners
         this.inputListeners.forEach(({ element, handler }) => {
+            // Remove all possible event types
             element.removeEventListener("blur", handler);
             element.removeEventListener("change", handler);
+            element.removeEventListener("click", handler);
         });
         this.inputListeners = [];
 

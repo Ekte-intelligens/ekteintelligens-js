@@ -16,6 +16,8 @@ export declare class OrganizationPipelineTool {
     private setupButtonListeners;
     private setupSubmitListener;
     private getElementBySelector;
+    private isCheckboxChecked;
+    private getCheckboxValue;
     private handleInputChange;
     private handleButtonToggle;
     private collectFormData;

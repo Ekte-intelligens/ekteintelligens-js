@@ -6162,9 +6162,9 @@ class Yr {
           s.selector_type,
           s.selector_value
         );
-        if (r instanceof HTMLInputElement && r.type === "checkbox") {
-          const n = s.true_value || "on";
-          r.checked && r.value === n ? this.formData[t] = !0 : this.formData[t] = !1;
+        if (r) {
+          const n = s.true_value || "on", o = this.isCheckboxChecked(r), a = this.getCheckboxValue(r);
+          o && a === n ? this.formData[t] = !0 : this.formData[t] = !1;
         } else
           this.formData[t] = s.default_value !== void 0 ? s.default_value : !1;
       } else s.default_value !== void 0 && (this.formData[t] = s.default_value);
@@ -6193,7 +6193,7 @@ class Yr {
           s
         );
       };
-      s.type === "checkbox" ? (r.addEventListener("change", n), this.handleInputChange(t, r, s)) : (r.addEventListener("blur", n), r.addEventListener("change", n)), this.inputListeners.push({ element: r, fieldName: t, handler: n });
+      s.type === "checkbox" ? (r instanceof HTMLButtonElement || r.getAttribute("role") === "checkbox" ? r.addEventListener("click", n) : r.addEventListener("change", n), this.handleInputChange(t, r, s)) : (r.addEventListener("blur", n), r.addEventListener("change", n)), this.inputListeners.push({ element: r, fieldName: t, handler: n });
     });
   }
   setupButtonListeners() {
@@ -6265,11 +6265,30 @@ class Yr {
         );
     }
   }
+  isCheckboxChecked(e) {
+    if (e instanceof HTMLInputElement && e.type === "checkbox")
+      return e.checked;
+    if (e.getAttribute("role") === "checkbox") {
+      const t = e.getAttribute("aria-checked"), s = e.getAttribute("data-state");
+      if (t === "true")
+        return !0;
+      if (t === "false")
+        return !1;
+      if (s === "checked")
+        return !0;
+      if (s === "unchecked")
+        return !1;
+    }
+    return !1;
+  }
+  getCheckboxValue(e) {
+    return e instanceof HTMLInputElement && e.type === "checkbox" ? e.value || "on" : e.getAttribute("value") || "on";
+  }
   handleInputChange(e, t, s) {
     var r;
-    if ((s == null ? void 0 : s.type) === "checkbox" && t instanceof HTMLInputElement) {
-      const n = s.true_value || "on";
-      t.checked && t.value === n ? this.formData[e] = !0 : this.formData[e] = !1;
+    if ((s == null ? void 0 : s.type) === "checkbox") {
+      const n = s.true_value || "on", o = this.isCheckboxChecked(t), a = this.getCheckboxValue(t);
+      o && a === n ? this.formData[e] = !0 : this.formData[e] = !1;
       return;
     }
     t instanceof HTMLInputElement ? this.formData[e] = t.value : t instanceof HTMLSelectElement ? this.formData[e] = t.value : t instanceof HTMLTextAreaElement ? this.formData[e] = t.value : this.formData[e] = t.getAttribute("value") || ((r = t.textContent) == null ? void 0 : r.trim()) || "";
@@ -6300,7 +6319,7 @@ class Yr {
   }
   destroy() {
     this.inputListeners.forEach(({ element: e, handler: t }) => {
-      e.removeEventListener("blur", t), e.removeEventListener("change", t);
+      e.removeEventListener("blur", t), e.removeEventListener("change", t), e.removeEventListener("click", t);
     }), this.inputListeners = [], this.buttonListeners.forEach(({ element: e, handler: t }) => {
       e.removeEventListener("click", t);
     }), this.buttonListeners = [], this.submitListener && (this.submitListener.element.removeEventListener(
