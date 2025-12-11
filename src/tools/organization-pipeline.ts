@@ -154,13 +154,34 @@ export class OrganizationPipelineTool {
             // For checkboxes, listen to appropriate events
             // For regular inputs, we listen to both blur and change
             if (mapping.type === "checkbox") {
-                // For button-based checkboxes (role="checkbox"), listen to click events
-                // For standard checkboxes, listen to change events
+                // For button-based checkboxes (role="checkbox"), use MutationObserver
+                // to watch for attribute changes, and also listen to click events
                 if (
                     element instanceof HTMLButtonElement ||
                     element.getAttribute("role") === "checkbox"
                 ) {
-                    element.addEventListener("click", handler);
+                    // Listen to click events
+                    element.addEventListener("click", () => {
+                        // Use setTimeout to check state after the click has been processed
+                        // and the application has updated the aria-checked/data-state attributes
+                        setTimeout(() => {
+                            this.handleInputChange(fieldName, element, mapping);
+                        }, 0);
+                    });
+
+                    // Also use MutationObserver to watch for attribute changes
+                    // This ensures we catch state changes even if they happen asynchronously
+                    const observer = new MutationObserver(() => {
+                        this.handleInputChange(fieldName, element, mapping);
+                    });
+
+                    observer.observe(element, {
+                        attributes: true,
+                        attributeFilter: ["aria-checked", "data-state"],
+                    });
+
+                    // Store observer for cleanup
+                    (element as any)._eiObserver = observer;
                 } else {
                     element.addEventListener("change", handler);
                 }
@@ -431,6 +452,12 @@ export class OrganizationPipelineTool {
             element.removeEventListener("blur", handler);
             element.removeEventListener("change", handler);
             element.removeEventListener("click", handler);
+
+            // Disconnect MutationObserver if it exists
+            if ((element as any)._eiObserver) {
+                (element as any)._eiObserver.disconnect();
+                delete (element as any)._eiObserver;
+            }
         });
         this.inputListeners = [];
 

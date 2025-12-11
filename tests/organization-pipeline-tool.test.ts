@@ -227,6 +227,81 @@ describe("OrganizationPipelineTool", () => {
     });
 
     describe("Checkbox Input Functionality", () => {
+        it("should work with exact input_mapping format from database (type: checkbox, true_value: on, selector_type: id)", async () => {
+            mockSupabaseService.SupabaseService.mockImplementation(() => ({
+                getPipelineCampaign: jest.fn().mockResolvedValue({
+                    id: "test-pipeline-id",
+                    input_mapping: {
+                        ainternal_run_pipeline: {
+                            type: "checkbox",
+                            true_value: "on",
+                            selector_type: "id",
+                            selector_value: "newletter_cb",
+                        },
+                    },
+                    button_mapping: {
+                        selector_type: "name",
+                        selector_value: "submit_button",
+                    },
+                    additional_properties: {},
+                    organization_id: "test-org-id",
+                }),
+                runOrganizationPipeline: jest.fn().mockResolvedValue(true),
+            }));
+
+            document.body.innerHTML = `
+                <form>
+                    <button type="button" role="checkbox" aria-checked="false" data-state="unchecked" value="on" id="newletter_cb"></button>
+                    <button type="button" name="submit_button">Submit</button>
+                </form>
+            `;
+
+            const options: SDKOptions = {
+                organizationId: "test-org-id",
+                checkoutCampaignId: "test-checkout-id",
+                pipelineCampaignId: "test-pipeline-id",
+                features: { organizationPipeline: true },
+            };
+
+            const tool = new OrganizationPipelineTool(options);
+            await tool.initialize();
+
+            // Initially unchecked, should be false
+            let formData = tool.getFormData();
+            expect(formData.ainternal_run_pipeline).toBe(false);
+
+            // Check the checkbox button
+            const checkboxButton = document.getElementById(
+                "newletter_cb"
+            ) as HTMLElement;
+            checkboxButton.dispatchEvent(
+                new Event("click", { cancelable: true })
+            );
+            checkboxButton.setAttribute("aria-checked", "true");
+            checkboxButton.setAttribute("data-state", "checked");
+
+            // Wait for MutationObserver
+            await new Promise((resolve) => setTimeout(resolve, 20));
+
+            // Should be true when checked
+            formData = tool.getFormData();
+            expect(formData.ainternal_run_pipeline).toBe(true);
+
+            // Uncheck
+            checkboxButton.dispatchEvent(
+                new Event("click", { cancelable: true })
+            );
+            checkboxButton.setAttribute("aria-checked", "false");
+            checkboxButton.setAttribute("data-state", "unchecked");
+
+            // Wait for MutationObserver
+            await new Promise((resolve) => setTimeout(resolve, 20));
+
+            // Should be false when unchecked
+            formData = tool.getFormData();
+            expect(formData.ainternal_run_pipeline).toBe(false);
+        });
+
         it("should set value to true when checkbox is checked with matching true_value", async () => {
             mockSupabaseService.SupabaseService.mockImplementation(() => ({
                 getPipelineCampaign: jest.fn().mockResolvedValue({
@@ -410,26 +485,35 @@ describe("OrganizationPipelineTool", () => {
             let formData = tool.getFormData();
             expect(formData.ainternal_run_pipeline).toBe(false);
 
-            // Check the checkbox button by updating aria-checked and data-state
+            // Check the checkbox button: first click, then update attributes (simulating real app behavior)
             const checkboxButton = document.getElementById(
                 "newletter_cb"
             ) as HTMLElement;
-            checkboxButton.setAttribute("aria-checked", "true");
-            checkboxButton.setAttribute("data-state", "checked");
+
+            // Simulate click first
             checkboxButton.dispatchEvent(
                 new Event("click", { cancelable: true })
             );
+            // Then update attributes (as the app would do after click)
+            checkboxButton.setAttribute("aria-checked", "true");
+            checkboxButton.setAttribute("data-state", "checked");
+
+            // Wait for MutationObserver and setTimeout to process
+            await new Promise((resolve) => setTimeout(resolve, 20));
 
             // Value should be true since checkbox is checked and value is "on"
             formData = tool.getFormData();
             expect(formData.ainternal_run_pipeline).toBe(true);
 
-            // Uncheck the checkbox button
-            checkboxButton.setAttribute("aria-checked", "false");
-            checkboxButton.setAttribute("data-state", "unchecked");
+            // Uncheck the checkbox button: click first, then update attributes
             checkboxButton.dispatchEvent(
                 new Event("click", { cancelable: true })
             );
+            checkboxButton.setAttribute("aria-checked", "false");
+            checkboxButton.setAttribute("data-state", "unchecked");
+
+            // Wait for MutationObserver and setTimeout to process
+            await new Promise((resolve) => setTimeout(resolve, 20));
 
             // Value should be false again
             formData = tool.getFormData();
@@ -499,15 +583,18 @@ describe("OrganizationPipelineTool", () => {
             emailInput.value = "test@example.com";
             emailInput.dispatchEvent(new Event("blur"));
 
-            // Check the custom checkbox button
+            // Check the custom checkbox button: click first, then update attributes
             const checkboxButton = document.getElementById(
                 "newletter_cb"
             ) as HTMLElement;
-            checkboxButton.setAttribute("aria-checked", "true");
-            checkboxButton.setAttribute("data-state", "checked");
             checkboxButton.dispatchEvent(
                 new Event("click", { cancelable: true })
             );
+            checkboxButton.setAttribute("aria-checked", "true");
+            checkboxButton.setAttribute("data-state", "checked");
+
+            // Wait for MutationObserver to process the attribute change
+            await new Promise((resolve) => setTimeout(resolve, 20));
 
             // Click submit button
             const submitButton = document.querySelector(
