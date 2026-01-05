@@ -25,6 +25,7 @@ export interface CheckoutCampaign {
     product_mapping: ProductMapping;
     input_mapping: InputMapping | null;
     total_selector?: string;
+    average_checkout_value?: number;
 }
 export interface Content {
     [key: string]: any;

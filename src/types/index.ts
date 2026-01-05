@@ -28,6 +28,7 @@ export interface CheckoutCampaign {
     product_mapping: ProductMapping;
     input_mapping: InputMapping | null;
     total_selector?: string; // Selector for cart total (id, class, or complex selector)
+    average_checkout_value?: number;
 }
 
 export interface Content {

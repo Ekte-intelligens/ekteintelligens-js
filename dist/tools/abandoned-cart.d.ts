@@ -6,6 +6,7 @@ export declare class AbandonedCartTool {
     private inputDetector?;
     private productDetector?;
     private totalExtractor?;
+    private totalAverage;
     private _sessionId?;
     private isInitialized;
     private previousContent;
@@ -13,6 +14,7 @@ export declare class AbandonedCartTool {
     private previousTotal;
     private debounceTimer?;
     private pendingContentUpdate?;
+    private isSubmitting;
     constructor(options: SDKOptions);
     initialize(): Promise<boolean>;
     /**

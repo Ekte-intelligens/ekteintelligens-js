@@ -72,7 +72,6 @@ export class OrganizationPipelineTool {
             this.setupSubmitListener();
 
             this.isInitialized = true;
-            console.log("Organization pipeline tool initialized successfully");
             return true;
         } catch (error) {
             console.error(
@@ -430,15 +429,9 @@ export class OrganizationPipelineTool {
                         payload as OrganizationPipelinePayload
                     );
 
-                if (success) {
-                    console.log("Organization pipeline executed successfully");
-                } else {
+                if (!success) {
                     console.error("Failed to execute organization pipeline");
                 }
-            } else {
-                console.log(
-                    "Pipeline not executed: ainternal_run_pipeline is not true"
-                );
             }
         } catch (error) {
             console.error("Error handling submit:", error);

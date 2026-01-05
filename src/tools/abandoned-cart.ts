@@ -10,6 +10,7 @@ export class AbandonedCartTool {
     private inputDetector?: InputDetector;
     private productDetector?: ProductDetector;
     private totalExtractor?: TotalExtractor;
+    private totalAverage: number = 0;
     private _sessionId?: string;
     private isInitialized = false;
     private previousContent: Record<string, any> = {};
@@ -20,6 +21,7 @@ export class AbandonedCartTool {
         content: Record<string, any>;
         sessionId?: string;
     };
+    private isSubmitting = false; // Lock to prevent concurrent submissions
 
     constructor(options: SDKOptions) {
         this.options = options;
@@ -48,6 +50,10 @@ export class AbandonedCartTool {
             const campaign = await this.supabaseService.getCheckoutCampaign(
                 this.options.checkoutCampaignId
             );
+
+            this.totalAverage = campaign?.average_checkout_value
+                ? campaign.average_checkout_value
+                : 0;
 
             if (!campaign) {
                 console.error("Failed to fetch checkout campaign data");
@@ -79,7 +85,6 @@ export class AbandonedCartTool {
             this.inputDetector.startListening();
 
             this.isInitialized = true;
-            console.log("Abandoned cart tool initialized successfully");
             return true;
         } catch (error) {
             console.error("Failed to initialize abandoned cart tool:", error);
@@ -120,12 +125,32 @@ export class AbandonedCartTool {
         content: Record<string, any>,
         sessionId?: string
     ) {
+        // Prevent concurrent submissions to avoid duplicate sessions
+        if (this.isSubmitting) {
+            // Re-queue this update to be processed after current submission completes
+            this.pendingContentUpdate = { content, sessionId };
+            // Set a timer to retry after a short delay
+            if (this.debounceTimer) {
+                clearTimeout(this.debounceTimer);
+            }
+            this.debounceTimer = setTimeout(() => {
+                if (this.pendingContentUpdate) {
+                    this.handleContentUpdate(
+                        this.pendingContentUpdate.content,
+                        this.pendingContentUpdate.sessionId
+                    );
+                }
+            }, 100); // Short retry delay
+            return;
+        }
+
         try {
             // Detect products on the page
             const products = this.productDetector?.detectProducts() || [];
 
             // Extract cart total
-            const total = this.totalExtractor?.extractTotal() || 0;
+            const total =
+                this.totalExtractor?.extractTotal() || this.totalAverage;
 
             // Check if content has actually changed
             const contentChanged = this.hasContentChanged(
@@ -139,9 +164,16 @@ export class AbandonedCartTool {
                 return;
             }
 
+            // Set lock to prevent concurrent submissions
+            this.isSubmitting = true;
+
             // Get current page URL with query parameters
             const currentUrl =
                 typeof window !== "undefined" ? window.location.href : "";
+
+            // Always prioritize this._sessionId if it exists (from previous successful submission or localStorage)
+            // This ensures we update existing sessions instead of creating duplicates
+            const effectiveSessionId = this._sessionId || sessionId;
 
             const payload: CartSessionPayload = {
                 organization_id: this.options.organizationId,
@@ -150,7 +182,7 @@ export class AbandonedCartTool {
                 products: products,
                 url: currentUrl,
                 total: total,
-                id: sessionId,
+                id: effectiveSessionId,
             };
 
             const response = await this.supabaseService.submitCartSession(
@@ -176,6 +208,9 @@ export class AbandonedCartTool {
             }
         } catch (error) {
             console.error("Error handling content update:", error);
+        } finally {
+            // Always release the lock, even if there was an error
+            this.isSubmitting = false;
         }
     }
 
@@ -228,6 +263,7 @@ export class AbandonedCartTool {
         }
         this.isInitialized = false;
         this._sessionId = undefined;
+        this.isSubmitting = false; // Reset lock
 
         // Clear session ID from localStorage
         this.clearSessionIdFromStorage();
