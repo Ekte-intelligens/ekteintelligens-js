@@ -6,6 +6,7 @@ export declare class AbandonedCartTool {
     private inputDetector?;
     private productDetector?;
     private totalExtractor?;
+    private campaign?;
     private totalAverage;
     private _sessionId?;
     private isInitialized;
@@ -49,5 +50,17 @@ export declare class AbandonedCartTool {
      * Handle completed checkout by deleting the session from database and clearing localStorage
      */
     private handleCompletedCheckout;
+    /**
+     * Fetch basket data from BookVisit API
+     */
+    private fetchBookVisitBasket;
+    /**
+     * Extract products and total from BookVisit API response
+     */
+    private extractBookVisitProductsAndTotal;
+    /**
+     * Get cookie value by name
+     */
+    private getCookie;
 }
 //# sourceMappingURL=abandoned-cart.d.ts.map
