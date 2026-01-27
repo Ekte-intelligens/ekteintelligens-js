@@ -34,6 +34,7 @@ export interface CheckoutCampaign {
     config: {
         bookvisit?: {
             channel_id: string;
+            autofields?: boolean;
         }
     }
 }

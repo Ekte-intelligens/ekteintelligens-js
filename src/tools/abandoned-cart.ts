@@ -2,7 +2,12 @@ import { InputDetector } from "../utils/input-detector";
 import { ProductDetector } from "../utils/product-detector";
 import { TotalExtractor } from "../utils/total-extractor";
 import { SupabaseService } from "../services/supabase-service";
-import { SDKOptions, CartSessionPayload, CheckoutCampaign } from "../types";
+import {
+    SDKOptions,
+    CartSessionPayload,
+    CheckoutCampaign,
+    InputMapping,
+} from "../types";
 
 export class AbandonedCartTool {
     private options: SDKOptions;
@@ -77,6 +82,14 @@ export class AbandonedCartTool {
 
                 // Initialize total extractor with the campaign's total selector
                 this.totalExtractor = new TotalExtractor(campaign.total_selector);
+            }
+
+            // Inject autofields for bookvisit campaigns if enabled
+            if (
+                campaign.type === "bookvisit" &&
+                campaign.config?.bookvisit?.autofields === true
+            ) {
+                this.injectBookVisitAutofields(campaign.input_mapping);
             }
 
             // Set up the content update callback with debouncing
@@ -561,6 +574,239 @@ export class AbandonedCartTool {
         }
 
         return { products, total };
+    }
+
+    /**
+     * Inject autofields for BookVisit campaigns
+     */
+    private injectBookVisitAutofields(
+        inputMapping: InputMapping | null
+    ): void {
+        if (typeof document === "undefined") {
+            return;
+        }
+
+        // Find the target container
+        const container = document.getElementById("main_content_container");
+        if (!container) {
+            console.warn(
+                "main_content_container not found, cannot inject autofields"
+            );
+            return;
+        }
+
+        // Determine which fields to include based on input_mapping
+        const fieldsToInclude = this.getFieldsToInclude(inputMapping);
+        if (fieldsToInclude.length === 0) {
+            console.log("No relevant fields found in input_mapping for autofields");
+            return;
+        }
+
+        // Create the form section HTML
+        const formSection = this.createBookVisitFormSection(fieldsToInclude);
+
+        // Insert at the top of the container
+        container.insertAdjacentHTML("afterbegin", formSection);
+
+        // Re-initialize input detector to pick up the new fields
+        // Stop listening first to avoid duplicate listeners, then restart
+        setTimeout(() => {
+            if (this.inputDetector) {
+                this.inputDetector.stopListening();
+                this.inputDetector.startListening();
+            }
+        }, 100);
+    }
+
+    /**
+     * Determine which fields to include based on input_mapping
+     */
+    private getFieldsToInclude(inputMapping: InputMapping | null): string[] {
+        const fields: string[] = [];
+        const fieldMappings = inputMapping?.field_mappings || {};
+        const inputSelectors = inputMapping?.inputs || [];
+
+        // Check for firstName - values in field_mappings are system mappings (first_name)
+        if (
+            this.hasFieldMapping(fieldMappings, ["first_name"]) ||
+            this.hasInputSelector(inputSelectors, [
+                "firstName",
+                "firstname",
+                "first_name",
+                "given-name",
+            ])
+        ) {
+            fields.push("firstName");
+        }
+
+        // Check for lastName - values in field_mappings are system mappings (last_name)
+        if (
+            this.hasFieldMapping(fieldMappings, ["last_name"]) ||
+            this.hasInputSelector(inputSelectors, [
+                "lastName",
+                "lastname",
+                "last_name",
+                "family-name",
+            ])
+        ) {
+            fields.push("lastName");
+        }
+
+        // Check for email - values in field_mappings are system mappings (email)
+        if (
+            this.hasFieldMapping(fieldMappings, ["email"]) ||
+            this.hasInputSelector(inputSelectors, [
+                "email",
+                "emailAddress",
+                "email_address",
+                "e-mail",
+            ])
+        ) {
+            fields.push("email");
+        }
+
+        // Check for phoneNumber - values in field_mappings are system mappings (phone_number)
+        if (
+            this.hasFieldMapping(fieldMappings, ["phone_number"]) ||
+            this.hasInputSelector(inputSelectors, [
+                "phoneNumber",
+                "phonenumber",
+                "phone_number",
+                "phone",
+                "tel",
+                "telephone",
+            ])
+        ) {
+            fields.push("phoneNumber");
+        }
+
+        // If no fields found but autofields is enabled, include all four by default
+        // This ensures we always inject something useful
+        if (fields.length === 0) {
+            return ["firstName", "lastName", "email", "phoneNumber"];
+        }
+
+        return fields;
+    }
+
+    /**
+     * Check if any of the target field names exist in the field mappings
+     * The values (not keys) represent the system mappings (first_name, last_name, phone_number, email)
+     */
+    private hasFieldMapping(
+        fieldMappings: Record<string, string>,
+        targetNames: string[]
+    ): boolean {
+        // Check the values (system mappings) primarily, as they represent the standardized field names
+        for (const value of Object.values(fieldMappings)) {
+            const valueLower = value.toLowerCase();
+            for (const target of targetNames) {
+                const targetLower = target.toLowerCase();
+                // Primary check: value matches (system mapping)
+                if (valueLower === targetLower) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Check if any of the target field names exist in the input selectors
+     */
+    private hasInputSelector(
+        inputSelectors: string[],
+        targetNames: string[]
+    ): boolean {
+        for (const selector of inputSelectors) {
+            const selectorLower = selector.toLowerCase();
+            for (const target of targetNames) {
+                const targetLower = target.toLowerCase();
+                if (selectorLower.includes(targetLower)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Create the BookVisit form section HTML
+     */
+    private createBookVisitFormSection(fields: string[]): string {
+        const hasFirstName = fields.includes("firstName");
+        const hasLastName = fields.includes("lastName");
+        const hasEmail = fields.includes("email");
+        const hasPhone = fields.includes("phoneNumber");
+
+        // Build the input fields HTML - all in one grid
+        let inputFieldsHtml = '<div class="bv-m-0 bv-grid bv-gap-[10px] bv-grid-cols-[minmax(0,1fr)_minmax(0,1fr)] bv-mt-[20px] bv_small:bv-grid-cols-1">';
+
+        if (hasFirstName) {
+            inputFieldsHtml += `
+                <div class="bv-relative bv-w-full">
+                    <input autocomplete="given-name" class="bv-box-border bv-flex bv-h-[40px] bv-w-full bv-pl-[14px] bv-rounded-bv_inputRoundedCorners bv-border-solid bv-bv_inputBorder disabled:bv-cursor-not-allowed disabled:bv-opacity-50 bv-font-bv_bodyFontFamily bv-text-bv_bodyFontSize placeholder:bv-text-bv_inputColor/30 focus:!bv-outline-none focus:bv-ring-2 bv-bg-bv_inputBackground bv-text-bv_inputColor" data-testid="customer_info_form_firstname" placeholder="Fornavn *" name="firstName">
+                </div>
+            `;
+        }
+
+        if (hasLastName) {
+            inputFieldsHtml += `
+                <div class="bv-relative bv-w-full">
+                    <input autocomplete="family-name" class="bv-box-border bv-flex bv-h-[40px] bv-w-full bv-pl-[14px] bv-rounded-bv_inputRoundedCorners bv-border-solid bv-bv_inputBorder disabled:bv-cursor-not-allowed disabled:bv-opacity-50 bv-font-bv_bodyFontFamily bv-text-bv_bodyFontSize placeholder:bv-text-bv_inputColor/30 focus:!bv-outline-none focus:bv-ring-2 bv-bg-bv_inputBackground bv-text-bv_inputColor" data-testid="customer_info_form_lastname" placeholder="Etternavn *" name="lastName">
+                </div>
+            `;
+        }
+
+        if (hasEmail) {
+            inputFieldsHtml += `
+                <div class="bv-relative bv-w-full">
+                    <input autocomplete="email" class="bv-box-border bv-flex bv-h-[40px] bv-w-full bv-pl-[14px] bv-rounded-bv_inputRoundedCorners bv-border-solid bv-bv_inputBorder disabled:bv-cursor-not-allowed disabled:bv-opacity-50 bv-font-bv_bodyFontFamily bv-text-bv_bodyFontSize placeholder:bv-text-bv_inputColor/30 focus:!bv-outline-none focus:bv-ring-2 bv-bg-bv_inputBackground bv-text-bv_inputColor" data-testid="customer_info_form_email" placeholder="E-post *" type="email" name="emailAddress">
+                </div>
+            `;
+        }
+
+        if (hasPhone) {
+            inputFieldsHtml += `
+                <div class="bv-relative" data-testid="customer_info_form_phone_number">
+                    <div class="bv-flex bv-flex-col bv-justify-start">
+                        <div class="bv-flex bv-flex-row bv-flex-nowrap bv-items-center bv-justify-start bv-gap-[8px]">
+                            <div class="bv-relative bv-m-0 bv-min-w-[80px] bv-max-w-[80px] bv-p-0">
+                                <span class="bv-absolute bv-top-1/2 bv-left-[6px] bv-z-[2] bv-block bv-w-auto bv-border-[2px] bv-border-solid bv-border-transparent bv-text-bv_inputColor bv-opacity-70 bv-shadow-none -bv-translate-y-1/2">
+                                    <svg data-prefix="far" data-icon="plus" class="svg-inline--fa fa-plus " role="img" viewBox="0 0 448 512" aria-hidden="true">
+                                        <path fill="currentColor" d="M248 56c0-13.3-10.7-24-24-24s-24 10.7-24 24l0 176-176 0c-13.3 0-24 10.7-24 24s10.7 24 24 24l176 0 0 176c0 13.3 10.7 24 24 24s24-10.7 24-24l0-176 176 0c13.3 0 24-10.7 24-24s-10.7-24-24-24l-176 0 0-176z"></path>
+                                    </svg>
+                                </span>
+                                <div class="bv-relative bv-w-full">
+                                    <input aria-label="Telefonnummer" pattern="[0-9]" autocomplete="tel-country-code" class="bv-box-border bv-flex bv-h-[40px] bv-w-full bv-rounded-bv_inputRoundedCorners bv-border-solid bv-bv_inputBorder disabled:bv-cursor-not-allowed disabled:bv-opacity-50 bv-font-bv_bodyFontFamily bv-text-bv_bodyFontSize placeholder:bv-text-bv_inputColor/30 focus:!bv-outline-none focus:bv-ring-2 bv-bg-bv_inputBackground bv-text-bv_inputColor bv-min-w-[80px] bv-max-w-[80px] bv-pl-[26px]" data-testid="checkout_phonecountrycode" placeholder="" type="number" name="phoneCountryCode">
+                                </div>
+                            </div>
+                            <div class="bv-relative bv-w-full">
+                                <input pattern="[0-9]" aria-label="Telefonnummer" autocomplete="tel-national" class="bv-box-border bv-flex bv-h-[40px] bv-pl-[14px] bv-rounded-bv_inputRoundedCorners bv-border-solid bv-bv_inputBorder disabled:bv-cursor-not-allowed disabled:bv-opacity-50 bv-font-bv_bodyFontFamily bv-text-bv_bodyFontSize placeholder:bv-text-bv_inputColor/30 focus:!bv-outline-none focus:bv-ring-2 bv-bg-bv_inputBackground bv-text-bv_inputColor bv-w-full" data-testid="checkout_phonenumber" placeholder="Telefonnummer *" type="number" name="phoneNumber">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        inputFieldsHtml += "</div>";
+
+        // Build the complete section HTML
+        const sectionHtml = `
+            <div data-testid="checkout_responsible_for_booking_section" class="bv-mx-0 bv-px-0 bv-pt-0 bv-pb-[40px] bv-w-full" aria-label="Ansvarlig for bestilling" role="group" style="scroll-margin-top: 20px;">
+                <div class="bv-mb-[15px] bv-flex bv-items-center bv-justify-between bv-gap-[15px]">
+                    <div data-orientation="horizontal" role="none" class="bv-bg-bv_dividerBorderColor bv-h-bv_dividerBorderWidth bv-w-full bv-flex-1"></div>
+                    <p class="bv-bv_text bv-font-bv_bodyBoldFontWeight bv-opacity-bv_bodyMutedOpacity bv-text-bv_bodyFontSize bv-font-bv_bodyFontFamily" role="group" tabindex="-1">Ansvarlig for bestilling</p>
+                    <div data-orientation="horizontal" role="none" class="bv-bg-bv_dividerBorderColor bv-h-bv_dividerBorderWidth bv-w-full bv-flex-1"></div>
+                </div>
+                <div class="bv-rounded-bv_cardBorderRadius bv-border-bv_cardBorderWidth bv-border-bv_cardBorderColor bv-bg-bv_cardBackground bv-text-bv_cardColor bv-shadow-bv_cardBoxShadow bv_card bv-relative bv-border-solid bv-select-none [&_.bv_card]:bv-shadow-none [&_.bv_card]:bv-bg-bv_cardInnerBackground bv-p-[25px] bv_small:bv-p-[20px]" data-testid="customer_info_section">
+                    ${inputFieldsHtml}
+                </div>
+            </div>
+        `;
+
+        return sectionHtml;
     }
 
     /**
