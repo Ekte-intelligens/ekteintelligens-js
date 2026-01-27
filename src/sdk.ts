@@ -1,6 +1,7 @@
 import { SDKOptions } from "./types";
 import { AbandonedCartTool } from "./tools/abandoned-cart";
 import { OrganizationPipelineTool } from "./tools/organization-pipeline";
+import { EnhancedInsightsTool } from "./tools/enhanced-insights";
 
 export class EkteIntelligensSDK {
     private options: SDKOptions;
@@ -35,6 +36,14 @@ export class EkteIntelligensSDK {
                 );
             }
 
+            if (this.options.features?.enhancedInsights) {
+                const enhancedInsightsTool = new EnhancedInsightsTool(
+                    this.options
+                );
+                await enhancedInsightsTool.initialize();
+                this.tools.set("enhancedInsights", enhancedInsightsTool);
+            }
+
             this._isInitialized = true;
             // console.log("EkteIntelligens SDK initialized successfully");
             return true;
@@ -51,6 +60,10 @@ export class EkteIntelligensSDK {
 
     public getOrganizationPipelineTool(): OrganizationPipelineTool | undefined {
         return this.tools.get("organizationPipeline");
+    }
+
+    public getEnhancedInsightsTool(): EnhancedInsightsTool | undefined {
+        return this.tools.get("enhancedInsights");
     }
 
     public destroy(): void {

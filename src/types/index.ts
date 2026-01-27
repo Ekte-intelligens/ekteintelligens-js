@@ -7,6 +7,7 @@ export interface SDKOptions {
     features?: {
         abandonedCart?: boolean;
         organizationPipeline?: boolean;
+        enhancedInsights?: boolean;
     };
     config?: {
         completedCheckout?: boolean;
@@ -29,6 +30,12 @@ export interface CheckoutCampaign {
     input_mapping: InputMapping | null;
     total_selector?: string; // Selector for cart total (id, class, or complex selector)
     average_checkout_value?: number;
+    type: "bookvisit" | "default";
+    config: {
+        bookvisit?: {
+            channel_id: string;
+        }
+    }
 }
 
 export interface Content {

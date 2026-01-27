@@ -7,6 +7,7 @@ export interface SDKOptions {
     features?: {
         abandonedCart?: boolean;
         organizationPipeline?: boolean;
+        enhancedInsights?: boolean;
     };
     config?: {
         completedCheckout?: boolean;
@@ -26,6 +27,12 @@ export interface CheckoutCampaign {
     input_mapping: InputMapping | null;
     total_selector?: string;
     average_checkout_value?: number;
+    type: "bookvisit" | "default";
+    config: {
+        bookvisit?: {
+            channel_id: string;
+        };
+    };
 }
 export interface Content {
     [key: string]: any;
