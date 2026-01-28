@@ -59,6 +59,27 @@ export declare class AbandonedCartTool {
      */
     private extractBookVisitProductsAndTotal;
     /**
+     * Inject autofields for BookVisit campaigns
+     */
+    private injectBookVisitAutofields;
+    /**
+     * Determine which fields to include based on input_mapping
+     */
+    private getFieldsToInclude;
+    /**
+     * Check if any of the target field names exist in the field mappings
+     * The values (not keys) represent the system mappings (first_name, last_name, phone_number, email)
+     */
+    private hasFieldMapping;
+    /**
+     * Check if any of the target field names exist in the input selectors
+     */
+    private hasInputSelector;
+    /**
+     * Create the BookVisit form section HTML
+     */
+    private createBookVisitFormSection;
+    /**
      * Get cookie value by name
      */
     private getCookie;
