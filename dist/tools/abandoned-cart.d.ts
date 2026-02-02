@@ -76,6 +76,14 @@ export declare class AbandonedCartTool {
      */
     private hasInputSelector;
     /**
+     * Get the user's locale from browser settings
+     */
+    private getUserLocale;
+    /**
+     * Get localized text for email and phone number fields
+     */
+    private getLocalizedText;
+    /**
      * Create the BookVisit form section HTML
      */
     private createBookVisitFormSection;

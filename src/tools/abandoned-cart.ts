@@ -731,6 +731,77 @@ export class AbandonedCartTool {
     }
 
     /**
+     * Get the user's locale from browser settings
+     */
+    private getUserLocale(): string {
+        if (typeof navigator === "undefined") {
+            return "en"; // Default to English if navigator is not available
+        }
+
+        // Try to get locale from navigator.languages (preferred languages)
+        if (navigator.languages && navigator.languages.length > 0) {
+            const locale = navigator.languages[0];
+            // Extract language code (e.g., "en-US" -> "en", "nb-NO" -> "nb")
+            return locale.split("-")[0].toLowerCase();
+        }
+
+        // Fallback to navigator.language
+        if (navigator.language) {
+            return navigator.language.split("-")[0].toLowerCase();
+        }
+
+        return "en"; // Default to English
+    }
+
+    /**
+     * Get localized text for email and phone number fields
+     */
+    private getLocalizedText(key: "email" | "phoneNumber"): string {
+        const locale = this.getUserLocale();
+        
+        // Translation map for email and phone number
+        const translations: Record<string, Record<string, string>> = {
+            email: {
+                en: "Email",
+                nb: "E-post", // Norwegian Bokmål
+                nn: "E-post", // Norwegian Nynorsk
+                no: "E-post", // Norwegian (generic)
+                sv: "E-post", // Swedish
+                da: "E-mail", // Danish
+                de: "E-Mail", // German
+                fr: "E-mail", // French
+                es: "Correo electrónico", // Spanish
+                it: "E-mail", // Italian
+                nl: "E-mail", // Dutch
+                pl: "E-mail", // Polish
+            },
+            phoneNumber: {
+                en: "Phone number",
+                nb: "Telefonnummer", // Norwegian Bokmål
+                nn: "Telefonnummer", // Norwegian Nynorsk
+                no: "Telefonnummer", // Norwegian (generic)
+                sv: "Telefonnummer", // Swedish
+                da: "Telefonnummer", // Danish
+                de: "Telefonnummer", // German
+                fr: "Numéro de téléphone", // French
+                es: "Número de teléfono", // Spanish
+                it: "Numero di telefono", // Italian
+                nl: "Telefoonnummer", // Dutch
+                pl: "Numer telefonu", // Polish
+            },
+        };
+
+        // Get translation for the locale, default to English if locale is unknown
+        const localeTranslation = translations[key][locale];
+        if (localeTranslation) {
+            return localeTranslation;
+        }
+        
+        // Default to English for unknown locales
+        return translations[key]["en"] || key;
+    }
+
+    /**
      * Create the BookVisit form section HTML
      */
     private createBookVisitFormSection(fields: string[]): string {
@@ -738,6 +809,10 @@ export class AbandonedCartTool {
         const hasLastName = fields.includes("lastName");
         const hasEmail = fields.includes("email");
         const hasPhone = fields.includes("phoneNumber");
+
+        // Get localized text for email and phone number
+        const emailLabel = this.getLocalizedText("email");
+        const phoneLabel = this.getLocalizedText("phoneNumber");
 
         // Build the input fields HTML - all in one grid
         let inputFieldsHtml = '<div class="bv-m-0 bv-grid bv-gap-[10px] bv-grid-cols-[minmax(0,1fr)_minmax(0,1fr)] bv-mt-[20px] bv_small:bv-grid-cols-1">';
@@ -761,7 +836,7 @@ export class AbandonedCartTool {
         if (hasEmail) {
             inputFieldsHtml += `
                 <div class="bv-relative bv-w-full">
-                    <input autocomplete="email" class="bv-box-border bv-flex bv-h-[40px] bv-w-full bv-pl-[14px] bv-rounded-bv_inputRoundedCorners bv-border-solid bv-bv_inputBorder disabled:bv-cursor-not-allowed disabled:bv-opacity-50 bv-font-bv_bodyFontFamily bv-text-bv_bodyFontSize placeholder:bv-text-bv_inputColor/30 focus:!bv-outline-none focus:bv-ring-2 bv-bg-bv_inputBackground bv-text-bv_inputColor" data-testid="customer_info_form_email" placeholder="E-post *" type="email" name="emailAddress">
+                    <input autocomplete="email" class="bv-box-border bv-flex bv-h-[40px] bv-w-full bv-pl-[14px] bv-rounded-bv_inputRoundedCorners bv-border-solid bv-bv_inputBorder disabled:bv-cursor-not-allowed disabled:bv-opacity-50 bv-font-bv_bodyFontFamily bv-text-bv_bodyFontSize placeholder:bv-text-bv_inputColor/30 focus:!bv-outline-none focus:bv-ring-2 bv-bg-bv_inputBackground bv-text-bv_inputColor" data-testid="customer_info_form_email" placeholder="${emailLabel} *" type="email" name="emailAddress">
                 </div>
             `;
         }
@@ -778,11 +853,11 @@ export class AbandonedCartTool {
                                     </svg>
                                 </span>
                                 <div class="bv-relative bv-w-full">
-                                    <input aria-label="Telefonnummer" pattern="[0-9]" autocomplete="tel-country-code" class="bv-box-border bv-flex bv-h-[40px] bv-w-full bv-rounded-bv_inputRoundedCorners bv-border-solid bv-bv_inputBorder disabled:bv-cursor-not-allowed disabled:bv-opacity-50 bv-font-bv_bodyFontFamily bv-text-bv_bodyFontSize placeholder:bv-text-bv_inputColor/30 focus:!bv-outline-none focus:bv-ring-2 bv-bg-bv_inputBackground bv-text-bv_inputColor bv-min-w-[80px] bv-max-w-[80px] bv-pl-[26px]" data-testid="checkout_phonecountrycode" placeholder="" type="number" name="phoneCountryCode">
+                                    <input aria-label="${phoneLabel}" pattern="[0-9]" autocomplete="tel-country-code" class="bv-box-border bv-flex bv-h-[40px] bv-w-full bv-rounded-bv_inputRoundedCorners bv-border-solid bv-bv_inputBorder disabled:bv-cursor-not-allowed disabled:bv-opacity-50 bv-font-bv_bodyFontFamily bv-text-bv_bodyFontSize placeholder:bv-text-bv_inputColor/30 focus:!bv-outline-none focus:bv-ring-2 bv-bg-bv_inputBackground bv-text-bv_inputColor bv-min-w-[80px] bv-max-w-[80px] bv-pl-[26px]" data-testid="checkout_phonecountrycode" placeholder="" type="number" name="phoneCountryCode">
                                 </div>
                             </div>
                             <div class="bv-relative bv-w-full">
-                                <input pattern="[0-9]" aria-label="Telefonnummer" autocomplete="tel-national" class="bv-box-border bv-flex bv-h-[40px] bv-pl-[14px] bv-rounded-bv_inputRoundedCorners bv-border-solid bv-bv_inputBorder disabled:bv-cursor-not-allowed disabled:bv-opacity-50 bv-font-bv_bodyFontFamily bv-text-bv_bodyFontSize placeholder:bv-text-bv_inputColor/30 focus:!bv-outline-none focus:bv-ring-2 bv-bg-bv_inputBackground bv-text-bv_inputColor bv-w-full" data-testid="checkout_phonenumber" placeholder="Telefonnummer *" type="number" name="phoneNumber">
+                                <input pattern="[0-9]" aria-label="${phoneLabel}" autocomplete="tel-national" class="bv-box-border bv-flex bv-h-[40px] bv-pl-[14px] bv-rounded-bv_inputRoundedCorners bv-border-solid bv-bv_inputBorder disabled:bv-cursor-not-allowed disabled:bv-opacity-50 bv-font-bv_bodyFontFamily bv-text-bv_bodyFontSize placeholder:bv-text-bv_inputColor/30 focus:!bv-outline-none focus:bv-ring-2 bv-bg-bv_inputBackground bv-text-bv_inputColor bv-w-full" data-testid="checkout_phonenumber" placeholder="${phoneLabel} *" type="number" name="phoneNumber">
                             </div>
                         </div>
                     </div>

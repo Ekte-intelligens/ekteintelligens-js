@@ -1862,9 +1862,9 @@ class qe {
         } else {
           const d = this.bindings.postgres_changes, f = (h = d == null ? void 0 : d.length) !== null && h !== void 0 ? h : 0, g = [];
           for (let _ = 0; _ < f; _++) {
-            const p = d[_], { filter: { event: w, schema: T, table: v, filter: k } } = p, x = c && c[_];
-            if (x && x.event === w && x.schema === T && x.table === v && x.filter === k)
-              g.push(Object.assign(Object.assign({}, p), { id: x.id }));
+            const p = d[_], { filter: { event: w, schema: T, table: v, filter: k } } = p, P = c && c[_];
+            if (P && P.event === w && P.schema === T && P.table === v && P.filter === k)
+              g.push(Object.assign(Object.assign({}, p), { id: P.id }));
             else {
               this.unsubscribe(), this.state = C.errored, e == null || e(U.CHANNEL_ERROR, new Error("mismatch between server and client bindings for postgres changes"));
               return;
@@ -2029,8 +2029,8 @@ class qe {
       var g, _, p, w, T, v;
       if (["broadcast", "presence", "postgres_changes"].includes(o))
         if ("id" in f) {
-          const k = f.id, x = (g = f.filter) === null || g === void 0 ? void 0 : g.event;
-          return k && ((_ = t.ids) === null || _ === void 0 ? void 0 : _.includes(k)) && (x === "*" || (x == null ? void 0 : x.toLocaleLowerCase()) === ((p = t.data) === null || p === void 0 ? void 0 : p.type.toLocaleLowerCase()));
+          const k = f.id, P = (g = f.filter) === null || g === void 0 ? void 0 : g.event;
+          return k && ((_ = t.ids) === null || _ === void 0 ? void 0 : _.includes(k)) && (P === "*" || (P == null ? void 0 : P.toLocaleLowerCase()) === ((p = t.data) === null || p === void 0 ? void 0 : p.type.toLocaleLowerCase()));
         } else {
           const k = (T = (w = f == null ? void 0 : f.filter) === null || w === void 0 ? void 0 : w.event) === null || T === void 0 ? void 0 : T.toLocaleLowerCase();
           return k === "*" || k === ((v = t == null ? void 0 : t.event) === null || v === void 0 ? void 0 : v.toLocaleLowerCase());
@@ -2141,13 +2141,13 @@ class qe {
   }
 }
 const Qe = () => {
-}, Ps = `
+}, xs = `
   addEventListener("message", (e) => {
     if (e.data.event === "start") {
       setInterval(() => postMessage({ event: "keepAlive" }), e.data.interval);
     }
   });`;
-class xs {
+class Ps {
   /**
    * Initializes the Socket.
    *
@@ -2425,7 +2425,7 @@ class xs {
     if (e)
       t = e;
     else {
-      const s = new Blob([Ps], { type: "application/javascript" });
+      const s = new Blob([xs], { type: "application/javascript" });
       t = URL.createObjectURL(s);
     }
     return t;
@@ -2436,7 +2436,7 @@ class Me extends Error {
     super(e), this.__isStorageError = !0, this.name = "StorageError";
   }
 }
-function P(n) {
+function x(n) {
   return typeof n == "object" && n !== null && "__isStorageError" in n;
 }
 class Cs extends Me {
@@ -2644,7 +2644,7 @@ class Us {
           error: null
         };
       } catch (i) {
-        if (P(i))
+        if (x(i))
           return { data: null, error: i };
         throw i;
       }
@@ -2681,7 +2681,7 @@ class Us {
           error: null
         };
       } catch (l) {
-        if (P(l))
+        if (x(l))
           return { data: null, error: l };
         throw l;
       }
@@ -2705,7 +2705,7 @@ class Us {
           throw new Me("No token returned by API");
         return { data: { signedUrl: o.toString(), path: e, token: a }, error: null };
       } catch (s) {
-        if (P(s))
+        if (x(s))
           return { data: null, error: s };
         throw s;
       }
@@ -2739,7 +2739,7 @@ class Us {
           destinationBucket: s == null ? void 0 : s.destinationBucket
         }, { headers: this.headers }), error: null };
       } catch (r) {
-        if (P(r))
+        if (x(r))
           return { data: null, error: r };
         throw r;
       }
@@ -2762,7 +2762,7 @@ class Us {
           destinationBucket: s == null ? void 0 : s.destinationBucket
         }, { headers: this.headers })).Key }, error: null };
       } catch (r) {
-        if (P(r))
+        if (x(r))
           return { data: null, error: r };
         throw r;
       }
@@ -2783,7 +2783,7 @@ class Us {
         const o = s != null && s.download ? `&download=${s.download === !0 ? "" : s.download}` : "";
         return i = { signedUrl: encodeURI(`${this.url}${i.signedURL}${o}`) }, { data: i, error: null };
       } catch (r) {
-        if (P(r))
+        if (x(r))
           return { data: null, error: r };
         throw r;
       }
@@ -2805,7 +2805,7 @@ class Us {
           error: null
         };
       } catch (r) {
-        if (P(r))
+        if (x(r))
           return { data: null, error: r };
         throw r;
       }
@@ -2827,7 +2827,7 @@ class Us {
           noResolveJson: !0
         })).blob(), error: null };
       } catch (a) {
-        if (P(a))
+        if (x(a))
           return { data: null, error: a };
         throw a;
       }
@@ -2846,7 +2846,7 @@ class Us {
         });
         return { data: $e(s), error: null };
       } catch (s) {
-        if (P(s))
+        if (x(s))
           return { data: null, error: s };
         throw s;
       }
@@ -2864,7 +2864,7 @@ class Us {
           headers: this.headers
         }), { data: !0, error: null };
       } catch (s) {
-        if (P(s) && s instanceof Ae) {
+        if (x(s) && s instanceof Ae) {
           const r = s.originalError;
           if ([400, 404].includes(r == null ? void 0 : r.status))
             return { data: !1, error: s };
@@ -2901,7 +2901,7 @@ class Us {
       try {
         return { data: yield Et(this.fetch, `${this.url}/object/${this.bucketId}`, { prefixes: e }, { headers: this.headers }), error: null };
       } catch (t) {
-        if (P(t))
+        if (x(t))
           return { data: null, error: t };
         throw t;
       }
@@ -2977,7 +2977,7 @@ class Us {
         const r = Object.assign(Object.assign(Object.assign({}, Ls), t), { prefix: e || "" });
         return { data: yield D(this.fetch, `${this.url}/object/list/${this.bucketId}`, r, { headers: this.headers }, s), error: null };
       } catch (r) {
-        if (P(r))
+        if (x(r))
           return { data: null, error: r };
         throw r;
       }
@@ -3041,7 +3041,7 @@ class Fs {
       try {
         return { data: yield fe(this.fetch, `${this.url}/bucket`, { headers: this.headers }), error: null };
       } catch (e) {
-        if (P(e))
+        if (x(e))
           return { data: null, error: e };
         throw e;
       }
@@ -3057,7 +3057,7 @@ class Fs {
       try {
         return { data: yield fe(this.fetch, `${this.url}/bucket/${e}`, { headers: this.headers }), error: null };
       } catch (t) {
-        if (P(t))
+        if (x(t))
           return { data: null, error: t };
         throw t;
       }
@@ -3092,7 +3092,7 @@ class Fs {
           allowed_mime_types: t.allowedMimeTypes
         }, { headers: this.headers }), error: null };
       } catch (s) {
-        if (P(s))
+        if (x(s))
           return { data: null, error: s };
         throw s;
       }
@@ -3121,7 +3121,7 @@ class Fs {
           allowed_mime_types: t.allowedMimeTypes
         }, { headers: this.headers }), error: null };
       } catch (s) {
-        if (P(s))
+        if (x(s))
           return { data: null, error: s };
         throw s;
       }
@@ -3137,7 +3137,7 @@ class Fs {
       try {
         return { data: yield D(this.fetch, `${this.url}/bucket/${e}/empty`, {}, { headers: this.headers }), error: null };
       } catch (t) {
-        if (P(t))
+        if (x(t))
           return { data: null, error: t };
         throw t;
       }
@@ -3154,7 +3154,7 @@ class Fs {
       try {
         return { data: yield Et(this.fetch, `${this.url}/bucket/${e}`, {}, { headers: this.headers }), error: null };
       } catch (t) {
-        if (P(t))
+        if (x(t))
           return { data: null, error: t };
         throw t;
       }
@@ -3270,7 +3270,7 @@ function Zs(n, e) {
   };
   return n.accessToken ? d.accessToken = n.accessToken : delete d.accessToken, d;
 }
-const Tt = "2.71.1", Y = 30 * 1e3, Le = 3, Ee = Le * Y, er = "http://localhost:9999", tr = "supabase.auth.token", sr = { "X-Client-Info": `gotrue-js/${Tt}` }, Ue = "X-Supabase-Api-Version", Pt = {
+const Tt = "2.71.1", Y = 30 * 1e3, Le = 3, Ee = Le * Y, er = "http://localhost:9999", tr = "supabase.auth.token", sr = { "X-Client-Info": `gotrue-js/${Tt}` }, Ue = "X-Supabase-Api-Version", xt = {
   "2024-01-01": {
     timestamp: Date.parse("2024-01-01T00:00:00.0Z"),
     name: "2024-01-01"
@@ -3292,7 +3292,7 @@ class nr extends ze {
 function or(n) {
   return m(n) && n.name === "AuthApiError";
 }
-class xt extends ze {
+class Pt extends ze {
   constructor(e, t) {
     super(e), this.name = "AuthUnknownError", this.originalError = t;
   }
@@ -3553,7 +3553,7 @@ class we {
   }
 }
 we.promiseConstructor = Promise;
-function Pe(n) {
+function xe(n) {
   const e = n.split(".");
   if (e.length !== 3)
     throw new Be("Invalid JWT structure");
@@ -3626,10 +3626,10 @@ async function J(n, e, t = !1) {
   const i = await Tr(s);
   return [i, s === i ? "plain" : "s256"];
 }
-const Pr = /^2[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|1[0-9]|2[0-9]|3[0-1])$/i;
-function xr(n) {
+const xr = /^2[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|1[0-9]|2[0-9]|3[0-1])$/i;
+function Pr(n) {
   const e = n.headers.get(Ue);
-  if (!e || !e.match(Pr))
+  if (!e || !e.match(xr))
     return null;
   try {
     return /* @__PURE__ */ new Date(`${e}T00:00:00.0Z`);
@@ -3666,7 +3666,7 @@ function G(n) {
   if (!jr.test(n))
     throw new Error("@supabase/auth-js: Expected parameter to be UUID but is not");
 }
-function xe() {
+function Pe() {
   const n = {};
   return new Proxy(n, {
     get: (e, t) => {
@@ -3709,11 +3709,11 @@ async function it(n) {
   try {
     t = await n.json();
   } catch (i) {
-    throw new xt(H(i), i);
+    throw new Pt(H(i), i);
   }
   let s;
-  const r = xr(n);
-  if (r && r.getTime() >= Pt["2024-01-01"].timestamp && typeof t == "object" && t && typeof t.code == "string" ? s = t.code : typeof t == "object" && t && typeof t.error_code == "string" && (s = t.error_code), s) {
+  const r = Pr(n);
+  if (r && r.getTime() >= xt["2024-01-01"].timestamp && typeof t == "object" && t && typeof t.code == "string" ? s = t.code : typeof t == "object" && t && typeof t.error_code == "string" && (s = t.error_code), s) {
     if (s === "weak_password")
       throw new Ze(H(t), n.status, ((e = t.weak_password) === null || e === void 0 ? void 0 : e.reasons) || []);
     if (s === "session_not_found")
@@ -3729,7 +3729,7 @@ const $r = (n, e, t, s) => {
 async function y(n, e, t, s) {
   var r;
   const i = Object.assign({}, s == null ? void 0 : s.headers);
-  i[Ue] || (i[Ue] = Pt["2024-01-01"].name), s != null && s.jwt && (i.Authorization = `Bearer ${s.jwt}`);
+  i[Ue] || (i[Ue] = xt["2024-01-01"].name), s != null && s.jwt && (i.Authorization = `Bearer ${s.jwt}`);
   const o = (r = s == null ? void 0 : s.query) !== null && r !== void 0 ? r : {};
   s != null && s.redirectTo && (o.redirect_to = s.redirectTo);
   const a = Object.keys(o).length ? "?" + new URLSearchParams(o).toString() : "", l = await Rr(n, e, t + a, {
@@ -4194,7 +4194,7 @@ class ae {
       return await this._recoverAndRefresh(), { error: null };
     } catch (t) {
       return m(t) ? { error: t } : {
-        error: new xt("Unexpected error during initialization", t)
+        error: new Pt("Unexpected error during initialization", t)
       };
     } finally {
       await this._handleVisibilityChange(), this._debug("#_initialize()", "end");
@@ -4380,13 +4380,13 @@ class ae {
           throw new Error("@supabase/auth-js: Both wallet and url must be specified in non-browser environments.");
         k = w;
       }
-      const x = new URL((t = v == null ? void 0 : v.url) !== null && t !== void 0 ? t : window.location.href);
+      const P = new URL((t = v == null ? void 0 : v.url) !== null && t !== void 0 ? t : window.location.href);
       if ("signIn" in k && k.signIn) {
         const E = await k.signIn(Object.assign(Object.assign(Object.assign({ issuedAt: (/* @__PURE__ */ new Date()).toISOString() }, v == null ? void 0 : v.signInWithSolana), {
           // non-overridable properties
           version: "1",
-          domain: x.host,
-          uri: x.href
+          domain: P.host,
+          uri: P.href
         }), T ? { statement: T } : null));
         let O;
         if (Array.isArray(E) && E[0] && typeof E[0] == "object")
@@ -4403,11 +4403,11 @@ class ae {
         if (!("signMessage" in k) || typeof k.signMessage != "function" || !("publicKey" in k) || typeof k != "object" || !k.publicKey || !("toBase58" in k.publicKey) || typeof k.publicKey.toBase58 != "function")
           throw new Error("@supabase/auth-js: Wallet does not have a compatible signMessage() and publicKey.toBase58() API");
         g = [
-          `${x.host} wants you to sign in with your Solana account:`,
+          `${P.host} wants you to sign in with your Solana account:`,
           k.publicKey.toBase58(),
           ...T ? ["", T, ""] : [""],
           "Version: 1",
-          `URI: ${x.href}`,
+          `URI: ${P.href}`,
           `Issued At: ${(r = (s = v == null ? void 0 : v.signInWithSolana) === null || s === void 0 ? void 0 : s.issuedAt) !== null && r !== void 0 ? r : (/* @__PURE__ */ new Date()).toISOString()}`,
           ...!((i = v == null ? void 0 : v.signInWithSolana) === null || i === void 0) && i.notBefore ? [`Not Before: ${v.signInWithSolana.notBefore}`] : [],
           ...!((o = v == null ? void 0 : v.signInWithSolana) === null || o === void 0) && o.expirationTime ? [`Expiration Time: ${v.signInWithSolana.expirationTime}`] : [],
@@ -4752,7 +4752,7 @@ class ae {
       if (this._debug("#__loadSession()", `session has${s ? "" : " not"} expired`, "expires_at", e.expires_at), !s) {
         if (this.userStorage) {
           const o = await z(this.userStorage, this.storageKey + "-user");
-          o != null && o.user ? e.user = o.user : e.user = xe();
+          o != null && o.user ? e.user = o.user : e.user = Pe();
         }
         if (this.storage.isServer && e.user) {
           let o = this.suppressGetSessionWarning;
@@ -4849,7 +4849,7 @@ class ae {
         throw new F();
       const t = Date.now() / 1e3;
       let s = t, r = !0, i = null;
-      const { payload: o } = Pe(e.access_token);
+      const { payload: o } = xe(e.access_token);
       if (o.exp && (s = o.exp, r = s <= t), r) {
         const { session: a, error: l } = await this._callRefreshToken(e.refresh_token);
         if (l)
@@ -5187,10 +5187,10 @@ class ae {
       const r = await z(this.storage, this.storageKey);
       if (r && this.userStorage) {
         let o = await z(this.userStorage, this.storageKey + "-user");
-        !this.storage.isServer && Object.is(this.storage, this.userStorage) && !o && (o = { user: r.user }, await Z(this.userStorage, this.storageKey + "-user", o)), r.user = (e = o == null ? void 0 : o.user) !== null && e !== void 0 ? e : xe();
+        !this.storage.isServer && Object.is(this.storage, this.userStorage) && !o && (o = { user: r.user }, await Z(this.userStorage, this.storageKey + "-user", o)), r.user = (e = o == null ? void 0 : o.user) !== null && e !== void 0 ? e : Pe();
       } else if (r && !r.user && !r.user) {
         const o = await z(this.storage, this.storageKey + "-user");
-        o && (o != null && o.user) ? (r.user = o.user, await B(this.storage, this.storageKey + "-user"), await Z(this.storage, this.storageKey, r)) : r.user = xe();
+        o && (o != null && o.user) ? (r.user = o.user, await B(this.storage, this.storageKey + "-user"), await Z(this.storage, this.storageKey, r)) : r.user = Pe();
       }
       if (this._debug(s, "session from storage", r), !this._isValidSession(r)) {
         this._debug(s, "session is not valid"), r !== null && await this._removeSession();
@@ -5570,7 +5570,7 @@ class ae {
           data: { currentLevel: null, nextLevel: null, currentAuthenticationMethods: [] },
           error: null
         };
-      const { payload: o } = Pe(r.access_token);
+      const { payload: o } = xe(r.access_token);
       let a = null;
       o.aal && (a = o.aal);
       let l = a;
@@ -5618,7 +5618,7 @@ class ae {
           return { data: null, error: g };
         s = f.session.access_token;
       }
-      const { header: r, payload: i, signature: o, raw: { header: a, payload: l } } = Pe(s);
+      const { header: r, payload: i, signature: o, raw: { header: a, payload: l } } = xe(s);
       t != null && t.allowExpired || Cr(i.exp);
       const u = !r.alg || r.alg.startsWith("HS") || !r.kid || !("crypto" in globalThis && "subtle" in globalThis.crypto) ? null : await this.fetchJwk(r.kid, t != null && t.keys ? { keys: t.keys } : t == null ? void 0 : t.jwks);
       if (!u) {
@@ -5844,7 +5844,7 @@ class Jr {
     });
   }
   _initRealtimeClient(e) {
-    return new xs(this.realtimeUrl.href, Object.assign(Object.assign({}, e), { params: Object.assign({ apikey: this.supabaseKey }, e == null ? void 0 : e.params) }));
+    return new Ps(this.realtimeUrl.href, Object.assign(Object.assign({}, e), { params: Object.assign({ apikey: this.supabaseKey }, e == null ? void 0 : e.params) }));
   }
   _listenForAuthEvents() {
     return this.auth.onAuthStateChange((t, s) => {
@@ -6324,24 +6324,88 @@ class Xr {
     return !1;
   }
   /**
+   * Get the user's locale from browser settings
+   */
+  getUserLocale() {
+    return typeof navigator > "u" ? "en" : navigator.languages && navigator.languages.length > 0 ? navigator.languages[0].split("-")[0].toLowerCase() : navigator.language ? navigator.language.split("-")[0].toLowerCase() : "en";
+  }
+  /**
+   * Get localized text for email and phone number fields
+   */
+  getLocalizedText(e) {
+    const t = this.getUserLocale(), s = {
+      email: {
+        en: "Email",
+        nb: "E-post",
+        // Norwegian Bokmål
+        nn: "E-post",
+        // Norwegian Nynorsk
+        no: "E-post",
+        // Norwegian (generic)
+        sv: "E-post",
+        // Swedish
+        da: "E-mail",
+        // Danish
+        de: "E-Mail",
+        // German
+        fr: "E-mail",
+        // French
+        es: "Correo electrónico",
+        // Spanish
+        it: "E-mail",
+        // Italian
+        nl: "E-mail",
+        // Dutch
+        pl: "E-mail"
+        // Polish
+      },
+      phoneNumber: {
+        en: "Phone number",
+        nb: "Telefonnummer",
+        // Norwegian Bokmål
+        nn: "Telefonnummer",
+        // Norwegian Nynorsk
+        no: "Telefonnummer",
+        // Norwegian (generic)
+        sv: "Telefonnummer",
+        // Swedish
+        da: "Telefonnummer",
+        // Danish
+        de: "Telefonnummer",
+        // German
+        fr: "Numéro de téléphone",
+        // French
+        es: "Número de teléfono",
+        // Spanish
+        it: "Numero di telefono",
+        // Italian
+        nl: "Telefoonnummer",
+        // Dutch
+        pl: "Numer telefonu"
+        // Polish
+      }
+    }, r = s[e][t];
+    return r || s[e].en || e;
+  }
+  /**
    * Create the BookVisit form section HTML
    */
   createBookVisitFormSection(e) {
-    const t = e.includes("firstName"), s = e.includes("lastName"), r = e.includes("email"), i = e.includes("phoneNumber");
-    let o = '<div class="bv-m-0 bv-grid bv-gap-[10px] bv-grid-cols-[minmax(0,1fr)_minmax(0,1fr)] bv-mt-[20px] bv_small:bv-grid-cols-1">';
-    return t && (o += `
+    const t = e.includes("firstName"), s = e.includes("lastName"), r = e.includes("email"), i = e.includes("phoneNumber"), o = this.getLocalizedText("email"), a = this.getLocalizedText("phoneNumber");
+    let l = '<div class="bv-m-0 bv-grid bv-gap-[10px] bv-grid-cols-[minmax(0,1fr)_minmax(0,1fr)] bv-mt-[20px] bv_small:bv-grid-cols-1">';
+    return t && (l += `
                 <div class="bv-relative bv-w-full">
                     <input autocomplete="given-name" class="bv-box-border bv-flex bv-h-[40px] bv-w-full bv-pl-[14px] bv-rounded-bv_inputRoundedCorners bv-border-solid bv-bv_inputBorder disabled:bv-cursor-not-allowed disabled:bv-opacity-50 bv-font-bv_bodyFontFamily bv-text-bv_bodyFontSize placeholder:bv-text-bv_inputColor/30 focus:!bv-outline-none focus:bv-ring-2 bv-bg-bv_inputBackground bv-text-bv_inputColor" data-testid="customer_info_form_firstname" placeholder="Fornavn *" name="firstName">
                 </div>
-            `), s && (o += `
+            `), s && (l += `
                 <div class="bv-relative bv-w-full">
                     <input autocomplete="family-name" class="bv-box-border bv-flex bv-h-[40px] bv-w-full bv-pl-[14px] bv-rounded-bv_inputRoundedCorners bv-border-solid bv-bv_inputBorder disabled:bv-cursor-not-allowed disabled:bv-opacity-50 bv-font-bv_bodyFontFamily bv-text-bv_bodyFontSize placeholder:bv-text-bv_inputColor/30 focus:!bv-outline-none focus:bv-ring-2 bv-bg-bv_inputBackground bv-text-bv_inputColor" data-testid="customer_info_form_lastname" placeholder="Etternavn *" name="lastName">
                 </div>
-            `), r && (o += `
+            `), r && (l += `
                 <div class="bv-relative bv-w-full">
-                    <input autocomplete="email" class="bv-box-border bv-flex bv-h-[40px] bv-w-full bv-pl-[14px] bv-rounded-bv_inputRoundedCorners bv-border-solid bv-bv_inputBorder disabled:bv-cursor-not-allowed disabled:bv-opacity-50 bv-font-bv_bodyFontFamily bv-text-bv_bodyFontSize placeholder:bv-text-bv_inputColor/30 focus:!bv-outline-none focus:bv-ring-2 bv-bg-bv_inputBackground bv-text-bv_inputColor" data-testid="customer_info_form_email" placeholder="E-post *" type="email" name="emailAddress">
+                    <input autocomplete="email" class="bv-box-border bv-flex bv-h-[40px] bv-w-full bv-pl-[14px] bv-rounded-bv_inputRoundedCorners bv-border-solid bv-bv_inputBorder disabled:bv-cursor-not-allowed disabled:bv-opacity-50 bv-font-bv_bodyFontFamily bv-text-bv_bodyFontSize placeholder:bv-text-bv_inputColor/30 focus:!bv-outline-none focus:bv-ring-2 bv-bg-bv_inputBackground bv-text-bv_inputColor" data-testid="customer_info_form_email" placeholder="${o} *" type="email" name="emailAddress">
                 </div>
-            `), i && (o += `
+            `), i && (l += `
                 <div class="bv-relative" data-testid="customer_info_form_phone_number">
                     <div class="bv-flex bv-flex-col bv-justify-start">
                         <div class="bv-flex bv-flex-row bv-flex-nowrap bv-items-center bv-justify-start bv-gap-[8px]">
@@ -6352,16 +6416,16 @@ class Xr {
                                     </svg>
                                 </span>
                                 <div class="bv-relative bv-w-full">
-                                    <input aria-label="Telefonnummer" pattern="[0-9]" autocomplete="tel-country-code" class="bv-box-border bv-flex bv-h-[40px] bv-w-full bv-rounded-bv_inputRoundedCorners bv-border-solid bv-bv_inputBorder disabled:bv-cursor-not-allowed disabled:bv-opacity-50 bv-font-bv_bodyFontFamily bv-text-bv_bodyFontSize placeholder:bv-text-bv_inputColor/30 focus:!bv-outline-none focus:bv-ring-2 bv-bg-bv_inputBackground bv-text-bv_inputColor bv-min-w-[80px] bv-max-w-[80px] bv-pl-[26px]" data-testid="checkout_phonecountrycode" placeholder="" type="number" name="phoneCountryCode">
+                                    <input aria-label="${a}" pattern="[0-9]" autocomplete="tel-country-code" class="bv-box-border bv-flex bv-h-[40px] bv-w-full bv-rounded-bv_inputRoundedCorners bv-border-solid bv-bv_inputBorder disabled:bv-cursor-not-allowed disabled:bv-opacity-50 bv-font-bv_bodyFontFamily bv-text-bv_bodyFontSize placeholder:bv-text-bv_inputColor/30 focus:!bv-outline-none focus:bv-ring-2 bv-bg-bv_inputBackground bv-text-bv_inputColor bv-min-w-[80px] bv-max-w-[80px] bv-pl-[26px]" data-testid="checkout_phonecountrycode" placeholder="" type="number" name="phoneCountryCode">
                                 </div>
                             </div>
                             <div class="bv-relative bv-w-full">
-                                <input pattern="[0-9]" aria-label="Telefonnummer" autocomplete="tel-national" class="bv-box-border bv-flex bv-h-[40px] bv-pl-[14px] bv-rounded-bv_inputRoundedCorners bv-border-solid bv-bv_inputBorder disabled:bv-cursor-not-allowed disabled:bv-opacity-50 bv-font-bv_bodyFontFamily bv-text-bv_bodyFontSize placeholder:bv-text-bv_inputColor/30 focus:!bv-outline-none focus:bv-ring-2 bv-bg-bv_inputBackground bv-text-bv_inputColor bv-w-full" data-testid="checkout_phonenumber" placeholder="Telefonnummer *" type="number" name="phoneNumber">
+                                <input pattern="[0-9]" aria-label="${a}" autocomplete="tel-national" class="bv-box-border bv-flex bv-h-[40px] bv-pl-[14px] bv-rounded-bv_inputRoundedCorners bv-border-solid bv-bv_inputBorder disabled:bv-cursor-not-allowed disabled:bv-opacity-50 bv-font-bv_bodyFontFamily bv-text-bv_bodyFontSize placeholder:bv-text-bv_inputColor/30 focus:!bv-outline-none focus:bv-ring-2 bv-bg-bv_inputBackground bv-text-bv_inputColor bv-w-full" data-testid="checkout_phonenumber" placeholder="${a} *" type="number" name="phoneNumber">
                             </div>
                         </div>
                     </div>
                 </div>
-            `), o += "</div>", `
+            `), l += "</div>", `
             <div data-testid="checkout_responsible_for_booking_section" class="bv-mx-0 bv-px-0 bv-pt-0 bv-pb-[40px] bv-w-full" aria-label="Ansvarlig for bestilling" role="group" style="scroll-margin-top: 20px;">
                 <div class="bv-mb-[15px] bv-flex bv-items-center bv-justify-between bv-gap-[15px]">
                     <div data-orientation="horizontal" role="none" class="bv-bg-bv_dividerBorderColor bv-h-bv_dividerBorderWidth bv-w-full bv-flex-1"></div>
@@ -6369,7 +6433,7 @@ class Xr {
                     <div data-orientation="horizontal" role="none" class="bv-bg-bv_dividerBorderColor bv-h-bv_dividerBorderWidth bv-w-full bv-flex-1"></div>
                 </div>
                 <div class="bv-rounded-bv_cardBorderRadius bv-border-bv_cardBorderWidth bv-border-bv_cardBorderColor bv-bg-bv_cardBackground bv-text-bv_cardColor bv-shadow-bv_cardBoxShadow bv_card bv-relative bv-border-solid bv-select-none [&_.bv_card]:bv-shadow-none [&_.bv_card]:bv-bg-bv_cardInnerBackground bv-p-[25px] bv_small:bv-p-[20px]" data-testid="customer_info_section">
-                    ${o}
+                    ${l}
                 </div>
             </div>
         `;
