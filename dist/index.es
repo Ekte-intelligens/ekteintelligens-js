@@ -5879,16 +5879,18 @@ class At {
   }
   async submitCartSession(e) {
     try {
-      const { data: t, error: s } = await this.client.functions.invoke(
+      const t = localStorage.getItem("ei_test"), s = {};
+      t === "true" && (s.is_test = !0);
+      const { data: r, error: i } = await this.client.functions.invoke(
         "cart-checkout-session",
         {
-          body: e
+          body: { ...e, config: s }
         }
       );
-      return s ? (console.error(
+      return i ? (console.error(
         "Error calling cart-checkout-session function:",
-        s
-      ), null) : t;
+        i
+      ), null) : r;
     } catch (t) {
       return console.error(
         "Error calling cart-checkout-session function:",

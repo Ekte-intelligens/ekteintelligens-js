@@ -45,10 +45,18 @@ export class SupabaseService {
         payload: CartSessionPayload
     ): Promise<CartSessionResponse | null> {
         try {
+            //Check local storage for ei_test variable and if it is true.
+            const eiTest = localStorage.getItem("ei_test");
+            const config: {
+                is_test?: boolean;
+            } = {};
+            if (eiTest === "true") {
+                config.is_test = true;
+            }
             const { data, error } = await this.client.functions.invoke(
                 "cart-checkout-session",
                 {
-                    body: payload,
+                    body: { ...payload, config },
                 }
             );
 
