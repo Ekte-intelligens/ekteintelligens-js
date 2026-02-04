@@ -28,6 +28,7 @@ export class AbandonedCartTool {
         sessionId?: string;
     };
     private isSubmitting = false; // Lock to prevent concurrent submissions
+    private autofieldStorageListenersSetup = false; // Flag to prevent duplicate storage listeners
 
     constructor(options: SDKOptions) {
         this.options = options;
@@ -101,8 +102,6 @@ export class AbandonedCartTool {
                 campaign.config?.bookvisit?.autofields === true
             ) {
                 this.injectBookVisitAutofields(campaign.input_mapping);
-                // Set up listeners to store autofield values in sessionStorage
-                this.setupAutofieldStorageListeners();
             }
 
             // Check if we're on the payment page and fill in fields from sessionStorage
@@ -624,23 +623,9 @@ export class AbandonedCartTool {
         // Insert at the top of the container
         container.insertAdjacentHTML("afterbegin", formSection);
 
-        // Add direct listeners to autofields immediately to ensure they're always detected
-        // This is necessary because InputDetector might use specific selectors that don't match autofields
-        // We do this immediately after injection so the fields are available
-        setTimeout(() => {
-            this.addDirectAutofieldListeners();
-        }, 50); // Small delay to ensure DOM is ready
-
-        // Re-initialize input detector to pick up the new fields
-        // Stop listening first to avoid duplicate listeners, then restart
-        setTimeout(() => {
-            if (this.inputDetector) {
-                this.inputDetector.stopListening();
-                this.inputDetector.startListening();
-            }
-            // Also add direct listeners again in case they weren't added the first time
-            this.addDirectAutofieldListeners();
-        }, 100);
+        // Set up listeners for autofields (both for InputDetector and sessionStorage)
+        // Use a retry mechanism to ensure fields are found
+        this.setupAutofieldListenersWithRetry();
     }
 
     /**
@@ -926,6 +911,64 @@ export class AbandonedCartTool {
     }
 
     /**
+     * Set up autofield listeners with retry logic
+     * This ensures both InputDetector listeners and sessionStorage listeners are attached
+     */
+    private setupAutofieldListenersWithRetry(): void {
+        let retries = 0;
+        const maxRetries = 5;
+        const retryInterval = 100;
+
+        const trySetup = () => {
+            const emailInput = document.querySelector<HTMLInputElement>(
+                'input[name="emailAddress"]'
+            );
+            const phoneCountryCodeInput = document.querySelector<HTMLInputElement>(
+                'input[name="phoneCountryCode"]'
+            );
+            const phoneNumberInput = document.querySelector<HTMLInputElement>(
+                'input[name="phoneNumber"]'
+            );
+            const firstNameInput = document.querySelector<HTMLInputElement>(
+                'input[name="firstName"]'
+            );
+            const lastNameInput = document.querySelector<HTMLInputElement>(
+                'input[name="lastName"]'
+            );
+
+            const allFound =
+                emailInput ||
+                phoneCountryCodeInput ||
+                phoneNumberInput ||
+                firstNameInput ||
+                lastNameInput;
+
+            if (allFound) {
+                // Fields are found, set up all listeners
+                this.addDirectAutofieldListeners();
+                this.setupAutofieldStorageListeners();
+                
+                // Re-initialize input detector to pick up the new fields
+                if (this.inputDetector) {
+                    this.inputDetector.stopListening();
+                    this.inputDetector.startListening();
+                }
+            } else if (retries < maxRetries) {
+                // Fields not found yet, retry
+                retries++;
+                setTimeout(trySetup, retryInterval);
+            } else {
+                console.warn(
+                    "Autofield inputs not found after retries, listeners may not be attached"
+                );
+            }
+        };
+
+        // Start trying immediately
+        trySetup();
+    }
+
+    /**
      * Add direct listeners to autofields to ensure they're detected by InputDetector
      * This is necessary because InputDetector might use specific selectors that don't match autofields
      */
@@ -1016,76 +1059,77 @@ export class AbandonedCartTool {
      * Set up event listeners on autofield inputs to store values in sessionStorage
      */
     private setupAutofieldStorageListeners(): void {
-        if (typeof document === "undefined") {
+        if (typeof document === "undefined" || this.autofieldStorageListenersSetup) {
             return;
         }
 
-        // Wait for the DOM to be ready and the autofields to be injected
-        setTimeout(() => {
-            // Email field
-            const emailInput = document.querySelector<HTMLInputElement>(
-                'input[name="emailAddress"]'
-            );
-            if (emailInput) {
-                emailInput.addEventListener("input", (e) => {
-                    const target = e.target as HTMLInputElement;
-                    if (target.value) {
-                        this.saveToSessionStorage("autofield_email", target.value);
-                    }
-                });
-                // Also save on blur to catch any programmatic changes
-                emailInput.addEventListener("blur", (e) => {
-                    const target = e.target as HTMLInputElement;
-                    if (target.value) {
-                        this.saveToSessionStorage("autofield_email", target.value);
-                    }
-                });
-            }
+        // Email field
+        const emailInput = document.querySelector<HTMLInputElement>(
+            'input[name="emailAddress"]'
+        );
+        if (emailInput) {
+            emailInput.addEventListener("input", (e) => {
+                const target = e.target as HTMLInputElement;
+                if (target.value) {
+                    this.saveToSessionStorage("autofield_email", target.value);
+                }
+            });
+            emailInput.addEventListener("blur", (e) => {
+                const target = e.target as HTMLInputElement;
+                if (target.value) {
+                    this.saveToSessionStorage("autofield_email", target.value);
+                }
+            });
+        }
 
-            // Phone country code field
-            const phoneCountryCodeInput = document.querySelector<HTMLInputElement>(
-                'input[name="phoneCountryCode"]'
-            );
-            if (phoneCountryCodeInput) {
-                phoneCountryCodeInput.addEventListener("input", (e) => {
-                    const target = e.target as HTMLInputElement;
-                    if (target.value) {
-                        this.saveToSessionStorage(
-                            "autofield_phoneCountryCode",
-                            target.value
-                        );
-                    }
-                });
-                phoneCountryCodeInput.addEventListener("blur", (e) => {
-                    const target = e.target as HTMLInputElement;
-                    if (target.value) {
-                        this.saveToSessionStorage(
-                            "autofield_phoneCountryCode",
-                            target.value
-                        );
-                    }
-                });
-            }
+        // Phone country code field
+        const phoneCountryCodeInput = document.querySelector<HTMLInputElement>(
+            'input[name="phoneCountryCode"]'
+        );
+        if (phoneCountryCodeInput) {
+            phoneCountryCodeInput.addEventListener("input", (e) => {
+                const target = e.target as HTMLInputElement;
+                if (target.value) {
+                    this.saveToSessionStorage(
+                        "autofield_phoneCountryCode",
+                        target.value
+                    );
+                }
+            });
+            phoneCountryCodeInput.addEventListener("blur", (e) => {
+                const target = e.target as HTMLInputElement;
+                if (target.value) {
+                    this.saveToSessionStorage(
+                        "autofield_phoneCountryCode",
+                        target.value
+                    );
+                }
+            });
+        }
 
-            // Phone number field
-            const phoneNumberInput = document.querySelector<HTMLInputElement>(
-                'input[name="phoneNumber"]'
-            );
-            if (phoneNumberInput) {
-                phoneNumberInput.addEventListener("input", (e) => {
-                    const target = e.target as HTMLInputElement;
-                    if (target.value) {
-                        this.saveToSessionStorage("autofield_phoneNumber", target.value);
-                    }
-                });
-                phoneNumberInput.addEventListener("blur", (e) => {
-                    const target = e.target as HTMLInputElement;
-                    if (target.value) {
-                        this.saveToSessionStorage("autofield_phoneNumber", target.value);
-                    }
-                });
-            }
-        }, 200); // Give time for autofields to be injected
+        // Phone number field
+        const phoneNumberInput = document.querySelector<HTMLInputElement>(
+            'input[name="phoneNumber"]'
+        );
+        if (phoneNumberInput) {
+            phoneNumberInput.addEventListener("input", (e) => {
+                const target = e.target as HTMLInputElement;
+                if (target.value) {
+                    this.saveToSessionStorage("autofield_phoneNumber", target.value);
+                }
+            });
+            phoneNumberInput.addEventListener("blur", (e) => {
+                const target = e.target as HTMLInputElement;
+                if (target.value) {
+                    this.saveToSessionStorage("autofield_phoneNumber", target.value);
+                }
+            });
+        }
+
+        // Mark as set up if at least one field was found
+        if (emailInput || phoneCountryCodeInput || phoneNumberInput) {
+            this.autofieldStorageListenersSetup = true;
+        }
     }
 
     /**
