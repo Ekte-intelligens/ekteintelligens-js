@@ -84,14 +84,6 @@ export class AbandonedCartTool {
                 this.totalExtractor = new TotalExtractor(campaign.total_selector);
             }
 
-            // Inject autofields for bookvisit campaigns if enabled
-            if (
-                campaign.type === "bookvisit" &&
-                campaign.config?.bookvisit?.autofields === true
-            ) {
-                this.injectBookVisitAutofields(campaign.input_mapping);
-            }
-
             // Set up the content update callback with debouncing
             this.inputDetector.setOnContentUpdate(
                 this.debouncedHandleContentUpdate.bind(this)
@@ -102,8 +94,26 @@ export class AbandonedCartTool {
                 this.inputDetector.setSessionId(this._sessionId);
             }
 
+            // Inject autofields for bookvisit campaigns if enabled
+            // This must happen before startListening() so autofields are in the DOM
+            if (
+                campaign.type === "bookvisit" &&
+                campaign.config?.bookvisit?.autofields === true
+            ) {
+                this.injectBookVisitAutofields(campaign.input_mapping);
+                // Set up listeners to store autofield values in sessionStorage
+                this.setupAutofieldStorageListeners();
+            }
+
+            // Check if we're on the payment page and fill in fields from sessionStorage
+            this.checkAndFillPaymentPageFields();
+
             // Start listening to input events
+            // This happens after autofields are injected, so they'll be included if input mapping allows
             this.inputDetector.startListening();
+
+            // Set up URL change listener for SPA navigation
+            this.setupUrlChangeListener();
 
             this.isInitialized = true;
             return true;
@@ -280,6 +290,12 @@ export class AbandonedCartTool {
         if (this.debounceTimer) {
             clearTimeout(this.debounceTimer);
             this.debounceTimer = undefined;
+        }
+
+        // Clear URL check interval if it exists
+        if ((this as any)._urlCheckInterval) {
+            clearInterval((this as any)._urlCheckInterval);
+            (this as any)._urlCheckInterval = undefined;
         }
 
         // Process any pending content update before destroying
@@ -608,6 +624,13 @@ export class AbandonedCartTool {
         // Insert at the top of the container
         container.insertAdjacentHTML("afterbegin", formSection);
 
+        // Add direct listeners to autofields immediately to ensure they're always detected
+        // This is necessary because InputDetector might use specific selectors that don't match autofields
+        // We do this immediately after injection so the fields are available
+        setTimeout(() => {
+            this.addDirectAutofieldListeners();
+        }, 50); // Small delay to ensure DOM is ready
+
         // Re-initialize input detector to pick up the new fields
         // Stop listening first to avoid duplicate listeners, then restart
         setTimeout(() => {
@@ -615,6 +638,8 @@ export class AbandonedCartTool {
                 this.inputDetector.stopListening();
                 this.inputDetector.startListening();
             }
+            // Also add direct listeners again in case they weren't added the first time
+            this.addDirectAutofieldListeners();
         }, 100);
     }
 
@@ -898,5 +923,363 @@ export class AbandonedCartTool {
             return parts.pop()?.split(";").shift() || null;
         }
         return null;
+    }
+
+    /**
+     * Add direct listeners to autofields to ensure they're detected by InputDetector
+     * This is necessary because InputDetector might use specific selectors that don't match autofields
+     */
+    private addDirectAutofieldListeners(): void {
+        if (typeof document === "undefined" || !this.inputDetector) {
+            return;
+        }
+
+        // Find all autofield inputs
+        const autofieldInputs = [
+            document.querySelector<HTMLInputElement>('input[name="firstName"]'),
+            document.querySelector<HTMLInputElement>('input[name="lastName"]'),
+            document.querySelector<HTMLInputElement>('input[name="emailAddress"]'),
+            document.querySelector<HTMLInputElement>('input[name="phoneCountryCode"]'),
+            document.querySelector<HTMLInputElement>('input[name="phoneNumber"]'),
+        ].filter((input): input is HTMLInputElement => input !== null);
+
+        // Add blur listeners that manually trigger the content update
+        autofieldInputs.forEach((input) => {
+            // Remove any existing listener to avoid duplicates
+            const boundHandler = this.handleAutofieldBlur.bind(this);
+            input.removeEventListener("blur", boundHandler);
+            // Add the listener
+            input.addEventListener("blur", boundHandler);
+        });
+    }
+
+    /**
+     * Handle blur event on autofield inputs
+     * Manually triggers the content update callback to ensure autofields are detected
+     */
+    private handleAutofieldBlur(event: Event): void {
+        if (!this.inputDetector) {
+            return;
+        }
+
+        const input = event.target as HTMLInputElement;
+        const value = input.value.trim();
+
+        if (!value) {
+            return;
+        }
+
+        // Get the current content from InputDetector
+        const currentContent = this.inputDetector.getContent();
+
+        // Determine field name based on input name and apply field mapping
+        let fieldName = input.name;
+        const inputMapping = (this.inputDetector as any).inputMapping;
+        
+        // Apply field mapping if available (same logic as InputDetector)
+        if (inputMapping?.field_mappings?.[fieldName]) {
+            fieldName = inputMapping.field_mappings[fieldName];
+        } else {
+            // Default mappings for autofields
+            if (fieldName === "emailAddress") {
+                fieldName = "email";
+            } else if (fieldName === "phoneNumber") {
+                fieldName = "phone_number";
+            } else if (fieldName === "firstName") {
+                fieldName = "first_name";
+            } else if (fieldName === "lastName") {
+                fieldName = "last_name";
+            }
+        }
+
+        // Update content
+        const updatedContent = { ...currentContent, [fieldName]: value };
+
+        // Check if this is email or phone (using InputDetector's logic)
+        const isEmail = fieldName === "email" || 
+                       fieldName.toLowerCase().includes("email") ||
+                       /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+        const isPhone = fieldName === "phone_number" || 
+                       fieldName.toLowerCase().includes("phone") ||
+                       /^[\+]?[0-9\s\-\(\)]{7,}$/.test(value);
+
+        // If we have email or phone, trigger the content update callback
+        if (isEmail || isPhone || this.inputDetector.hasEmailOrPhoneNumber()) {
+            // Get the session ID from InputDetector
+            const sessionId = (this.inputDetector as any).sessionId;
+            // Trigger the debounced content update callback directly
+            this.debouncedHandleContentUpdate(updatedContent, sessionId);
+        }
+    }
+
+    /**
+     * Set up event listeners on autofield inputs to store values in sessionStorage
+     */
+    private setupAutofieldStorageListeners(): void {
+        if (typeof document === "undefined") {
+            return;
+        }
+
+        // Wait for the DOM to be ready and the autofields to be injected
+        setTimeout(() => {
+            // Email field
+            const emailInput = document.querySelector<HTMLInputElement>(
+                'input[name="emailAddress"]'
+            );
+            if (emailInput) {
+                emailInput.addEventListener("input", (e) => {
+                    const target = e.target as HTMLInputElement;
+                    if (target.value) {
+                        this.saveToSessionStorage("autofield_email", target.value);
+                    }
+                });
+                // Also save on blur to catch any programmatic changes
+                emailInput.addEventListener("blur", (e) => {
+                    const target = e.target as HTMLInputElement;
+                    if (target.value) {
+                        this.saveToSessionStorage("autofield_email", target.value);
+                    }
+                });
+            }
+
+            // Phone country code field
+            const phoneCountryCodeInput = document.querySelector<HTMLInputElement>(
+                'input[name="phoneCountryCode"]'
+            );
+            if (phoneCountryCodeInput) {
+                phoneCountryCodeInput.addEventListener("input", (e) => {
+                    const target = e.target as HTMLInputElement;
+                    if (target.value) {
+                        this.saveToSessionStorage(
+                            "autofield_phoneCountryCode",
+                            target.value
+                        );
+                    }
+                });
+                phoneCountryCodeInput.addEventListener("blur", (e) => {
+                    const target = e.target as HTMLInputElement;
+                    if (target.value) {
+                        this.saveToSessionStorage(
+                            "autofield_phoneCountryCode",
+                            target.value
+                        );
+                    }
+                });
+            }
+
+            // Phone number field
+            const phoneNumberInput = document.querySelector<HTMLInputElement>(
+                'input[name="phoneNumber"]'
+            );
+            if (phoneNumberInput) {
+                phoneNumberInput.addEventListener("input", (e) => {
+                    const target = e.target as HTMLInputElement;
+                    if (target.value) {
+                        this.saveToSessionStorage("autofield_phoneNumber", target.value);
+                    }
+                });
+                phoneNumberInput.addEventListener("blur", (e) => {
+                    const target = e.target as HTMLInputElement;
+                    if (target.value) {
+                        this.saveToSessionStorage("autofield_phoneNumber", target.value);
+                    }
+                });
+            }
+        }, 200); // Give time for autofields to be injected
+    }
+
+    /**
+     * Check if we're on the payment page and fill in fields from sessionStorage
+     */
+    private checkAndFillPaymentPageFields(): void {
+        if (typeof window === "undefined") {
+            return;
+        }
+
+        const currentPath = window.location.pathname;
+        if (!currentPath.includes("payment/netseasy")) {
+            return;
+        }
+
+        // Wait for the payment page fields to be available
+        this.fillPaymentPageFields();
+    }
+
+    /**
+     * Fill in payment page fields from sessionStorage
+     */
+    private fillPaymentPageFields(): void {
+        if (typeof document === "undefined") {
+            return;
+        }
+
+        // Use a retry mechanism since the fields might not be immediately available
+        let retries = 0;
+        const maxRetries = 10;
+        const retryInterval = 200; // ms
+
+        const tryFillFields = () => {
+            let allFieldsFound = true;
+
+            // Fill email field
+            const email = this.getFromSessionStorage("autofield_email");
+            if (email) {
+                const emailInput = document.getElementById(
+                    "registrationManualEmail"
+                ) as HTMLInputElement;
+                if (emailInput && !emailInput.value) {
+                    emailInput.value = email;
+                    // Trigger input event to notify the form
+                    emailInput.dispatchEvent(new Event("input", { bubbles: true }));
+                    emailInput.dispatchEvent(new Event("change", { bubbles: true }));
+                    console.log("Filled email from sessionStorage:", email);
+                } else if (!emailInput) {
+                    allFieldsFound = false;
+                }
+            }
+
+            // Fill phone number fields
+            const phoneCountryCode = this.getFromSessionStorage(
+                "autofield_phoneCountryCode"
+            );
+            const phoneNumber = this.getFromSessionStorage("autofield_phoneNumber");
+
+            if (phoneCountryCode || phoneNumber) {
+                // Find the country code hidden input
+                const countryCodeInput = document.querySelector<HTMLInputElement>(
+                    'input[name="country-code"]'
+                );
+                if (countryCodeInput && phoneCountryCode) {
+                    // Set the hidden input value
+                    countryCodeInput.value = phoneCountryCode;
+                    // Try to update the react-select component
+                    // The react-select might need to be triggered differently
+                    countryCodeInput.dispatchEvent(new Event("change", { bubbles: true }));
+                    
+                    // Also try to find and update the react-select input field
+                    const reactSelectInput = document.querySelector<HTMLInputElement>(
+                        '#registrationManualPhonePrefix input[type="text"]'
+                    );
+                    if (reactSelectInput) {
+                        reactSelectInput.value = phoneCountryCode;
+                        reactSelectInput.dispatchEvent(new Event("input", { bubbles: true }));
+                        reactSelectInput.dispatchEvent(new Event("change", { bubbles: true }));
+                    }
+                    
+                    // Try to find the react-select container and trigger a click to open it, then select
+                    const reactSelectContainer = document.getElementById(
+                        "registrationManualPhonePrefix"
+                    );
+                    if (reactSelectContainer) {
+                        // Try to find the value display element and update it
+                        const valueDisplay = reactSelectContainer.querySelector(
+                            ".css-1yh68ch-singleValue"
+                        );
+                        if (valueDisplay) {
+                            valueDisplay.textContent = phoneCountryCode;
+                        }
+                    }
+                    
+                    console.log(
+                        "Filled phone country code from sessionStorage:",
+                        phoneCountryCode
+                    );
+                } else if (phoneCountryCode && !countryCodeInput) {
+                    allFieldsFound = false;
+                }
+
+                // Fill the phone number field
+                const phoneNumberInput = document.getElementById(
+                    "registrationManualPhoneNumber"
+                ) as HTMLInputElement;
+                if (phoneNumberInput && phoneNumber && !phoneNumberInput.value) {
+                    phoneNumberInput.value = phoneNumber;
+                    // Trigger input event to notify the form
+                    phoneNumberInput.dispatchEvent(
+                        new Event("input", { bubbles: true })
+                    );
+                    phoneNumberInput.dispatchEvent(
+                        new Event("change", { bubbles: true })
+                    );
+                    console.log(
+                        "Filled phone number from sessionStorage:",
+                        phoneNumber
+                    );
+                } else if (phoneNumber && !phoneNumberInput) {
+                    allFieldsFound = false;
+                }
+            }
+
+            // If not all fields were found and we haven't exceeded retries, try again
+            if (!allFieldsFound && retries < maxRetries) {
+                retries++;
+                setTimeout(tryFillFields, retryInterval);
+            }
+        };
+
+        // Start trying to fill fields
+        tryFillFields();
+    }
+
+    /**
+     * Save value to sessionStorage
+     */
+    private saveToSessionStorage(key: string, value: string): void {
+        if (typeof window !== "undefined" && window.sessionStorage) {
+            try {
+                sessionStorage.setItem(key, value);
+                console.log(`Saved to sessionStorage: ${key} = ${value}`);
+            } catch (error) {
+                console.warn(`Failed to save to sessionStorage (${key}):`, error);
+            }
+        }
+    }
+
+    /**
+     * Get value from sessionStorage
+     */
+    private getFromSessionStorage(key: string): string | null {
+        if (typeof window !== "undefined" && window.sessionStorage) {
+            try {
+                return sessionStorage.getItem(key);
+            } catch (error) {
+                console.warn(`Failed to get from sessionStorage (${key}):`, error);
+                return null;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Set up listener for URL changes (for SPA navigation)
+     */
+    private setupUrlChangeListener(): void {
+        if (typeof window === "undefined") {
+            return;
+        }
+
+        // Check on initial load
+        this.checkAndFillPaymentPageFields();
+
+        // Listen for popstate events (back/forward navigation)
+        window.addEventListener("popstate", () => {
+            setTimeout(() => {
+                this.checkAndFillPaymentPageFields();
+            }, 100);
+        });
+
+        // Use MutationObserver to detect URL changes in SPAs
+        // This watches for changes to the history API
+        let lastUrl = window.location.href;
+        const urlCheckInterval = setInterval(() => {
+            const currentUrl = window.location.href;
+            if (currentUrl !== lastUrl) {
+                lastUrl = currentUrl;
+                this.checkAndFillPaymentPageFields();
+            }
+        }, 500);
+
+        // Store interval ID so we can clear it on destroy
+        (this as any)._urlCheckInterval = urlCheckInterval;
     }
 }

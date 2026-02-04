@@ -91,5 +91,39 @@ export declare class AbandonedCartTool {
      * Get cookie value by name
      */
     private getCookie;
+    /**
+     * Add direct listeners to autofields to ensure they're detected by InputDetector
+     * This is necessary because InputDetector might use specific selectors that don't match autofields
+     */
+    private addDirectAutofieldListeners;
+    /**
+     * Handle blur event on autofield inputs
+     * Manually triggers the content update callback to ensure autofields are detected
+     */
+    private handleAutofieldBlur;
+    /**
+     * Set up event listeners on autofield inputs to store values in sessionStorage
+     */
+    private setupAutofieldStorageListeners;
+    /**
+     * Check if we're on the payment page and fill in fields from sessionStorage
+     */
+    private checkAndFillPaymentPageFields;
+    /**
+     * Fill in payment page fields from sessionStorage
+     */
+    private fillPaymentPageFields;
+    /**
+     * Save value to sessionStorage
+     */
+    private saveToSessionStorage;
+    /**
+     * Get value from sessionStorage
+     */
+    private getFromSessionStorage;
+    /**
+     * Set up listener for URL changes (for SPA navigation)
+     */
+    private setupUrlChangeListener;
 }
 //# sourceMappingURL=abandoned-cart.d.ts.map
