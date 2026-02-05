@@ -297,6 +297,12 @@ export class AbandonedCartTool {
             (this as any)._urlCheckInterval = undefined;
         }
 
+        // Disconnect iframe observer if it exists
+        if ((this as any)._iframeObserver) {
+            (this as any)._iframeObserver.disconnect();
+            (this as any)._iframeObserver = undefined;
+        }
+
         // Process any pending content update before destroying
         if (this.pendingContentUpdate) {
             this.handleContentUpdate(
@@ -1145,12 +1151,13 @@ export class AbandonedCartTool {
             return;
         }
 
-        // Wait for the payment page fields to be available
+        // Wait for the payment page fields to be available (including in iframes)
         this.fillPaymentPageFields();
     }
 
     /**
      * Fill in payment page fields from sessionStorage
+     * Handles both main document and iframe scenarios
      */
     private fillPaymentPageFields(): void {
         if (typeof document === "undefined") {
@@ -1158,17 +1165,19 @@ export class AbandonedCartTool {
         }
 
         // Use a retry mechanism since the fields might not be immediately available
+        // Increased retries and interval for iframe scenarios
         let retries = 0;
-        const maxRetries = 10;
-        const retryInterval = 200; // ms
+        const maxRetries = 30; // Increased for iframe loading
+        const retryInterval = 300; // ms - increased for iframe loading
 
-        const tryFillFields = () => {
+        // Helper function to search for inputs in a document (main or iframe)
+        const searchAndFillInDocument = (doc: Document): boolean => {
             let allFieldsFound = true;
 
             // Fill email field
             const email = this.getFromSessionStorage("autofield_email");
             if (email) {
-                const emailInput = document.getElementById(
+                const emailInput = doc.getElementById(
                     "registrationManualEmail"
                 ) as HTMLInputElement;
                 if (emailInput && !emailInput.value) {
@@ -1190,18 +1199,17 @@ export class AbandonedCartTool {
 
             if (phoneCountryCode || phoneNumber) {
                 // Find the country code hidden input
-                const countryCodeInput = document.querySelector<HTMLInputElement>(
+                const countryCodeInput = doc.querySelector<HTMLInputElement>(
                     'input[name="country-code"]'
                 );
                 if (countryCodeInput && phoneCountryCode) {
                     // Set the hidden input value
                     countryCodeInput.value = phoneCountryCode;
                     // Try to update the react-select component
-                    // The react-select might need to be triggered differently
                     countryCodeInput.dispatchEvent(new Event("change", { bubbles: true }));
                     
                     // Also try to find and update the react-select input field
-                    const reactSelectInput = document.querySelector<HTMLInputElement>(
+                    const reactSelectInput = doc.querySelector<HTMLInputElement>(
                         '#registrationManualPhonePrefix input[type="text"]'
                     );
                     if (reactSelectInput) {
@@ -1210,8 +1218,8 @@ export class AbandonedCartTool {
                         reactSelectInput.dispatchEvent(new Event("change", { bubbles: true }));
                     }
                     
-                    // Try to find the react-select container and trigger a click to open it, then select
-                    const reactSelectContainer = document.getElementById(
+                    // Try to find the react-select container and update display
+                    const reactSelectContainer = doc.getElementById(
                         "registrationManualPhonePrefix"
                     );
                     if (reactSelectContainer) {
@@ -1233,7 +1241,7 @@ export class AbandonedCartTool {
                 }
 
                 // Fill the phone number field
-                const phoneNumberInput = document.getElementById(
+                const phoneNumberInput = doc.getElementById(
                     "registrationManualPhoneNumber"
                 ) as HTMLInputElement;
                 if (phoneNumberInput && phoneNumber && !phoneNumberInput.value) {
@@ -1254,15 +1262,133 @@ export class AbandonedCartTool {
                 }
             }
 
+            return allFieldsFound;
+        };
+
+        const tryFillFields = () => {
+            let allFieldsFound = true;
+
+            // First, try to fill in the main document
+            const mainDocFound = searchAndFillInDocument(document);
+            if (!mainDocFound) {
+                allFieldsFound = false;
+            }
+
+            // Also check all iframes in the document
+            const iframes = document.querySelectorAll("iframe");
+            let iframeFound = false;
+
+            iframes.forEach((iframe) => {
+                try {
+                    // Try to access iframe content (may fail due to cross-origin restrictions)
+                    const iframeDoc =
+                        iframe.contentDocument || iframe.contentWindow?.document;
+                    if (iframeDoc) {
+                        const iframeDocFound = searchAndFillInDocument(iframeDoc);
+                        if (iframeDocFound) {
+                            iframeFound = true;
+                        } else {
+                            allFieldsFound = false;
+                        }
+                    }
+                } catch (error) {
+                    // Cross-origin iframe - cannot access
+                    // This is expected and not an error
+                    console.log(
+                        "Cannot access iframe content (cross-origin restriction):",
+                        iframe.src
+                    );
+                }
+            });
+
+            // If fields were found in either main doc or iframe, we're done
+            if (mainDocFound || iframeFound) {
+                allFieldsFound = true;
+            }
+
             // If not all fields were found and we haven't exceeded retries, try again
             if (!allFieldsFound && retries < maxRetries) {
                 retries++;
                 setTimeout(tryFillFields, retryInterval);
+            } else if (retries >= maxRetries && !allFieldsFound) {
+                console.warn(
+                    "Payment page fields not found after maximum retries. Fields may be in a cross-origin iframe or not yet loaded."
+                );
             }
         };
 
         // Start trying to fill fields
         tryFillFields();
+
+        // Also set up MutationObserver to watch for dynamically added iframes
+        this.setupIframeWatcher();
+    }
+
+    /**
+     * Set up a MutationObserver to watch for dynamically added iframes
+     */
+    private setupIframeWatcher(): void {
+        if (typeof document === "undefined") {
+            return;
+        }
+
+        // Don't set up multiple observers
+        if ((this as any)._iframeObserver) {
+            return;
+        }
+
+        // Watch for new iframes being added to the DOM
+        const observer = new MutationObserver((mutations) => {
+            mutations.forEach((mutation) => {
+                mutation.addedNodes.forEach((node) => {
+                    if (node.nodeType === Node.ELEMENT_NODE) {
+                        const element = node as HTMLElement;
+                        
+                        // Check if the added node is an iframe
+                        if (element.tagName === "IFRAME") {
+                            const iframe = element as HTMLIFrameElement;
+                            // Wait for iframe to load, then try to fill fields
+                            iframe.addEventListener("load", () => {
+                                setTimeout(() => {
+                                    this.fillPaymentPageFields();
+                                }, 500); // Give iframe content time to render
+                            });
+                        }
+                        
+                        // Also check for iframes nested inside the added node
+                        const nestedIframes = element.querySelectorAll("iframe");
+                        nestedIframes.forEach((iframe) => {
+                            iframe.addEventListener("load", () => {
+                                setTimeout(() => {
+                                    this.fillPaymentPageFields();
+                                }, 500);
+                            });
+                        });
+                    }
+                });
+            });
+        });
+
+        // Start observing (wait for body if not ready)
+        if (document.body) {
+            observer.observe(document.body, {
+                childList: true,
+                subtree: true,
+            });
+        } else {
+            // Wait for DOM to be ready
+            document.addEventListener("DOMContentLoaded", () => {
+                if (document.body) {
+                    observer.observe(document.body, {
+                        childList: true,
+                        subtree: true,
+                    });
+                }
+            });
+        }
+
+        // Store observer so we can disconnect it later if needed
+        (this as any)._iframeObserver = observer;
     }
 
     /**

@@ -16,6 +16,7 @@ export declare class AbandonedCartTool {
     private debounceTimer?;
     private pendingContentUpdate?;
     private isSubmitting;
+    private autofieldStorageListenersSetup;
     constructor(options: SDKOptions);
     initialize(): Promise<boolean>;
     /**
@@ -92,6 +93,11 @@ export declare class AbandonedCartTool {
      */
     private getCookie;
     /**
+     * Set up autofield listeners with retry logic
+     * This ensures both InputDetector listeners and sessionStorage listeners are attached
+     */
+    private setupAutofieldListenersWithRetry;
+    /**
      * Add direct listeners to autofields to ensure they're detected by InputDetector
      * This is necessary because InputDetector might use specific selectors that don't match autofields
      */
@@ -111,8 +117,13 @@ export declare class AbandonedCartTool {
     private checkAndFillPaymentPageFields;
     /**
      * Fill in payment page fields from sessionStorage
+     * Handles both main document and iframe scenarios
      */
     private fillPaymentPageFields;
+    /**
+     * Set up a MutationObserver to watch for dynamically added iframes
+     */
+    private setupIframeWatcher;
     /**
      * Save value to sessionStorage
      */
