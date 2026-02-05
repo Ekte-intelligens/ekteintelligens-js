@@ -121,6 +121,16 @@ export declare class AbandonedCartTool {
      */
     private fillPaymentPageFields;
     /**
+     * Try to send data to cross-origin iframe using postMessage
+     * Attempts multiple message formats in case the iframe uses different conventions
+     */
+    private tryPostMessageToIframe;
+    /**
+     * Try to pass data via URL parameters if the iframe src can be modified
+     * This only works if the iframe hasn't loaded yet or can be reloaded
+     */
+    private tryIframeUrlParameters;
+    /**
      * Set up a MutationObserver to watch for dynamically added iframes
      */
     private setupIframeWatcher;

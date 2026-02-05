@@ -1292,12 +1292,9 @@ export class AbandonedCartTool {
                         }
                     }
                 } catch (error) {
-                    // Cross-origin iframe - cannot access
-                    // This is expected and not an error
-                    console.log(
-                        "Cannot access iframe content (cross-origin restriction):",
-                        iframe.src
-                    );
+                    // Cross-origin iframe - cannot access directly
+                    // Try using postMessage as a workaround (requires iframe to listen for messages)
+                    this.tryPostMessageToIframe(iframe);
                 }
             });
 
@@ -1322,6 +1319,185 @@ export class AbandonedCartTool {
 
         // Also set up MutationObserver to watch for dynamically added iframes
         this.setupIframeWatcher();
+    }
+
+    /**
+     * Try to send data to cross-origin iframe using postMessage
+     * Attempts multiple message formats in case the iframe uses different conventions
+     */
+    private tryPostMessageToIframe(iframe: HTMLIFrameElement): void {
+        try {
+            const email = this.getFromSessionStorage("autofield_email");
+            const phoneCountryCode = this.getFromSessionStorage(
+                "autofield_phoneCountryCode"
+            );
+            const phoneNumber = this.getFromSessionStorage("autofield_phoneNumber");
+
+            // Only send if we have data to send
+            if (!email && !phoneCountryCode && !phoneNumber) {
+                return;
+            }
+
+            // Get iframe's origin for security
+            let targetOrigin = "*";
+            if (iframe.src) {
+                try {
+                    targetOrigin = new URL(iframe.src).origin;
+                } catch (e) {
+                    // If src is not a valid URL, use *
+                }
+            }
+
+            // Check if this is a payment provider iframe
+            const isDibsIframe = iframe.src?.includes("dibspayment.eu") || 
+                                 iframe.src?.includes("dibs.") ||
+                                 iframe.name?.toLowerCase().includes("dibs");
+            
+            const isNetsEasyIframe = iframe.src?.includes("netseasy") ||
+                                    iframe.src?.includes("nets.eu") ||
+                                    iframe.src?.includes("nexigroup.com") ||
+                                    iframe.src?.includes("dibspayment.eu") || // Dibs is part of Nexi Group
+                                    iframe.name?.toLowerCase().includes("nets") ||
+                                    iframe.name?.toLowerCase().includes("easy");
+
+            if (!iframe.contentWindow) {
+                return;
+            }
+
+            // Try multiple message formats
+            const messages = [
+                // Format 1: Our standard format
+                {
+                    type: "ekteintelligens-autofill",
+                    email: email || null,
+                    phoneCountryCode: phoneCountryCode || null,
+                    phoneNumber: phoneNumber || null,
+                },
+                // Format 2: Dibs/Nets Easy-specific formats
+                ...(isDibsIframe || isNetsEasyIframe
+                    ? [
+                          {
+                              type: "dibs-autofill",
+                              email: email || null,
+                              phoneCountryCode: phoneCountryCode || null,
+                              phoneNumber: phoneNumber || null,
+                          },
+                          {
+                              type: "nets-easy-autofill",
+                              email: email || null,
+                              phoneCountryCode: phoneCountryCode || null,
+                              phoneNumber: phoneNumber || null,
+                          },
+                          {
+                              action: "autofill",
+                              data: {
+                                  email: email || null,
+                                  phoneCountryCode: phoneCountryCode || null,
+                                  phoneNumber: phoneNumber || null,
+                              },
+                          },
+                          {
+                              event: "customer-data",
+                              customer: {
+                                  email: email || null,
+                                  phone: phoneNumber ? `${phoneCountryCode || ""}${phoneNumber}` : null,
+                                  phoneCountryCode: phoneCountryCode || null,
+                              },
+                          },
+                      ]
+                    : []),
+                // Format 3: Generic autofill format
+                {
+                    action: "autofill-fields",
+                    email: email || null,
+                    phoneCountryCode: phoneCountryCode || null,
+                    phoneNumber: phoneNumber || null,
+                },
+            ];
+
+            // Send all message formats
+            messages.forEach((message) => {
+                try {
+                    iframe.contentWindow!.postMessage(message, targetOrigin);
+                } catch (e) {
+                    // Ignore errors for individual messages
+                }
+            });
+
+            const providerName = isNetsEasyIframe ? "Nets Easy/Nexi" : (isDibsIframe ? "Dibs" : "cross-origin");
+            console.log(
+                `Sent autofill data to ${providerName} iframe via postMessage (${messages.length} formats):`,
+                {
+                    iframeSrc: iframe.src?.substring(0, 100) || "unknown",
+                    email: email ? "***" : null,
+                    phoneCountryCode,
+                    phoneNumber: phoneNumber ? "***" : null,
+                    targetOrigin,
+                }
+            );
+
+            // Also check if we can modify the iframe src with URL parameters
+            this.tryIframeUrlParameters(iframe, email, phoneCountryCode, phoneNumber);
+        } catch (error) {
+            console.warn("Failed to send postMessage to iframe:", error);
+        }
+    }
+
+    /**
+     * Try to pass data via URL parameters if the iframe src can be modified
+     * This only works if the iframe hasn't loaded yet or can be reloaded
+     */
+    private tryIframeUrlParameters(
+        iframe: HTMLIFrameElement,
+        email: string | null,
+        phoneCountryCode: string | null,
+        phoneNumber: string | null
+    ): void {
+        if (!iframe.src) {
+            return;
+        }
+
+        try {
+            const url = new URL(iframe.src);
+            const isDibs = url.hostname.includes("dibspayment.eu") || 
+                          url.hostname.includes("dibs.");
+            const isNetsEasy = url.hostname.includes("netseasy") ||
+                              url.hostname.includes("nets.eu") ||
+                              url.hostname.includes("nexigroup.com") ||
+                              url.hostname.includes("dibspayment.eu"); // Dibs is part of Nexi Group
+
+            if (!isDibs && !isNetsEasy) {
+                return;
+            }
+
+            // Check if URL already has parameters (might indicate it supports them)
+            const hasParams = url.searchParams.toString().length > 0;
+
+            // Log potential parameters for debugging
+            if (email || phoneCountryCode || phoneNumber) {
+                const providerName = isNetsEasy ? "Nets Easy/Nexi" : (isDibs ? "Dibs" : "Payment");
+                console.log(
+                    `${providerName} iframe URL analysis:`,
+                    {
+                        currentUrl: iframe.src,
+                        hasParams,
+                        suggestedParams: {
+                            ...(email ? { email } : {}),
+                            ...(phoneCountryCode
+                                ? { phoneCountryCode }
+                                : {}),
+                            ...(phoneNumber ? { phoneNumber: "***" } : {}),
+                        },
+                        note: hasParams
+                            ? "Iframe URL has parameters - might support additional ones"
+                            : `Iframe URL has no parameters - check ${isNetsEasy ? "Nets Easy/Nexi" : "Dibs"} documentation for supported params`,
+                        provider: isNetsEasy ? "Nets Easy/Nexi Group" : "Dibs",
+                    }
+                );
+            }
+        } catch (error) {
+            // URL parsing failed, ignore
+        }
     }
 
     /**
