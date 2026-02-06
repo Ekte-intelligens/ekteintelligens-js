@@ -1,0 +1,26 @@
+{
+    "name": "@assistant/frontend-credit-check",
+    "version": "1.0.0",
+    "type": "module",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "dev": "vite",
+        "build": "tsc && vite build",
+        "build:stora": "vite build --config vite.config.ts",
+        "preview": "vite preview"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "description": "",
+    "devDependencies": {
+        "typescript": "^5.8.2",
+        "vite": "^6.2.0"
+    },
+    "dependencies": {
+        "@assistant/common": "^1.0.0",
+        "@assistant/types": "^1.0.1",
+        "@criipto/auth-js": "^3.7.2",
+        "@supabase/supabase-js": "^2.49.8"
+    }
+}

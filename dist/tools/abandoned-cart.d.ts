@@ -16,6 +16,7 @@ export declare class AbandonedCartTool {
     private debounceTimer?;
     private pendingContentUpdate?;
     private isSubmitting;
+    private autofieldStorageListenersSetup;
     constructor(options: SDKOptions);
     initialize(): Promise<boolean>;
     /**
@@ -76,10 +77,6 @@ export declare class AbandonedCartTool {
      */
     private hasInputSelector;
     /**
-     * Get the user's locale from browser settings
-     */
-    private getUserLocale;
-    /**
      * Get localized text for email and phone number fields
      */
     private getLocalizedText;
@@ -91,6 +88,11 @@ export declare class AbandonedCartTool {
      * Get cookie value by name
      */
     private getCookie;
+    /**
+     * Set up autofield listeners with retry logic
+     * This ensures both InputDetector listeners and sessionStorage listeners are attached
+     */
+    private setupAutofieldListenersWithRetry;
     /**
      * Add direct listeners to autofields to ensure they're detected by InputDetector
      * This is necessary because InputDetector might use specific selectors that don't match autofields

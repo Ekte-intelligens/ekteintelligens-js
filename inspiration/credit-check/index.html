@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Credit Check</title>
+        <style>
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+                max-width: 800px;
+                margin: 0 auto;
+                padding: 20px;
+            }
+            .section {
+                margin: 20px 0;
+                padding: 15px;
+                border: 1px solid #ddd;
+                border-radius: 5px;
+            }
+            .section h3 {
+                margin-top: 0;
+            }
+            button {
+                padding: 10px 20px;
+                margin: 5px;
+                cursor: pointer;
+                background-color: #007bff;
+                color: white;
+                border: none;
+                border-radius: 4px;
+            }
+            button:hover {
+                background-color: #0056b3;
+            }
+            button:disabled {
+                background-color: #ccc;
+                cursor: not-allowed;
+            }
+            pre {
+                background-color: #f5f5f5;
+                padding: 10px;
+                border-radius: 4px;
+                overflow-x: auto;
+            }
+            .info {
+                background-color: #e7f3ff;
+                padding: 10px;
+                border-radius: 4px;
+                margin: 10px 0;
+            }
+            .error {
+                background-color: #ffe7e7;
+                padding: 10px;
+                border-radius: 4px;
+                margin: 10px 0;
+                color: #d32f2f;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="app"></div>
+        <script type="module" src="/src/index.ts"></script>
+        
+        <h1>Credit Check</h1>
+        
+        <div class="section">
+            <h3>Session Information</h3>
+            <div id="session-info" class="info">
+                <p>No session created yet. Session will be created automatically when you initiate a credit check with valid URL parameters.</p>
+                <p><strong>Supported URL parameters:</strong></p>
+                <ul>
+                    <li><code>organization_id</code> (required)</li>
+                    <li><code>subscriber_id</code> (optional, for regular flow)</li>
+                    <li><code>integration_subscriber_id</code> (optional, for Stora integration)</li>
+                    <li><code>integration_type=stora</code> (required if using integration_subscriber_id)</li>
+                    <li><code>order_id</code> (required for Stora integration)</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="section">
+            <h3>Actions</h3>
+            <button id="initiate-credit-check">
+                Initiate Credit Check (Popup)
+            </button>
+            <button id="initiate-id-redirect">Initiate Credit Check (Redirect)</button>
+        </div>
+
+        <div class="section">
+            <h3>Credit Check Result</h3>
+            <div id="credit-check-result">
+                <p>No result yet. Click a button above to start.</p>
+            </div>
+        </div>
+
+        <script type="module">
+            import {
+                initiateIdAndCreditCheck,
+                initiateIdRedirect,
+                initiateCreditCheckForRedirect,
+                initializeCreditCheckSession,
+                getStoraContactDetails,
+                hasStoraIntegration,
+            } from "./src/auth/index.ts";
+            import { getSessionParamsFromURL } from "./src/services/creditCheckSession.ts";
+
+            // Check if we have URL parameters and try to create a session on page load
+            const urlParams = getSessionParamsFromURL();
+            if (urlParams && urlParams.organization_id) {
+                initializeCreditCheckSession()
+                    .then((session) => {
+                        const sessionInfoEl = document.getElementById("session-info");
+                        let html = `<h4>Session Created</h4>`;
+                        html += `<p><strong>Session ID:</strong> ${session.id}</p>`;
+                        html += `<p><strong>Status:</strong> ${session.status}</p>`;
+                        html += `<p><strong>Organization ID:</strong> ${session.organization_id}</p>`;
+                        html += `<p><strong>Subscriber ID:</strong> ${session.subscriber_id}</p>`;
+                        
+                        if (hasStoraIntegration(session)) {
+                            html += `<h4>Stora Integration</h4>`;
+                            const contact = getStoraContactDetails(session);
+                            if (contact) {
+                                html += `<p><strong>Contact ID:</strong> ${contact.id}</p>`;
+                                if (contact.email) html += `<p><strong>Email:</strong> ${contact.email}</p>`;
+                                if (contact.phone) html += `<p><strong>Phone:</strong> ${contact.phone}</p>`;
+                                if (contact.first_name) html += `<p><strong>First Name:</strong> ${contact.first_name}</p>`;
+                                if (contact.last_name) html += `<p><strong>Last Name:</strong> ${contact.last_name}</p>`;
+                            }
+                            if (session.config?.integration_meta?.order_id) {
+                                html += `<p><strong>Order ID:</strong> ${session.config.integration_meta.order_id}</p>`;
+                            }
+                        }
+                        
+                        html += `<details><summary>Full Session Data</summary><pre>${JSON.stringify(session, null, 2)}</pre></details>`;
+                        sessionInfoEl.innerHTML = html;
+                        sessionInfoEl.className = "info";
+                    })
+                    .catch((error) => {
+                        const sessionInfoEl = document.getElementById("session-info");
+                        sessionInfoEl.innerHTML = `<p class="error">Error creating session: ${error.message}</p>`;
+                        sessionInfoEl.className = "error";
+                    });
+            }
+
+            // Handle redirect callback
+            initiateCreditCheckForRedirect((result) => {
+                const resultEl = document.getElementById("credit-check-result");
+                let html = `<h4>Credit Check Result</h4>`;
+                html += `<pre>${JSON.stringify(result, null, 2)}</pre>`;
+                if (result.session) {
+                    html += `<h4>Session Information</h4>`;
+                    html += `<p><strong>Session ID:</strong> ${result.session.id}</p>`;
+                    if (hasStoraIntegration(result.session)) {
+                        const contact = getStoraContactDetails(result.session);
+                        if (contact) {
+                            html += `<h4>Stora Contact</h4>`;
+                            html += `<pre>${JSON.stringify(contact, null, 2)}</pre>`;
+                        }
+                    }
+                }
+                resultEl.innerHTML = html;
+            });
+
+            // Handle popup button
+            document
+                .getElementById("initiate-credit-check")
+                .addEventListener("click", async () => {
+                    try {
+                        const result = await initiateIdAndCreditCheck();
+                        const resultEl = document.getElementById("credit-check-result");
+                        let html = `<h4>Credit Check Result</h4>`;
+                        html += `<pre>${JSON.stringify(result, null, 2)}</pre>`;
+                        if (result.session) {
+                            html += `<h4>Session Information</h4>`;
+                            html += `<p><strong>Session ID:</strong> ${result.session.id}</p>`;
+                            if (hasStoraIntegration(result.session)) {
+                                const contact = getStoraContactDetails(result.session);
+                                if (contact) {
+                                    html += `<h4>Stora Contact</h4>`;
+                                    html += `<pre>${JSON.stringify(contact, null, 2)}</pre>`;
+                                }
+                            }
+                        }
+                        resultEl.innerHTML = html;
+                    } catch (error) {
+                        const resultEl = document.getElementById("credit-check-result");
+                        resultEl.innerHTML = `<p class="error">Error: ${error.message}</p>`;
+                    }
+                });
+
+            // Handle redirect button
+            document
+                .getElementById("initiate-id-redirect")
+                .addEventListener("click", async () => {
+                    try {
+                        await initiateIdRedirect();
+                    } catch (error) {
+                        const resultEl = document.getElementById("credit-check-result");
+                        resultEl.innerHTML = `<p class="error">Error: ${error.message}</p>`;
+                    }
+                });
+        </script>
+    </body>
+</html>

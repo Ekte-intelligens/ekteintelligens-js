@@ -1,0 +1,1 @@
+{"version":3,"file":"booking-complete.d.ts","sourceRoot":"","sources":["../../../../src/tools/credit-check/stora/booking-complete.ts"],"names":[],"mappings":"AAAA,OAAO,KAAK,EAAE,sBAAsB,EAAE,MAAM,UAAU,CAAC;AAQvD,OAAO,KAAK,EAAE,aAAa,EAAE,MAAM,iBAAiB,CAAC;AAErD;;GAEG;AACH,eAAO,MAAM,mBAAmB,GAC5B,QAAQ,sBAAsB,GAAG;IAC7B,aAAa,EAAE,aAAa,CAAC;CAChC,KACF,IAaF,CAAC"}

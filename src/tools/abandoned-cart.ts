@@ -2,6 +2,7 @@ import { InputDetector } from "../utils/input-detector";
 import { ProductDetector } from "../utils/product-detector";
 import { TotalExtractor } from "../utils/total-extractor";
 import { SupabaseService } from "../services/supabase-service";
+import { getUserLocale } from "../utils/locale";
 import {
     SDKOptions,
     CartSessionPayload,
@@ -740,34 +741,12 @@ export class AbandonedCartTool {
         return false;
     }
 
-    /**
-     * Get the user's locale from browser settings
-     */
-    private getUserLocale(): string {
-        if (typeof navigator === "undefined") {
-            return "en"; // Default to English if navigator is not available
-        }
-
-        // Try to get locale from navigator.languages (preferred languages)
-        if (navigator.languages && navigator.languages.length > 0) {
-            const locale = navigator.languages[0];
-            // Extract language code (e.g., "en-US" -> "en", "nb-NO" -> "nb")
-            return locale.split("-")[0].toLowerCase();
-        }
-
-        // Fallback to navigator.language
-        if (navigator.language) {
-            return navigator.language.split("-")[0].toLowerCase();
-        }
-
-        return "en"; // Default to English
-    }
 
     /**
      * Get localized text for email and phone number fields
      */
     private getLocalizedText(key: "email" | "phoneNumber"): string {
-        const locale = this.getUserLocale();
+        const locale = getUserLocale();
         
         // Translation map for email and phone number
         const translations: Record<string, Record<string, string>> = {

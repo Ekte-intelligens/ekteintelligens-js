@@ -350,6 +350,120 @@ interface CartSessionResponse {
 }
 ```
 
+## Credit Check Module
+
+The credit check module provides Stora integration for credit check workflows. It can be imported separately from the main SDK.
+
+### Installation
+
+The credit check module is included in the main package but can be loaded separately:
+
+```html
+<!-- Include the credit check script -->
+<script src="https://cdn.jsdelivr.net/npm/ekteintelligens-sdk@latest/dist/credit-check.js"></script>
+```
+
+Or as ES module:
+
+```typescript
+import { StoraCreditCheck } from 'ekteintelligens-sdk/credit-check';
+```
+
+### Usage
+
+```javascript
+// Initialize credit check
+window.StoraCreditCheck.init({
+    organization_id: 'your-organization-uuid',
+    integration_type: 'stora',
+    integration_subscriber_id: 'optional-id', // Optional
+    criiptoConfig: {
+        domain: 'your-domain.criipto.id',
+        clientId: 'your-client-id'
+    },
+    supabaseUrl: 'optional-supabase-url', // Optional - uses default if not provided
+    supabaseAnonKey: 'optional-supabase-key' // Optional - uses default if not provided
+});
+```
+
+### How It Works
+
+1. **Email Monitoring**: On order/contact-details pages, the module monitors the email input field (`#order_form_email`) and stores the email in localStorage.
+
+2. **Booking Complete Page**: When the user reaches the booking completion page (detected by `.booking-complete` class), the module:
+   - Retrieves the stored email from localStorage
+   - Creates a credit check session (if email exists)
+   - Checks if a credit check already exists and is approved
+   - Shows a credit check dialog if needed, replacing the default booking complete content
+
+3. **Credit Check Dialog**: The dialog displays localized text explaining that a credit check is required. When the user clicks "Check credit":
+   - BankID popup opens for identity verification
+   - Credit check is processed
+   - Session status is updated
+   - Default booking complete content is restored
+
+### Localization
+
+The credit check module automatically detects the user's browser locale and displays text in the appropriate language. Supported languages:
+- English (en) - default
+- Norwegian Bokmål (nb)
+- Norwegian Nynorsk (nn)
+- Norwegian (no)
+- Swedish (sv)
+- Danish (da)
+- German (de)
+- French (fr)
+- Spanish (es)
+- Italian (it)
+- Dutch (nl)
+- Polish (pl)
+
+### Backend Function Requirements
+
+The `create-credit-check-session` Supabase edge function needs to:
+
+1. **Accept email parameter** in request body:
+   ```typescript
+   {
+     organization_id: string;
+     integration_type: 'stora';
+     email: string; // NEW
+     integration_subscriber_id?: string;
+   }
+   ```
+
+2. **Fetch contact by email** using Stora contacts API endpoint:
+   - Use the provided email to query Stora contacts
+   - Retrieve contact details (id, email, phone, first_name, last_name, etc.)
+
+3. **Check existing credit check**:
+   - Query `organizations_credit_check_sessions` table
+   - Check if contact already has an approved/passed credit check
+   - Return existing session if found
+
+4. **Create or retrieve subscriber**:
+   - If contact exists, create or get subscriber record
+   - Store mapping between Stora contact and internal subscriber
+
+5. **Return session with contact data**:
+   ```typescript
+   {
+     id: string;
+     subscriber_id: number;
+     status: 'pending' | 'approved' | 'passed' | 'completed';
+     config: {
+       integration_type: 'stora';
+       integration_meta: {
+         contact: {
+           id: string;
+           email: string;
+           // ... other contact fields
+         }
+       }
+     }
+   }
+   ```
+
 ## License
 
 MIT
