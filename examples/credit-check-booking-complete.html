@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stora - Booking Complete (Credit Check Test)</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .booking-complete {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .booking-complete__container {
+            max-width: 700px;
+            margin: 0 auto;
+        }
+        .booking-complete__title_section {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-bottom: 30px;
+            border-bottom: 2px solid #e9ecef;
+        }
+        .booking-complete__title_text {
+            font-size: 32px;
+            color: #28a745;
+            margin: 0 0 10px 0;
+        }
+        .booking-complete__subtitle {
+            font-size: 18px;
+            color: #6c757d;
+            margin: 0;
+        }
+        .booking-complete__actions_section {
+            margin-top: 40px;
+        }
+        .booking-complete__actions_container {
+            background-color: #f8f9fa;
+            padding: 30px;
+            border-radius: 8px;
+        }
+        .mb-1 {
+            margin-bottom: 8px;
+        }
+        .text-xl {
+            font-size: 20px;
+        }
+        .font-semibold {
+            font-weight: 600;
+        }
+        .text-gray-700 {
+            color: #495057;
+        }
+        .mt-4 {
+            margin-top: 16px;
+        }
+        .button {
+            display: inline-block;
+            background-color: #007bff;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            text-decoration: none;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .button:hover {
+            background-color: #0056b3;
+        }
+        .button--primary {
+            background-color: #007bff;
+        }
+        .button--primary:hover {
+            background-color: #0056b3;
+        }
+        .info {
+            background-color: #e7f3ff;
+            border: 1px solid #b3d9ff;
+            border-radius: 4px;
+            padding: 15px;
+            margin-top: 30px;
+        }
+        .info h3 {
+            margin-top: 0;
+            color: #004085;
+        }
+        .localStorage-info {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .localStorage-info code {
+            background-color: #e9ecef;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        .test-controls {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #fff3cd;
+            border: 1px solid #ffc107;
+            border-radius: 4px;
+        }
+        .test-controls button {
+            margin-right: 10px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="booking-complete">
+        <div class="booking-complete__container">
+            <div class="booking-complete__title_section">
+                <h1 class="booking-complete__title_text">Takk for bookingen!</h1>
+                <p class="booking-complete__subtitle">Du har reservert 2 m2 i Fredrikstad-Gressvik fra onsdag, februar 25, 2026.</p>
+            </div>
+
+            <div class="booking-complete__actions_section">
+                <div class="booking-complete__actions_container">
+                    <h1 class="mb-1 text-xl font-semibold">Neste skritt</h1>
+                    <p class="text-gray-700">Fortsett til kontooversikten for å se gjennom bestillingen din.</p>
+                    <a class="button button--primary mt-4" href="/customer_dashboard">Fortsette</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="info">
+        <h3>Testing Instructions</h3>
+        <ol>
+            <li>This page simulates the Stora booking complete page</li>
+            <li>If you came from the order page with an email stored, the credit check dialog should appear</li>
+            <li>The dialog will replace the default "Neste skritt" section</li>
+            <li>Click "Sjekk kreditt" (or "Check credit" in English) to test the BankID flow</li>
+            <li>Use the test controls below to simulate different scenarios</li>
+        </ol>
+    </div>
+
+    <div class="localStorage-info">
+        <strong>LocalStorage Status:</strong>
+        <div id="localStorage-status">Checking...</div>
+    </div>
+
+    <div class="test-controls">
+        <h3>Test Controls</h3>
+        <button class="button" onclick="setTestEmail()">Set Test Email in localStorage</button>
+        <button class="button" onclick="clearTestEmail()">Clear Email from localStorage</button>
+        <button class="button" onclick="reloadPage()">Reload Page</button>
+        <button class="button" onclick="goToOrderPage()">Go to Order Page</button>
+    </div>
+
+    <!-- Load the credit check module -->
+    <script type="module">
+        // For local testing, use the built file
+        // For production, use: https://cdn.jsdelivr.net/npm/ekteintelligens-sdk@latest/dist/credit-check.es.js
+        // Change the import path below based on your setup:
+        
+        // Option 1: Local build (for development)
+        // Note: Use .mjs extension or ensure server serves with correct MIME type
+        import { storaCreditCheck, StoraCreditCheck } from '../dist/credit-check.es.js';
+        
+        // Option 2: CDN (for production testing - uncomment to use)
+        // import { storaCreditCheck, StoraCreditCheck } from 'https://cdn.jsdelivr.net/npm/ekteintelligens-sdk@latest/dist/credit-check.es.js';
+        
+        // Initialize credit check with test configuration
+        // Replace these with your actual values
+        storaCreditCheck.init({
+            organization_id: 'test-organization-id',
+            integration_type: 'stora',
+            criiptoConfig: {
+                domain: 'mediaperformance-test.criipto.id',
+                clientId: 'urn:my:application:identifier:28040'
+            }
+        });
+
+        // Monitor localStorage changes
+        function updateLocalStorageStatus() {
+            const orgId = 'test-organization-id';
+            const key = `stora_credit_check_email_${orgId}`;
+            const email = localStorage.getItem(key);
+            const statusDiv = document.getElementById('localStorage-status');
+            
+            if (email) {
+                statusDiv.innerHTML = `
+                    <strong>Email stored:</strong> <code>${email}</code><br>
+                    <strong>Storage key:</strong> <code>${key}</code><br>
+                    <strong>Status:</strong> Credit check dialog should appear if email is present
+                `;
+            } else {
+                statusDiv.innerHTML = `
+                    <em>No email stored. The credit check dialog will not appear.</em><br>
+                    <small>Use "Set Test Email" button above or go to the order page to enter an email.</small>
+                `;
+            }
+        }
+
+        // Update status on page load
+        updateLocalStorageStatus();
+
+        // Test control functions
+        window.setTestEmail = function() {
+            const orgId = 'test-organization-id';
+            const key = `stora_credit_check_email_${orgId}`;
+            const testEmail = 'test@example.com';
+            localStorage.setItem(key, testEmail);
+            updateLocalStorageStatus();
+            alert(`Test email "${testEmail}" stored. Reload the page to see the credit check dialog.`);
+        };
+
+        window.clearTestEmail = function() {
+            const orgId = 'test-organization-id';
+            const key = `stora_credit_check_email_${orgId}`;
+            localStorage.removeItem(key);
+            updateLocalStorageStatus();
+            alert('Email cleared from localStorage.');
+        };
+
+        window.reloadPage = function() {
+            window.location.reload();
+        };
+
+        window.goToOrderPage = function() {
+            window.location.href = 'credit-check-order-page.html';
+        };
+
+        // Log when credit check is initialized
+        console.log('Credit check module initialized. Waiting for booking complete page detection...');
+    </script>
+</body>
+</html>

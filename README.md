@@ -366,7 +366,14 @@ The credit check module is included in the main package but can be loaded separa
 Or as ES module:
 
 ```typescript
-import { StoraCreditCheck } from 'ekteintelligens-sdk/credit-check';
+import { storaCreditCheck, StoraCreditCheck } from 'ekteintelligens-sdk/credit-check';
+
+// Use the singleton instance
+storaCreditCheck.init({...});
+
+// Or create your own instance
+const creditCheck = new StoraCreditCheck();
+creditCheck.init({...});
 ```
 
 ### Usage

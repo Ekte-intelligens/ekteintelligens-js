@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Credit Check Module - Test Index</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            color: #6c757d;
+            margin-bottom: 30px;
+        }
+        .test-card {
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            transition: box-shadow 0.2s;
+        }
+        .test-card:hover {
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .test-card h2 {
+            margin-top: 0;
+            color: #007bff;
+        }
+        .test-card p {
+            color: #6c757d;
+            margin-bottom: 15px;
+        }
+        .button {
+            display: inline-block;
+            background-color: #007bff;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            text-decoration: none;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .button:hover {
+            background-color: #0056b3;
+        }
+        .info-box {
+            background-color: #e7f3ff;
+            border: 1px solid #b3d9ff;
+            border-radius: 4px;
+            padding: 20px;
+            margin-top: 30px;
+        }
+        .info-box h3 {
+            margin-top: 0;
+            color: #004085;
+        }
+        .info-box ul {
+            margin-bottom: 0;
+        }
+        .info-box code {
+            background-color: #fff;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Credit Check Module - Test Suite</h1>
+        <p class="subtitle">Test the Stora credit check integration flow</p>
+
+        <div class="test-card">
+            <h2>1. Order/Contact Details Page</h2>
+            <p>Test email monitoring and localStorage storage. Enter an email address and verify it's stored in localStorage.</p>
+            <a href="credit-check-order-page.html" class="button">Open Order Page</a>
+        </div>
+
+        <div class="test-card">
+            <h2>2. Booking Complete Page</h2>
+            <p>Test the credit check dialog display. The dialog should appear if an email is stored in localStorage.</p>
+            <a href="credit-check-booking-complete.html" class="button">Open Booking Complete Page</a>
+        </div>
+
+        <div class="info-box">
+            <h3>Testing Flow</h3>
+            <ol>
+                <li>Start with the <strong>Order/Contact Details Page</strong></li>
+                <li>Enter an email address in the email field</li>
+                <li>Verify the email is stored in localStorage (check the status display)</li>
+                <li>Click "Continue to Booking Complete" or navigate to the <strong>Booking Complete Page</strong></li>
+                <li>The credit check dialog should appear, replacing the default booking content</li>
+                <li>Click "Sjekk kreditt" (Check credit) to test the BankID authentication flow</li>
+            </ol>
+            <p><strong>Note:</strong> The BankID authentication will require actual Criipto credentials. For testing without BankID, you can check the console logs to see the flow.</p>
+        </div>
+
+        <div class="info-box">
+            <h3>Configuration</h3>
+            <p>The test pages use the following configuration:</p>
+            <ul>
+                <li><strong>Organization ID:</strong> <code>test-organization-id</code></li>
+                <li><strong>Integration Type:</strong> <code>stora</code></li>
+                <li><strong>Criipto Domain:</strong> <code>mediaperformance-test.criipto.id</code></li>
+                <li><strong>Criipto Client ID:</strong> <code>urn:my:application:identifier:28040</code></li>
+            </ul>
+            <p><small>Update these values in the HTML files to match your actual configuration.</small></p>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stora - Order/Contact Details (Credit Check Test)</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+            font-weight: 500;
+        }
+        .input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        .input:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 0 3px rgba(0,123,255,0.1);
+        }
+        .button {
+            background-color: #007bff;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        .button:hover {
+            background-color: #0056b3;
+        }
+        .info {
+            background-color: #e7f3ff;
+            border: 1px solid #b3d9ff;
+            border-radius: 4px;
+            padding: 15px;
+            margin-top: 20px;
+        }
+        .info h3 {
+            margin-top: 0;
+            color: #004085;
+        }
+        .localStorage-info {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .localStorage-info code {
+            background-color: #e9ecef;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Order/Contact Details</h1>
+        <p>This page simulates the Stora order/contact-details page where users enter their email.</p>
+        
+        <form id="order-form">
+            <div class="form-group">
+                <label for="order_form_email">Email Address *</label>
+                <input 
+                    class="input" 
+                    autocomplete="email" 
+                    type="email" 
+                    name="order_form[email]" 
+                    id="order_form_email"
+                    placeholder="your.email@example.com"
+                    required
+                >
+            </div>
+            
+            <div class="form-group">
+                <label for="order_form_phone">Phone Number</label>
+                <input 
+                    class="input" 
+                    autocomplete="tel" 
+                    type="tel" 
+                    name="order_form[phone]" 
+                    id="order_form_phone"
+                    placeholder="+47 123 45 678"
+                >
+            </div>
+            
+            <button type="button" class="button" onclick="goToBookingComplete()">
+                Continue to Booking Complete
+            </button>
+        </form>
+
+        <div class="info">
+            <h3>Testing Instructions</h3>
+            <ol>
+                <li>Enter an email address in the field above</li>
+                <li>The email will be automatically stored in localStorage</li>
+                <li>Check the localStorage info below to verify storage</li>
+                <li>Click "Continue to Booking Complete" to test the credit check dialog</li>
+            </ol>
+        </div>
+
+        <div class="localStorage-info">
+            <strong>LocalStorage Status:</strong>
+            <div id="localStorage-status">Checking...</div>
+        </div>
+    </div>
+
+    <!-- Load the credit check module -->
+    <script type="module">
+        // For local testing, use the built file
+        // For production, use: https://cdn.jsdelivr.net/npm/ekteintelligens-sdk@latest/dist/credit-check.es.js
+        // Change the import path below based on your setup:
+        
+        // Option 1: Local build (for development)
+        // Note: Use .mjs extension or ensure server serves with correct MIME type
+        import { storaCreditCheck, StoraCreditCheck } from '../dist/credit-check.es.js';
+        
+        // Option 2: CDN (for production testing - uncomment to use)
+        // import { storaCreditCheck, StoraCreditCheck } from 'https://cdn.jsdelivr.net/npm/ekteintelligens-sdk@latest/dist/credit-check.es.js';
+        
+        // Initialize credit check with test configuration
+        // Replace these with your actual values
+        storaCreditCheck.init({
+            organization_id: '4db7350b-df4d-498c-ab37-5ddd1a9cc108',
+            integration_type: 'stora',
+            criiptoConfig: {
+                domain: 'mediaperformance-test.criipto.id',
+                clientId: 'urn:my:application:identifier:28040'
+            }
+        });
+
+        // Monitor localStorage changes
+        function updateLocalStorageStatus() {
+            const orgId = 'test-organization-id';
+            const key = `stora_credit_check_email_${orgId}`;
+            const email = localStorage.getItem(key);
+            const statusDiv = document.getElementById('localStorage-status');
+            
+            if (email) {
+                statusDiv.innerHTML = `
+                    <strong>Email stored:</strong> <code>${email}</code><br>
+                    <strong>Storage key:</strong> <code>${key}</code>
+                `;
+            } else {
+                statusDiv.innerHTML = '<em>No email stored yet. Enter an email above.</em>';
+            }
+        }
+
+        // Update status on page load
+        updateLocalStorageStatus();
+
+        // Monitor email input changes
+        const emailInput = document.getElementById('order_form_email');
+        if (emailInput) {
+            emailInput.addEventListener('input', () => {
+                setTimeout(updateLocalStorageStatus, 100);
+            });
+            emailInput.addEventListener('change', () => {
+                setTimeout(updateLocalStorageStatus, 100);
+            });
+        }
+
+        // Make function available globally
+        window.goToBookingComplete = function() {
+            window.location.href = 'credit-check-booking-complete.html';
+        };
+    </script>
+</body>
+</html>

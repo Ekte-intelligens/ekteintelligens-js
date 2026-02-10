@@ -1,16 +1,885 @@
-var C=Object.defineProperty;var w=(p,e,t)=>e in p?C(p,e,{enumerable:!0,configurable:!0,writable:!0,value:t}):p[e]=t;var a=(p,e,t)=>w(p,typeof e!="symbol"?e+"":e,t);import{c as I,g as x}from"./assets/locale-B5LAuhde.js";class E{constructor(e){a(this,"inputMapping");a(this,"content",{});a(this,"sessionId");a(this,"hasEmailOrPhone",!1);a(this,"onContentUpdate");this.inputMapping=this.cleanInputMapping(e)}cleanInputMapping(e){if(!e)return e;const t={...e};return t.form_selector&&(t.form_selector=this.cleanSelector(t.form_selector)),t.inputs&&t.inputs.length>0&&(t.inputs=t.inputs.map(i=>this.cleanSelector(i))),t}cleanSelector(e){return e.replace(/\\\\/g,"\\")}setOnContentUpdate(e){this.onContentUpdate=e}setSessionId(e){this.sessionId=e}startListening(){this.getTargetInputs().forEach(t=>{t.addEventListener("blur",this.handleInputBlur.bind(this))})}stopListening(){this.getTargetInputs().forEach(t=>{t.removeEventListener("blur",this.handleInputBlur.bind(this))})}getTargetInputs(){if(!this.inputMapping)return Array.from(document.querySelectorAll("input"));if(this.inputMapping.form_selector){const e=document.querySelector(this.inputMapping.form_selector);if(e)return Array.from(e.querySelectorAll("input"))}return this.inputMapping.inputs&&this.inputMapping.inputs.length>0?this.inputMapping.inputs.map(e=>document.querySelector(e)).filter(e=>e!==null):Array.from(document.querySelectorAll("input"))}handleInputBlur(e){const t=e.target,i=this.getFieldName(t),n=t.value.trim();n&&(this.content[i]=n,this.isEmailOrPhone(i,n)&&(this.hasEmailOrPhone=!0),this.hasEmailOrPhone&&this.onContentUpdate&&this.onContentUpdate(this.content,this.sessionId))}getFieldName(e){var i;let t=e.name||e.id||e.getAttribute("data-field")||e.type||"unknown";return(i=this.inputMapping)!=null&&i.field_mappings&&this.inputMapping.field_mappings[t]&&(t=this.inputMapping.field_mappings[t]),t}isEmailOrPhone(e,t){const i=e.toLowerCase();return i.includes("email")||i.includes("mail")?this.isValidEmail(t):i.includes("phone")||i.includes("tel")?this.isValidPhone(t):this.isValidEmail(t)||this.isValidPhone(t)}isValidEmail(e){return/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)}isValidPhone(e){return/^[\+]?[0-9\s\-\(\)]{7,}$/.test(e)}getContent(){return{...this.content}}hasEmailOrPhoneNumber(){return this.hasEmailOrPhone}}class k{constructor(e){a(this,"productMapping");this.productMapping=this.cleanProductMapping(e)}cleanProductMapping(e){if(!e)return e;if(e.fields){const t={...e},i={};for(const[n,o]of Object.entries(e.fields))i[n]=this.cleanSelector(o);return t.fields=i,t}return e}cleanSelector(e){return e.replace(/\\\\/g,"\\")}detectProducts(){const e=[];return!this.productMapping||Object.keys(this.productMapping).length===0?this.detectCommonProducts():this.productMapping.fields?this.detectProductsWithFieldsMapping():e}detectProductsWithFieldsMapping(){const e=[],t=this.productMapping.fields;if(!t)return e;const i=Object.values(t),n=this.findCommonParentSelector(i);if(n&&document.querySelectorAll(n).forEach(r=>{const s=this.extractProductFromFieldsMapping(r,t);s&&Object.keys(s).length>0&&e.push(s)}),e.length===0){const o=this.extractProductFromFieldsMapping(document.body,t);o&&Object.keys(o).length>0&&e.push(o)}return e.length===0&&this.findElementsWithAnySelector(i).forEach(r=>{const s=this.extractProductFromFieldsMapping(r,t);s&&Object.keys(s).length>0&&e.push(s)}),e}findCommonParentSelector(e){const t=e[0];if(!t)return null;const i=t.split(" > ");if(i.length>1){const o=i[0];if(e.every(s=>s.startsWith(o)))return o}const n=["body","main","#content","#main",".main",".content"];for(const o of n)if(document.querySelectorAll(o).length>0)return o;return null}extractProductFromFieldsMapping(e,t){try{const i={};for(const[n,o]of Object.entries(t)){let r=this.extractValue(e,o);if(r===null&&o.startsWith("data-")){const s=document.querySelectorAll(`[${o}]`);s.length>0&&(r=s[0].getAttribute(o))}r!==null&&(n.toLowerCase().includes("price")?i[n]=this.extractPrice(e,o):n.toLowerCase().includes("quantity")?i[n]=this.extractQuantity(e,o):i[n]=r)}return Object.keys(i).length>0?i:null}catch(i){return console.warn("Error extracting product from fields mapping:",i),null}}detectCommonProducts(){const e=[],t=["[data-product-id]",".product-item",".cart-item","[data-sku]",".product",".item"];for(const i of t)document.querySelectorAll(i).forEach(o=>{const r=this.extractProductFromCommonElement(o);r&&e.push(r)});return e}extractProductFromCommonElement(e){try{const t={id:this.extractValue(e,"data-product-id")||this.extractValue(e,"data-sku")||this.extractValue(e,"id")||"",name:this.extractValue(e,"data-product-name")||this.extractValue(e,"title")||this.extractTextContent(e,".product-name, .item-name, .title")||"",price:this.extractPrice(e,"data-price")||this.extractPrice(e,"data-price-amount")||0,quantity:this.extractQuantity(e,"data-quantity")||this.extractQuantity(e,"quantity")||1};return t.id||t.name?t:null}catch(t){return console.warn("Error extracting product from common element:",t),null}}extractValue(e,t){var i,n,o;try{if(t.startsWith("data-"))return e.getAttribute(t)||null;if(t.startsWith(">"))try{const s=e.querySelector(t);return s&&((i=s.textContent)==null?void 0:i.trim())||null}catch(s){return console.warn(`Invalid selector: ${t}`,s),null}if(t.includes(",")){const s=t.split(",").map(l=>l.trim());for(const l of s)try{const u=e.querySelector(l);if(u)return((n=u.textContent)==null?void 0:n.trim())||null}catch(u){console.warn(`Invalid selector in comma list: ${l}`,u);continue}return null}const r=e.querySelector(t);return r&&((o=r.textContent)==null?void 0:o.trim())||null}catch(r){return console.warn(`Error extracting value with selector: ${t}`,r),null}}extractTextContent(e,t){var n;const i=e.querySelector(t);return i&&((n=i.textContent)==null?void 0:n.trim())||null}extractPrice(e,t){const i=this.extractValue(e,t);if(!i)return 0;let n=i.replace(/^[A-Z]{3}\s*/i,"");if(n=n.replace(/^[€$£¥]\s*/i,""),n=n.replace(/[^\d.,]/g,""),n.includes(",")){const r=n.split(",");r.length===2&&r[1].length===3?n=r[0]+r[1]:n=n.replace(",",".")}const o=parseFloat(n);return isNaN(o)?0:o}extractQuantity(e,t){const i=this.extractValue(e,t);if(!i)return 1;const n=parseInt(i);return isNaN(n)?1:n}findElementsWithAnySelector(e){const t=new Set;for(const i of e)try{document.querySelectorAll(i).forEach(o=>t.add(o))}catch(n){console.warn(`Invalid selector: ${i}`,n)}return Array.from(t)}}class P{constructor(e){a(this,"totalSelector");this.totalSelector=e?this.cleanSelector(e):void 0}cleanSelector(e){return e.replace(/\\\\/g,"\\")}extractTotal(){var e;if(!this.totalSelector)return 0;try{const t=document.querySelector(this.totalSelector);if(!t)return console.warn(`Total selector not found: ${this.totalSelector}`),0;const i=((e=t.textContent)==null?void 0:e.trim())||"";if(!i)return console.warn(`No text content found for total selector: ${this.totalSelector}`),0;let n=i.replace(/[^\d.,]/g,"");const o=n.includes(","),r=n.includes(".");if(o&&r){const l=n.lastIndexOf(","),u=n.lastIndexOf(".");l>u?n.substring(l+1).length===2?(n=n.replace(/\./g,""),n=n.replace(",",".")):n=n.replace(/,/g,""):n=n.replace(/,/g,"")}else if(o&&!r){const l=n.match(/,/g);if((l?l.length:0)>1)n=n.replace(/,/g,"");else{const c=n.match(/,(\d+)$/);c&&c[1].length===3?n=n.replace(",",""):n=n.replace(",",".")}}else if(!o&&r){const l=n.match(/\./g);if((l?l.length:0)>1)n=n.replace(/\./g,"");else{const c=n.match(/\.(\d+)$/);c&&c[1].length===3&&(n=n.replace(".",""))}}const s=parseFloat(n);return isNaN(s)?(console.warn(`Could not parse total value: ${i}`),0):Math.round(s)}catch(t){return console.warn(`Error extracting total with selector: ${this.totalSelector}`,t),0}}hasTotalSelector(){return!!this.totalSelector}}class S{constructor(e,t){a(this,"client");const i=e||"https://yoflhmaayrceswiwvxba.supabase.co",n=t||"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlvZmxobWFheXJjZXN3aXd2eGJhIiwicm9sZSI6ImFub24iLCJpYXQiOjE2NzI5MzQ4MzUsImV4cCI6MTk4ODUxMDgzNX0.dq8OdZylVnB1Gwa_nYLALxUHk2NOPmRlhS_YbA7E8pg";this.client=I(i,n)}async getCheckoutCampaign(e){try{const{data:t,error:i}=await this.client.from("organizations_checkout_campaigns").select("*").eq("id",e).single();return i?(console.error("Error fetching checkout campaign:",i),null):t}catch(t){return console.error("Error fetching checkout campaign:",t),null}}async submitCartSession(e){try{const t=localStorage.getItem("ei_test"),i={};t==="true"&&(i.is_test=!0);const{data:n,error:o}=await this.client.functions.invoke("cart-checkout-session",{body:{...e,config:i}});return o?(console.error("Error calling cart-checkout-session function:",o),null):n}catch(t){return console.error("Error calling cart-checkout-session function:",t),null}}async deleteCartSession(e){try{const{error:t}=await this.client.functions.invoke("delete-checkout-session",{body:{session_id:e}});return t?(console.error("Error calling delete-cart-session function:",t),!1):(console.log("Cart session deleted successfully:",e),!0)}catch(t){return console.error("Error calling delete-cart-session function:",t),!1}}async getPipelineCampaign(e){try{const{data:t,error:i}=await this.client.from("organizations_pipelines_campaigns").select("*").eq("id",e).single();return i?(console.error("Error fetching pipeline campaign:",i),null):t}catch(t){return console.error("Error fetching pipeline campaign:",t),null}}async runOrganizationPipeline(e){try{const{error:t}=await this.client.functions.invoke("run-organization-pipeline",{body:e});return t?(console.error("Error calling run-organization-pipeline function:",t),!1):(console.log("Organization pipeline executed successfully"),!0)}catch(t){return console.error("Error calling run-organization-pipeline function:",t),!1}}}class F{constructor(e){a(this,"options");a(this,"supabaseService");a(this,"inputDetector");a(this,"productDetector");a(this,"totalExtractor");a(this,"campaign");a(this,"totalAverage",0);a(this,"_sessionId");a(this,"isInitialized",!1);a(this,"previousContent",{});a(this,"previousProducts",[]);a(this,"previousTotal",0);a(this,"debounceTimer");a(this,"pendingContentUpdate");a(this,"isSubmitting",!1);a(this,"autofieldStorageListenersSetup",!1);this.options=e,this.supabaseService=new S(e.supabaseUrl,e.supabaseAnonKey)}async initialize(){var e,t,i;if(this.isInitialized)return!0;try{if(this.loadSessionIdFromStorage(),(e=this.options.config)!=null&&e.completedCheckout&&this._sessionId)return await this.handleCompletedCheckout(),!0;const n=await this.supabaseService.getCheckoutCampaign(this.options.checkoutCampaignId);return this.totalAverage=n!=null&&n.average_checkout_value?n.average_checkout_value:0,n?(this.campaign=n,this.inputDetector=new E(n.input_mapping),n.type!=="bookvisit"&&(this.productDetector=new k(n.product_mapping),this.totalExtractor=new P(n.total_selector)),this.inputDetector.setOnContentUpdate(this.debouncedHandleContentUpdate.bind(this)),this._sessionId&&this.inputDetector.setSessionId(this._sessionId),n.type==="bookvisit"&&((i=(t=n.config)==null?void 0:t.bookvisit)==null?void 0:i.autofields)===!0&&this.injectBookVisitAutofields(n.input_mapping),this.checkAndFillPaymentPageFields(),this.inputDetector.startListening(),this.setupUrlChangeListener(),this.isInitialized=!0,!0):(console.error("Failed to fetch checkout campaign data"),!1)}catch(n){return console.error("Failed to initialize abandoned cart tool:",n),!1}}debouncedHandleContentUpdate(e,t){this.pendingContentUpdate={content:e,sessionId:t},this.debounceTimer&&clearTimeout(this.debounceTimer),this.debounceTimer=setTimeout(()=>{this.pendingContentUpdate&&(this.handleContentUpdate(this.pendingContentUpdate.content,this.pendingContentUpdate.sessionId),this.pendingContentUpdate=void 0)},300)}async handleContentUpdate(e,t){var i,n,o,r;if(this.isSubmitting){this.pendingContentUpdate={content:e,sessionId:t},this.debounceTimer&&clearTimeout(this.debounceTimer),this.debounceTimer=setTimeout(()=>{this.pendingContentUpdate&&this.handleContentUpdate(this.pendingContentUpdate.content,this.pendingContentUpdate.sessionId)},100);return}try{let s=[],l=this.totalAverage;if(((i=this.campaign)==null?void 0:i.type)==="bookvisit"){const v=await this.fetchBookVisitBasket();v&&(s=v.products,l=v.total)}else s=((n=this.productDetector)==null?void 0:n.detectProducts())||[],l=((o=this.totalExtractor)==null?void 0:o.extractTotal())||this.totalAverage;if(!this.hasContentChanged(e,s,l)){console.log("Content unchanged, skipping upload");return}this.isSubmitting=!0;const c=typeof window<"u"?window.location.href:"",d=this._sessionId||t,f={organization_id:this.options.organizationId,checkout_campaign_id:this.options.checkoutCampaignId,content:e,products:s,url:c,total:l,id:d},h=await this.supabaseService.submitCartSession(f);h&&h.id?(this._sessionId=h.id,(r=this.inputDetector)==null||r.setSessionId(h.id),this.saveSessionIdToStorage(h.id),this.previousContent={...e},this.previousProducts=[...s],this.previousTotal=l,console.log("Cart session updated successfully:",h.id)):console.error("Failed to submit cart session")}catch(s){console.error("Error handling content update:",s)}finally{this.isSubmitting=!1}}hasContentChanged(e,t,i){if(Object.keys(this.previousContent).length===0&&this.previousProducts.length===0&&this.previousTotal===0)return!0;const n=JSON.stringify(e)!==JSON.stringify(this.previousContent),o=JSON.stringify(t)!==JSON.stringify(this.previousProducts),r=i!==this.previousTotal;return n||o||r}destroy(){this.debounceTimer&&(clearTimeout(this.debounceTimer),this.debounceTimer=void 0),this._urlCheckInterval&&(clearInterval(this._urlCheckInterval),this._urlCheckInterval=void 0),this.pendingContentUpdate&&(this.handleContentUpdate(this.pendingContentUpdate.content,this.pendingContentUpdate.sessionId),this.pendingContentUpdate=void 0),this.inputDetector&&this.inputDetector.stopListening(),this.isInitialized=!1,this._sessionId=void 0,this.isSubmitting=!1,this.clearSessionIdFromStorage()}getContent(){var e;return((e=this.inputDetector)==null?void 0:e.getContent())||{}}hasEmailOrPhone(){var e;return((e=this.inputDetector)==null?void 0:e.hasEmailOrPhoneNumber())||!1}getSessionId(){return this._sessionId}resetChangeTracking(){this.previousContent={},this.previousProducts=[],this.previousTotal=0,console.log("Change tracking reset - next update will be uploaded")}loadSessionIdFromStorage(){if(typeof window<"u"&&window.localStorage)try{const e=localStorage.getItem("ei_session_id");e&&(this._sessionId=e,console.log("Loaded session ID from localStorage:",e))}catch(e){console.warn("Failed to load session ID from localStorage:",e)}}saveSessionIdToStorage(e){if(typeof window<"u"&&window.localStorage)try{localStorage.setItem("ei_session_id",e),console.log("Saved session ID to localStorage:",e)}catch(t){console.warn("Failed to save session ID to localStorage:",t)}}clearSessionIdFromStorage(){if(typeof window<"u"&&window.localStorage)try{localStorage.removeItem("ei_session_id"),console.log("Cleared session ID from localStorage")}catch(e){console.warn("Failed to clear session ID from localStorage:",e)}}async handleCompletedCheckout(){if(!this._sessionId){console.log("No session ID found for completed checkout cleanup");return}try{await this.supabaseService.deleteCartSession(this._sessionId)?console.log("Successfully deleted completed checkout session:",this._sessionId):console.warn("Failed to delete completed checkout session from database")}catch(e){console.error("Error deleting completed checkout session:",e)}finally{this.clearSessionIdFromStorage(),this._sessionId=void 0,console.log("Completed checkout cleanup finished")}}async fetchBookVisitBasket(){var i,n;if(!this.campaign||this.campaign.type!=="bookvisit")return null;const e=(n=(i=this.campaign.config)==null?void 0:i.bookvisit)==null?void 0:n.channel_id;if(!e)return console.error("BookVisit channel_id not found in campaign config"),null;const t=this.getCookie("bv_jwt");if(!t)return console.warn("BookVisit JWT token not found in cookies"),null;try{const o=`https://restapi.bookvisit.com/baskets/basket-v1?IncludePaymentHistory=false&ChannelId=${e}`,r=await fetch(o,{credentials:"include",headers:{authorization:`Bearer ${t}`}});if(!r.ok)return console.error(`BookVisit API error: ${r.status} ${r.statusText}`),null;const s=await r.json();return this.extractBookVisitProductsAndTotal(s)}catch(o){return console.error("Error fetching BookVisit basket:",o),null}}extractBookVisitProductsAndTotal(e){var n;const t=[];let i=0;try{const o=(n=e==null?void 0:e.booking)==null?void 0:n.bookingData;if(!o)return{products:t,total:i};i=o.totalPrice||0;const r=o.rooms||[],s=o.roomDescriptions||[],l=o.addOnDescriptions||[];r.forEach(c=>{var y;const d=s.find(m=>m.id===c.roomId),f=c.totalPrice||0,h={id:c.roomId,name:(d==null?void 0:d.name)||"Room",price:f,quantity:1,type:"room",startDate:c.startDate,endDate:c.endDate,roomConfig:c.roomConfig};if(c.priceInfo&&c.priceInfo.length>0){const m=c.priceInfo[0].ratePlanId,b=(y=o.ratePlanDescriptions)==null?void 0:y.find(g=>g.id===m);b&&(h.ratePlan=b.name)}t.push(h),(c.mandatoryAddOns||[]).forEach(m=>{const b=m.totalPrice||0;if(b>0){const g=l.find(_=>_.id===m.addOnId);t.push({id:m.addOnId,name:(g==null?void 0:g.name)||"Add-on",price:b,quantity:m.numberOfUnits||1,type:"addon",roomId:c.roomId,date:m.date})}})}),(o.optionalAddOns||[]).forEach(c=>{const d=c.totalPrice||0;if(d>0){const f=l.find(h=>h.id===c.addOnId);t.push({id:c.addOnId,name:(f==null?void 0:f.name)||"Add-on",price:d,quantity:c.numberOfUnits||1,type:"addon",roomId:c.roomId,date:c.date})}})}catch(o){console.error("Error extracting BookVisit products and total:",o)}return{products:t,total:i}}injectBookVisitAutofields(e){if(typeof document>"u")return;const t=document.getElementById("main_content_container");if(!t){console.warn("main_content_container not found, cannot inject autofields");return}const i=this.getFieldsToInclude(e);if(i.length===0){console.log("No relevant fields found in input_mapping for autofields");return}const n=this.createBookVisitFormSection(i);t.insertAdjacentHTML("afterbegin",n),this.setupAutofieldListenersWithRetry()}getFieldsToInclude(e){const t=[],i=(e==null?void 0:e.field_mappings)||{},n=(e==null?void 0:e.inputs)||[];return(this.hasFieldMapping(i,["first_name"])||this.hasInputSelector(n,["firstName","firstname","first_name","given-name"]))&&t.push("firstName"),(this.hasFieldMapping(i,["last_name"])||this.hasInputSelector(n,["lastName","lastname","last_name","family-name"]))&&t.push("lastName"),(this.hasFieldMapping(i,["email"])||this.hasInputSelector(n,["email","emailAddress","email_address","e-mail"]))&&t.push("email"),(this.hasFieldMapping(i,["phone_number"])||this.hasInputSelector(n,["phoneNumber","phonenumber","phone_number","phone","tel","telephone"]))&&t.push("phoneNumber"),t.length===0?["firstName","lastName","email","phoneNumber"]:t}hasFieldMapping(e,t){for(const i of Object.values(e)){const n=i.toLowerCase();for(const o of t){const r=o.toLowerCase();if(n===r)return!0}}return!1}hasInputSelector(e,t){for(const i of e){const n=i.toLowerCase();for(const o of t){const r=o.toLowerCase();if(n.includes(r))return!0}}return!1}getLocalizedText(e){const t=x(),i={email:{en:"Email",nb:"E-post",nn:"E-post",no:"E-post",sv:"E-post",da:"E-mail",de:"E-Mail",fr:"E-mail",es:"Correo electrónico",it:"E-mail",nl:"E-mail",pl:"E-mail"},phoneNumber:{en:"Phone number",nb:"Telefonnummer",nn:"Telefonnummer",no:"Telefonnummer",sv:"Telefonnummer",da:"Telefonnummer",de:"Telefonnummer",fr:"Numéro de téléphone",es:"Número de teléfono",it:"Numero di telefono",nl:"Telefoonnummer",pl:"Numer telefonu"}},n=i[e][t];return n||i[e].en||e}createBookVisitFormSection(e){const t=e.includes("firstName"),i=e.includes("lastName"),n=e.includes("email"),o=e.includes("phoneNumber"),r=this.getLocalizedText("email"),s=this.getLocalizedText("phoneNumber");let l='<div class="bv-m-0 bv-grid bv-gap-[10px] bv-grid-cols-[minmax(0,1fr)_minmax(0,1fr)] bv-mt-[20px] bv_small:bv-grid-cols-1">';return t&&(l+=`
+var C = Object.defineProperty;
+var w = (p, e, t) => e in p ? C(p, e, { enumerable: !0, configurable: !0, writable: !0, value: t }) : p[e] = t;
+var a = (p, e, t) => w(p, typeof e != "symbol" ? e + "" : e, t);
+import { c as I, g as x } from "./locale-C4sWOXtX.mjs";
+class E {
+  constructor(e) {
+    a(this, "inputMapping");
+    a(this, "content", {});
+    a(this, "sessionId");
+    a(this, "hasEmailOrPhone", !1);
+    a(this, "onContentUpdate");
+    this.inputMapping = this.cleanInputMapping(e);
+  }
+  cleanInputMapping(e) {
+    if (!e) return e;
+    const t = { ...e };
+    return t.form_selector && (t.form_selector = this.cleanSelector(
+      t.form_selector
+    )), t.inputs && t.inputs.length > 0 && (t.inputs = t.inputs.map(
+      (i) => this.cleanSelector(i)
+    )), t;
+  }
+  cleanSelector(e) {
+    return e.replace(/\\\\/g, "\\");
+  }
+  setOnContentUpdate(e) {
+    this.onContentUpdate = e;
+  }
+  setSessionId(e) {
+    this.sessionId = e;
+  }
+  startListening() {
+    this.getTargetInputs().forEach((t) => {
+      t.addEventListener("blur", this.handleInputBlur.bind(this));
+    });
+  }
+  stopListening() {
+    this.getTargetInputs().forEach((t) => {
+      t.removeEventListener("blur", this.handleInputBlur.bind(this));
+    });
+  }
+  getTargetInputs() {
+    if (!this.inputMapping)
+      return Array.from(document.querySelectorAll("input"));
+    if (this.inputMapping.form_selector) {
+      const e = document.querySelector(
+        this.inputMapping.form_selector
+      );
+      if (e)
+        return Array.from(e.querySelectorAll("input"));
+    }
+    return this.inputMapping.inputs && this.inputMapping.inputs.length > 0 ? this.inputMapping.inputs.map((e) => document.querySelector(e)).filter((e) => e !== null) : Array.from(document.querySelectorAll("input"));
+  }
+  handleInputBlur(e) {
+    const t = e.target, i = this.getFieldName(t), n = t.value.trim();
+    n && (this.content[i] = n, this.isEmailOrPhone(i, n) && (this.hasEmailOrPhone = !0), this.hasEmailOrPhone && this.onContentUpdate && this.onContentUpdate(this.content, this.sessionId));
+  }
+  getFieldName(e) {
+    var i;
+    let t = e.name || e.id || e.getAttribute("data-field") || e.type || "unknown";
+    return (i = this.inputMapping) != null && i.field_mappings && this.inputMapping.field_mappings[t] && (t = this.inputMapping.field_mappings[t]), t;
+  }
+  isEmailOrPhone(e, t) {
+    const i = e.toLowerCase();
+    return i.includes("email") || i.includes("mail") ? this.isValidEmail(t) : i.includes("phone") || i.includes("tel") ? this.isValidPhone(t) : this.isValidEmail(t) || this.isValidPhone(t);
+  }
+  isValidEmail(e) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
+  }
+  isValidPhone(e) {
+    return /^[\+]?[0-9\s\-\(\)]{7,}$/.test(e);
+  }
+  getContent() {
+    return { ...this.content };
+  }
+  hasEmailOrPhoneNumber() {
+    return this.hasEmailOrPhone;
+  }
+}
+class k {
+  constructor(e) {
+    a(this, "productMapping");
+    this.productMapping = this.cleanProductMapping(e);
+  }
+  cleanProductMapping(e) {
+    if (!e) return e;
+    if (e.fields) {
+      const t = { ...e }, i = {};
+      for (const [n, o] of Object.entries(
+        e.fields
+      ))
+        i[n] = this.cleanSelector(
+          o
+        );
+      return t.fields = i, t;
+    }
+    return e;
+  }
+  cleanSelector(e) {
+    return e.replace(/\\\\/g, "\\");
+  }
+  detectProducts() {
+    const e = [];
+    return !this.productMapping || Object.keys(this.productMapping).length === 0 ? this.detectCommonProducts() : this.productMapping.fields ? this.detectProductsWithFieldsMapping() : e;
+  }
+  detectProductsWithFieldsMapping() {
+    const e = [], t = this.productMapping.fields;
+    if (!t)
+      return e;
+    const i = Object.values(t), n = this.findCommonParentSelector(i);
+    if (n && document.querySelectorAll(n).forEach((r) => {
+      const s = this.extractProductFromFieldsMapping(
+        r,
+        t
+      );
+      s && Object.keys(s).length > 0 && e.push(s);
+    }), e.length === 0) {
+      const o = this.extractProductFromFieldsMapping(
+        document.body,
+        t
+      );
+      o && Object.keys(o).length > 0 && e.push(o);
+    }
+    return e.length === 0 && this.findElementsWithAnySelector(i).forEach((r) => {
+      const s = this.extractProductFromFieldsMapping(
+        r,
+        t
+      );
+      s && Object.keys(s).length > 0 && e.push(s);
+    }), e;
+  }
+  findCommonParentSelector(e) {
+    const t = e[0];
+    if (!t) return null;
+    const i = t.split(" > ");
+    if (i.length > 1) {
+      const o = i[0];
+      if (e.every(
+        (s) => s.startsWith(o)
+      ))
+        return o;
+    }
+    const n = [
+      "body",
+      "main",
+      "#content",
+      "#main",
+      ".main",
+      ".content"
+    ];
+    for (const o of n)
+      if (document.querySelectorAll(o).length > 0)
+        return o;
+    return null;
+  }
+  extractProductFromFieldsMapping(e, t) {
+    try {
+      const i = {};
+      for (const [n, o] of Object.entries(t)) {
+        let r = this.extractValue(e, o);
+        if (r === null && o.startsWith("data-")) {
+          const s = document.querySelectorAll(
+            `[${o}]`
+          );
+          s.length > 0 && (r = s[0].getAttribute(
+            o
+          ));
+        }
+        r !== null && (n.toLowerCase().includes("price") ? i[n] = this.extractPrice(
+          e,
+          o
+        ) : n.toLowerCase().includes("quantity") ? i[n] = this.extractQuantity(
+          e,
+          o
+        ) : i[n] = r);
+      }
+      return Object.keys(i).length > 0 ? i : null;
+    } catch (i) {
+      return console.warn(
+        "Error extracting product from fields mapping:",
+        i
+      ), null;
+    }
+  }
+  detectCommonProducts() {
+    const e = [], t = [
+      "[data-product-id]",
+      ".product-item",
+      ".cart-item",
+      "[data-sku]",
+      ".product",
+      ".item"
+    ];
+    for (const i of t)
+      document.querySelectorAll(i).forEach((o) => {
+        const r = this.extractProductFromCommonElement(o);
+        r && e.push(r);
+      });
+    return e;
+  }
+  extractProductFromCommonElement(e) {
+    try {
+      const t = {
+        id: this.extractValue(e, "data-product-id") || this.extractValue(e, "data-sku") || this.extractValue(e, "id") || "",
+        name: this.extractValue(e, "data-product-name") || this.extractValue(e, "title") || this.extractTextContent(
+          e,
+          ".product-name, .item-name, .title"
+        ) || "",
+        price: this.extractPrice(e, "data-price") || this.extractPrice(e, "data-price-amount") || 0,
+        quantity: this.extractQuantity(e, "data-quantity") || this.extractQuantity(e, "quantity") || 1
+      };
+      return t.id || t.name ? t : null;
+    } catch (t) {
+      return console.warn(
+        "Error extracting product from common element:",
+        t
+      ), null;
+    }
+  }
+  extractValue(e, t) {
+    var i, n, o;
+    try {
+      if (t.startsWith("data-"))
+        return e.getAttribute(t) || null;
+      if (t.startsWith(">"))
+        try {
+          const s = e.querySelector(t);
+          return s && ((i = s.textContent) == null ? void 0 : i.trim()) || null;
+        } catch (s) {
+          return console.warn(`Invalid selector: ${t}`, s), null;
+        }
+      if (t.includes(",")) {
+        const s = t.split(",").map((l) => l.trim());
+        for (const l of s)
+          try {
+            const u = e.querySelector(l);
+            if (u)
+              return ((n = u.textContent) == null ? void 0 : n.trim()) || null;
+          } catch (u) {
+            console.warn(
+              `Invalid selector in comma list: ${l}`,
+              u
+            );
+            continue;
+          }
+        return null;
+      }
+      const r = e.querySelector(t);
+      return r && ((o = r.textContent) == null ? void 0 : o.trim()) || null;
+    } catch (r) {
+      return console.warn(
+        `Error extracting value with selector: ${t}`,
+        r
+      ), null;
+    }
+  }
+  extractTextContent(e, t) {
+    var n;
+    const i = e.querySelector(t);
+    return i && ((n = i.textContent) == null ? void 0 : n.trim()) || null;
+  }
+  extractPrice(e, t) {
+    const i = this.extractValue(e, t);
+    if (!i) return 0;
+    let n = i.replace(/^[A-Z]{3}\s*/i, "");
+    if (n = n.replace(/^[€$£¥]\s*/i, ""), n = n.replace(/[^\d.,]/g, ""), n.includes(",")) {
+      const r = n.split(",");
+      r.length === 2 && r[1].length === 3 ? n = r[0] + r[1] : n = n.replace(",", ".");
+    }
+    const o = parseFloat(n);
+    return isNaN(o) ? 0 : o;
+  }
+  extractQuantity(e, t) {
+    const i = this.extractValue(e, t);
+    if (!i) return 1;
+    const n = parseInt(i);
+    return isNaN(n) ? 1 : n;
+  }
+  findElementsWithAnySelector(e) {
+    const t = /* @__PURE__ */ new Set();
+    for (const i of e)
+      try {
+        document.querySelectorAll(i).forEach((o) => t.add(o));
+      } catch (n) {
+        console.warn(`Invalid selector: ${i}`, n);
+      }
+    return Array.from(t);
+  }
+}
+class P {
+  constructor(e) {
+    a(this, "totalSelector");
+    this.totalSelector = e ? this.cleanSelector(e) : void 0;
+  }
+  cleanSelector(e) {
+    return e.replace(/\\\\/g, "\\");
+  }
+  extractTotal() {
+    var e;
+    if (!this.totalSelector)
+      return 0;
+    try {
+      const t = document.querySelector(this.totalSelector);
+      if (!t)
+        return console.warn(`Total selector not found: ${this.totalSelector}`), 0;
+      const i = ((e = t.textContent) == null ? void 0 : e.trim()) || "";
+      if (!i)
+        return console.warn(
+          `No text content found for total selector: ${this.totalSelector}`
+        ), 0;
+      let n = i.replace(/[^\d.,]/g, "");
+      const o = n.includes(","), r = n.includes(".");
+      if (o && r) {
+        const l = n.lastIndexOf(","), u = n.lastIndexOf(".");
+        l > u ? n.substring(l + 1).length === 2 ? (n = n.replace(/\./g, ""), n = n.replace(",", ".")) : n = n.replace(/,/g, "") : n = n.replace(/,/g, "");
+      } else if (o && !r) {
+        const l = n.match(/,/g);
+        if ((l ? l.length : 0) > 1)
+          n = n.replace(/,/g, "");
+        else {
+          const c = n.match(/,(\d+)$/);
+          c && c[1].length === 3 ? n = n.replace(",", "") : n = n.replace(",", ".");
+        }
+      } else if (!o && r) {
+        const l = n.match(/\./g);
+        if ((l ? l.length : 0) > 1)
+          n = n.replace(/\./g, "");
+        else {
+          const c = n.match(/\.(\d+)$/);
+          c && c[1].length === 3 && (n = n.replace(".", ""));
+        }
+      }
+      const s = parseFloat(n);
+      return isNaN(s) ? (console.warn(`Could not parse total value: ${i}`), 0) : Math.round(s);
+    } catch (t) {
+      return console.warn(
+        `Error extracting total with selector: ${this.totalSelector}`,
+        t
+      ), 0;
+    }
+  }
+  hasTotalSelector() {
+    return !!this.totalSelector;
+  }
+}
+class S {
+  constructor(e, t) {
+    a(this, "client");
+    const i = e || "https://yoflhmaayrceswiwvxba.supabase.co", n = t || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlvZmxobWFheXJjZXN3aXd2eGJhIiwicm9sZSI6ImFub24iLCJpYXQiOjE2NzI5MzQ4MzUsImV4cCI6MTk4ODUxMDgzNX0.dq8OdZylVnB1Gwa_nYLALxUHk2NOPmRlhS_YbA7E8pg";
+    this.client = I(i, n);
+  }
+  async getCheckoutCampaign(e) {
+    try {
+      const { data: t, error: i } = await this.client.from("organizations_checkout_campaigns").select("*").eq("id", e).single();
+      return i ? (console.error("Error fetching checkout campaign:", i), null) : t;
+    } catch (t) {
+      return console.error("Error fetching checkout campaign:", t), null;
+    }
+  }
+  async submitCartSession(e) {
+    try {
+      const t = localStorage.getItem("ei_test"), i = {};
+      t === "true" && (i.is_test = !0);
+      const { data: n, error: o } = await this.client.functions.invoke(
+        "cart-checkout-session",
+        {
+          body: { ...e, config: i }
+        }
+      );
+      return o ? (console.error(
+        "Error calling cart-checkout-session function:",
+        o
+      ), null) : n;
+    } catch (t) {
+      return console.error(
+        "Error calling cart-checkout-session function:",
+        t
+      ), null;
+    }
+  }
+  async deleteCartSession(e) {
+    try {
+      const { error: t } = await this.client.functions.invoke(
+        "delete-checkout-session",
+        {
+          body: { session_id: e }
+        }
+      );
+      return t ? (console.error(
+        "Error calling delete-cart-session function:",
+        t
+      ), !1) : (console.log("Cart session deleted successfully:", e), !0);
+    } catch (t) {
+      return console.error("Error calling delete-cart-session function:", t), !1;
+    }
+  }
+  async getPipelineCampaign(e) {
+    try {
+      const { data: t, error: i } = await this.client.from("organizations_pipelines_campaigns").select("*").eq("id", e).single();
+      return i ? (console.error("Error fetching pipeline campaign:", i), null) : t;
+    } catch (t) {
+      return console.error("Error fetching pipeline campaign:", t), null;
+    }
+  }
+  async runOrganizationPipeline(e) {
+    try {
+      const { error: t } = await this.client.functions.invoke(
+        "run-organization-pipeline",
+        {
+          body: e
+        }
+      );
+      return t ? (console.error(
+        "Error calling run-organization-pipeline function:",
+        t
+      ), !1) : (console.log("Organization pipeline executed successfully"), !0);
+    } catch (t) {
+      return console.error(
+        "Error calling run-organization-pipeline function:",
+        t
+      ), !1;
+    }
+  }
+}
+class F {
+  // Flag to prevent duplicate storage listeners
+  constructor(e) {
+    a(this, "options");
+    a(this, "supabaseService");
+    a(this, "inputDetector");
+    a(this, "productDetector");
+    a(this, "totalExtractor");
+    a(this, "campaign");
+    a(this, "totalAverage", 0);
+    a(this, "_sessionId");
+    a(this, "isInitialized", !1);
+    a(this, "previousContent", {});
+    a(this, "previousProducts", []);
+    a(this, "previousTotal", 0);
+    a(this, "debounceTimer");
+    a(this, "pendingContentUpdate");
+    a(this, "isSubmitting", !1);
+    // Lock to prevent concurrent submissions
+    a(this, "autofieldStorageListenersSetup", !1);
+    this.options = e, this.supabaseService = new S(
+      e.supabaseUrl,
+      e.supabaseAnonKey
+    );
+  }
+  async initialize() {
+    var e, t, i;
+    if (this.isInitialized)
+      return !0;
+    try {
+      if (this.loadSessionIdFromStorage(), (e = this.options.config) != null && e.completedCheckout && this._sessionId)
+        return await this.handleCompletedCheckout(), !0;
+      const n = await this.supabaseService.getCheckoutCampaign(
+        this.options.checkoutCampaignId
+      );
+      return this.totalAverage = n != null && n.average_checkout_value ? n.average_checkout_value : 0, n ? (this.campaign = n, this.inputDetector = new E(n.input_mapping), n.type !== "bookvisit" && (this.productDetector = new k(
+        n.product_mapping
+      ), this.totalExtractor = new P(n.total_selector)), this.inputDetector.setOnContentUpdate(
+        this.debouncedHandleContentUpdate.bind(this)
+      ), this._sessionId && this.inputDetector.setSessionId(this._sessionId), n.type === "bookvisit" && ((i = (t = n.config) == null ? void 0 : t.bookvisit) == null ? void 0 : i.autofields) === !0 && this.injectBookVisitAutofields(n.input_mapping), this.checkAndFillPaymentPageFields(), this.inputDetector.startListening(), this.setupUrlChangeListener(), this.isInitialized = !0, !0) : (console.error("Failed to fetch checkout campaign data"), !1);
+    } catch (n) {
+      return console.error("Failed to initialize abandoned cart tool:", n), !1;
+    }
+  }
+  /**
+   * Debounced version of handleContentUpdate to prevent multiple rapid calls
+   * from auto-fill operations from creating multiple session IDs
+   */
+  debouncedHandleContentUpdate(e, t) {
+    this.pendingContentUpdate = { content: e, sessionId: t }, this.debounceTimer && clearTimeout(this.debounceTimer), this.debounceTimer = setTimeout(() => {
+      this.pendingContentUpdate && (this.handleContentUpdate(
+        this.pendingContentUpdate.content,
+        this.pendingContentUpdate.sessionId
+      ), this.pendingContentUpdate = void 0);
+    }, 300);
+  }
+  async handleContentUpdate(e, t) {
+    var i, n, o, r;
+    if (this.isSubmitting) {
+      this.pendingContentUpdate = { content: e, sessionId: t }, this.debounceTimer && clearTimeout(this.debounceTimer), this.debounceTimer = setTimeout(() => {
+        this.pendingContentUpdate && this.handleContentUpdate(
+          this.pendingContentUpdate.content,
+          this.pendingContentUpdate.sessionId
+        );
+      }, 100);
+      return;
+    }
+    try {
+      let s = [], l = this.totalAverage;
+      if (((i = this.campaign) == null ? void 0 : i.type) === "bookvisit") {
+        const v = await this.fetchBookVisitBasket();
+        v && (s = v.products, l = v.total);
+      } else
+        s = ((n = this.productDetector) == null ? void 0 : n.detectProducts()) || [], l = ((o = this.totalExtractor) == null ? void 0 : o.extractTotal()) || this.totalAverage;
+      if (!this.hasContentChanged(
+        e,
+        s,
+        l
+      )) {
+        console.log("Content unchanged, skipping upload");
+        return;
+      }
+      this.isSubmitting = !0;
+      const c = typeof window < "u" ? window.location.href : "", d = this._sessionId || t, f = {
+        organization_id: this.options.organizationId,
+        checkout_campaign_id: this.options.checkoutCampaignId,
+        content: e,
+        products: s,
+        url: c,
+        total: l,
+        id: d
+      }, h = await this.supabaseService.submitCartSession(
+        f
+      );
+      h && h.id ? (this._sessionId = h.id, (r = this.inputDetector) == null || r.setSessionId(h.id), this.saveSessionIdToStorage(h.id), this.previousContent = { ...e }, this.previousProducts = [...s], this.previousTotal = l, console.log("Cart session updated successfully:", h.id)) : console.error("Failed to submit cart session");
+    } catch (s) {
+      console.error("Error handling content update:", s);
+    } finally {
+      this.isSubmitting = !1;
+    }
+  }
+  hasContentChanged(e, t, i) {
+    if (Object.keys(this.previousContent).length === 0 && this.previousProducts.length === 0 && this.previousTotal === 0)
+      return !0;
+    const n = JSON.stringify(e) !== JSON.stringify(this.previousContent), o = JSON.stringify(t) !== JSON.stringify(this.previousProducts), r = i !== this.previousTotal;
+    return n || o || r;
+  }
+  destroy() {
+    this.debounceTimer && (clearTimeout(this.debounceTimer), this.debounceTimer = void 0), this._urlCheckInterval && (clearInterval(this._urlCheckInterval), this._urlCheckInterval = void 0), this.pendingContentUpdate && (this.handleContentUpdate(
+      this.pendingContentUpdate.content,
+      this.pendingContentUpdate.sessionId
+    ), this.pendingContentUpdate = void 0), this.inputDetector && this.inputDetector.stopListening(), this.isInitialized = !1, this._sessionId = void 0, this.isSubmitting = !1, this.clearSessionIdFromStorage();
+  }
+  getContent() {
+    var e;
+    return ((e = this.inputDetector) == null ? void 0 : e.getContent()) || {};
+  }
+  hasEmailOrPhone() {
+    var e;
+    return ((e = this.inputDetector) == null ? void 0 : e.hasEmailOrPhoneNumber()) || !1;
+  }
+  getSessionId() {
+    return this._sessionId;
+  }
+  /**
+   * Reset the change tracking to force the next update to be uploaded
+   * Useful for testing or when you want to ensure the latest data is uploaded
+   */
+  resetChangeTracking() {
+    this.previousContent = {}, this.previousProducts = [], this.previousTotal = 0, console.log("Change tracking reset - next update will be uploaded");
+  }
+  /**
+   * Load session ID from localStorage
+   */
+  loadSessionIdFromStorage() {
+    if (typeof window < "u" && window.localStorage)
+      try {
+        const e = localStorage.getItem("ei_session_id");
+        e && (this._sessionId = e, console.log(
+          "Loaded session ID from localStorage:",
+          e
+        ));
+      } catch (e) {
+        console.warn(
+          "Failed to load session ID from localStorage:",
+          e
+        );
+      }
+  }
+  /**
+   * Save session ID to localStorage
+   */
+  saveSessionIdToStorage(e) {
+    if (typeof window < "u" && window.localStorage)
+      try {
+        localStorage.setItem("ei_session_id", e), console.log("Saved session ID to localStorage:", e);
+      } catch (t) {
+        console.warn(
+          "Failed to save session ID to localStorage:",
+          t
+        );
+      }
+  }
+  /**
+   * Clear session ID from localStorage
+   */
+  clearSessionIdFromStorage() {
+    if (typeof window < "u" && window.localStorage)
+      try {
+        localStorage.removeItem("ei_session_id"), console.log("Cleared session ID from localStorage");
+      } catch (e) {
+        console.warn(
+          "Failed to clear session ID from localStorage:",
+          e
+        );
+      }
+  }
+  /**
+   * Handle completed checkout by deleting the session from database and clearing localStorage
+   */
+  async handleCompletedCheckout() {
+    if (!this._sessionId) {
+      console.log("No session ID found for completed checkout cleanup");
+      return;
+    }
+    try {
+      await this.supabaseService.deleteCartSession(
+        this._sessionId
+      ) ? console.log(
+        "Successfully deleted completed checkout session:",
+        this._sessionId
+      ) : console.warn(
+        "Failed to delete completed checkout session from database"
+      );
+    } catch (e) {
+      console.error("Error deleting completed checkout session:", e);
+    } finally {
+      this.clearSessionIdFromStorage(), this._sessionId = void 0, console.log("Completed checkout cleanup finished");
+    }
+  }
+  /**
+   * Fetch basket data from BookVisit API
+   */
+  async fetchBookVisitBasket() {
+    var i, n;
+    if (!this.campaign || this.campaign.type !== "bookvisit")
+      return null;
+    const e = (n = (i = this.campaign.config) == null ? void 0 : i.bookvisit) == null ? void 0 : n.channel_id;
+    if (!e)
+      return console.error("BookVisit channel_id not found in campaign config"), null;
+    const t = this.getCookie("bv_jwt");
+    if (!t)
+      return console.warn("BookVisit JWT token not found in cookies"), null;
+    try {
+      const o = `https://restapi.bookvisit.com/baskets/basket-v1?IncludePaymentHistory=false&ChannelId=${e}`, r = await fetch(o, {
+        credentials: "include",
+        headers: {
+          authorization: `Bearer ${t}`
+        }
+      });
+      if (!r.ok)
+        return console.error(
+          `BookVisit API error: ${r.status} ${r.statusText}`
+        ), null;
+      const s = await r.json();
+      return this.extractBookVisitProductsAndTotal(s);
+    } catch (o) {
+      return console.error("Error fetching BookVisit basket:", o), null;
+    }
+  }
+  /**
+   * Extract products and total from BookVisit API response
+   */
+  extractBookVisitProductsAndTotal(e) {
+    var n;
+    const t = [];
+    let i = 0;
+    try {
+      const o = (n = e == null ? void 0 : e.booking) == null ? void 0 : n.bookingData;
+      if (!o)
+        return { products: t, total: i };
+      i = o.totalPrice || 0;
+      const r = o.rooms || [], s = o.roomDescriptions || [], l = o.addOnDescriptions || [];
+      r.forEach((c) => {
+        var y;
+        const d = s.find(
+          (m) => m.id === c.roomId
+        ), f = c.totalPrice || 0, h = {
+          id: c.roomId,
+          name: (d == null ? void 0 : d.name) || "Room",
+          price: f,
+          quantity: 1,
+          type: "room",
+          startDate: c.startDate,
+          endDate: c.endDate,
+          roomConfig: c.roomConfig
+        };
+        if (c.priceInfo && c.priceInfo.length > 0) {
+          const m = c.priceInfo[0].ratePlanId, b = (y = o.ratePlanDescriptions) == null ? void 0 : y.find(
+            (g) => g.id === m
+          );
+          b && (h.ratePlan = b.name);
+        }
+        t.push(h), (c.mandatoryAddOns || []).forEach((m) => {
+          const b = m.totalPrice || 0;
+          if (b > 0) {
+            const g = l.find(
+              (_) => _.id === m.addOnId
+            );
+            t.push({
+              id: m.addOnId,
+              name: (g == null ? void 0 : g.name) || "Add-on",
+              price: b,
+              quantity: m.numberOfUnits || 1,
+              type: "addon",
+              roomId: c.roomId,
+              date: m.date
+            });
+          }
+        });
+      }), (o.optionalAddOns || []).forEach((c) => {
+        const d = c.totalPrice || 0;
+        if (d > 0) {
+          const f = l.find(
+            (h) => h.id === c.addOnId
+          );
+          t.push({
+            id: c.addOnId,
+            name: (f == null ? void 0 : f.name) || "Add-on",
+            price: d,
+            quantity: c.numberOfUnits || 1,
+            type: "addon",
+            roomId: c.roomId,
+            date: c.date
+          });
+        }
+      });
+    } catch (o) {
+      console.error("Error extracting BookVisit products and total:", o);
+    }
+    return { products: t, total: i };
+  }
+  /**
+   * Inject autofields for BookVisit campaigns
+   */
+  injectBookVisitAutofields(e) {
+    if (typeof document > "u")
+      return;
+    const t = document.getElementById("main_content_container");
+    if (!t) {
+      console.warn(
+        "main_content_container not found, cannot inject autofields"
+      );
+      return;
+    }
+    const i = this.getFieldsToInclude(e);
+    if (i.length === 0) {
+      console.log("No relevant fields found in input_mapping for autofields");
+      return;
+    }
+    const n = this.createBookVisitFormSection(i);
+    t.insertAdjacentHTML("afterbegin", n), this.setupAutofieldListenersWithRetry();
+  }
+  /**
+   * Determine which fields to include based on input_mapping
+   */
+  getFieldsToInclude(e) {
+    const t = [], i = (e == null ? void 0 : e.field_mappings) || {}, n = (e == null ? void 0 : e.inputs) || [];
+    return (this.hasFieldMapping(i, ["first_name"]) || this.hasInputSelector(n, [
+      "firstName",
+      "firstname",
+      "first_name",
+      "given-name"
+    ])) && t.push("firstName"), (this.hasFieldMapping(i, ["last_name"]) || this.hasInputSelector(n, [
+      "lastName",
+      "lastname",
+      "last_name",
+      "family-name"
+    ])) && t.push("lastName"), (this.hasFieldMapping(i, ["email"]) || this.hasInputSelector(n, [
+      "email",
+      "emailAddress",
+      "email_address",
+      "e-mail"
+    ])) && t.push("email"), (this.hasFieldMapping(i, ["phone_number"]) || this.hasInputSelector(n, [
+      "phoneNumber",
+      "phonenumber",
+      "phone_number",
+      "phone",
+      "tel",
+      "telephone"
+    ])) && t.push("phoneNumber"), t.length === 0 ? ["firstName", "lastName", "email", "phoneNumber"] : t;
+  }
+  /**
+   * Check if any of the target field names exist in the field mappings
+   * The values (not keys) represent the system mappings (first_name, last_name, phone_number, email)
+   */
+  hasFieldMapping(e, t) {
+    for (const i of Object.values(e)) {
+      const n = i.toLowerCase();
+      for (const o of t) {
+        const r = o.toLowerCase();
+        if (n === r)
+          return !0;
+      }
+    }
+    return !1;
+  }
+  /**
+   * Check if any of the target field names exist in the input selectors
+   */
+  hasInputSelector(e, t) {
+    for (const i of e) {
+      const n = i.toLowerCase();
+      for (const o of t) {
+        const r = o.toLowerCase();
+        if (n.includes(r))
+          return !0;
+      }
+    }
+    return !1;
+  }
+  /**
+   * Get localized text for email and phone number fields
+   */
+  getLocalizedText(e) {
+    const t = x(), i = {
+      email: {
+        en: "Email",
+        nb: "E-post",
+        // Norwegian Bokmål
+        nn: "E-post",
+        // Norwegian Nynorsk
+        no: "E-post",
+        // Norwegian (generic)
+        sv: "E-post",
+        // Swedish
+        da: "E-mail",
+        // Danish
+        de: "E-Mail",
+        // German
+        fr: "E-mail",
+        // French
+        es: "Correo electrónico",
+        // Spanish
+        it: "E-mail",
+        // Italian
+        nl: "E-mail",
+        // Dutch
+        pl: "E-mail"
+        // Polish
+      },
+      phoneNumber: {
+        en: "Phone number",
+        nb: "Telefonnummer",
+        // Norwegian Bokmål
+        nn: "Telefonnummer",
+        // Norwegian Nynorsk
+        no: "Telefonnummer",
+        // Norwegian (generic)
+        sv: "Telefonnummer",
+        // Swedish
+        da: "Telefonnummer",
+        // Danish
+        de: "Telefonnummer",
+        // German
+        fr: "Numéro de téléphone",
+        // French
+        es: "Número de teléfono",
+        // Spanish
+        it: "Numero di telefono",
+        // Italian
+        nl: "Telefoonnummer",
+        // Dutch
+        pl: "Numer telefonu"
+        // Polish
+      }
+    }, n = i[e][t];
+    return n || i[e].en || e;
+  }
+  /**
+   * Create the BookVisit form section HTML
+   */
+  createBookVisitFormSection(e) {
+    const t = e.includes("firstName"), i = e.includes("lastName"), n = e.includes("email"), o = e.includes("phoneNumber"), r = this.getLocalizedText("email"), s = this.getLocalizedText("phoneNumber");
+    let l = '<div class="bv-m-0 bv-grid bv-gap-[10px] bv-grid-cols-[minmax(0,1fr)_minmax(0,1fr)] bv-mt-[20px] bv_small:bv-grid-cols-1">';
+    return t && (l += `
                 <div class="bv-relative bv-w-full">
                     <input autocomplete="given-name" class="bv-box-border bv-flex bv-h-[40px] bv-w-full bv-pl-[14px] bv-rounded-bv_inputRoundedCorners bv-border-solid bv-bv_inputBorder disabled:bv-cursor-not-allowed disabled:bv-opacity-50 bv-font-bv_bodyFontFamily bv-text-bv_bodyFontSize placeholder:bv-text-bv_inputColor/30 focus:!bv-outline-none focus:bv-ring-2 bv-bg-bv_inputBackground bv-text-bv_inputColor" data-testid="customer_info_form_firstname" placeholder="Fornavn *" name="firstName">
                 </div>
-            `),i&&(l+=`
+            `), i && (l += `
                 <div class="bv-relative bv-w-full">
                     <input autocomplete="family-name" class="bv-box-border bv-flex bv-h-[40px] bv-w-full bv-pl-[14px] bv-rounded-bv_inputRoundedCorners bv-border-solid bv-bv_inputBorder disabled:bv-cursor-not-allowed disabled:bv-opacity-50 bv-font-bv_bodyFontFamily bv-text-bv_bodyFontSize placeholder:bv-text-bv_inputColor/30 focus:!bv-outline-none focus:bv-ring-2 bv-bg-bv_inputBackground bv-text-bv_inputColor" data-testid="customer_info_form_lastname" placeholder="Etternavn *" name="lastName">
                 </div>
-            `),n&&(l+=`
+            `), n && (l += `
                 <div class="bv-relative bv-w-full">
                     <input autocomplete="email" class="bv-box-border bv-flex bv-h-[40px] bv-w-full bv-pl-[14px] bv-rounded-bv_inputRoundedCorners bv-border-solid bv-bv_inputBorder disabled:bv-cursor-not-allowed disabled:bv-opacity-50 bv-font-bv_bodyFontFamily bv-text-bv_bodyFontSize placeholder:bv-text-bv_inputColor/30 focus:!bv-outline-none focus:bv-ring-2 bv-bg-bv_inputBackground bv-text-bv_inputColor" data-testid="customer_info_form_email" placeholder="${r} *" type="email" name="emailAddress">
                 </div>
-            `),o&&(l+=`
+            `), o && (l += `
                 <div class="bv-relative" data-testid="customer_info_form_phone_number">
                     <div class="bv-flex bv-flex-col bv-justify-start">
                         <div class="bv-flex bv-flex-row bv-flex-nowrap bv-items-center bv-justify-start bv-gap-[8px]">
@@ -30,7 +899,7 @@ var C=Object.defineProperty;var w=(p,e,t)=>e in p?C(p,e,{enumerable:!0,configura
                         </div>
                     </div>
                 </div>
-            `),l+="</div>",`
+            `), l += "</div>", `
             <div data-testid="checkout_responsible_for_booking_section" class="bv-mx-0 bv-px-0 bv-pt-0 bv-pb-[40px] bv-w-full" aria-label="Ansvarlig for bestilling" role="group" style="scroll-margin-top: 20px;">
                 <div class="bv-mb-[15px] bv-flex bv-items-center bv-justify-between bv-gap-[15px]">
                     <div data-orientation="horizontal" role="none" class="bv-bg-bv_dividerBorderColor bv-h-bv_dividerBorderWidth bv-w-full bv-flex-1"></div>
@@ -41,4 +910,639 @@ var C=Object.defineProperty;var w=(p,e,t)=>e in p?C(p,e,{enumerable:!0,configura
                     ${l}
                 </div>
             </div>
-        `}getCookie(e){var n;if(typeof document>"u")return null;const i=`; ${document.cookie}`.split(`; ${e}=`);return i.length===2&&((n=i.pop())==null?void 0:n.split(";").shift())||null}setupAutofieldListenersWithRetry(){let e=0;const t=5,i=100,n=()=>{const o=document.querySelector('input[name="emailAddress"]'),r=document.querySelector('input[name="phoneCountryCode"]'),s=document.querySelector('input[name="phoneNumber"]'),l=document.querySelector('input[name="firstName"]'),u=document.querySelector('input[name="lastName"]');o||r||s||l||u?(this.addDirectAutofieldListeners(),this.setupAutofieldStorageListeners(),this.inputDetector&&(this.inputDetector.stopListening(),this.inputDetector.startListening())):e<t?(e++,setTimeout(n,i)):console.warn("Autofield inputs not found after retries, listeners may not be attached")};n()}addDirectAutofieldListeners(){if(typeof document>"u"||!this.inputDetector)return;[document.querySelector('input[name="firstName"]'),document.querySelector('input[name="lastName"]'),document.querySelector('input[name="emailAddress"]'),document.querySelector('input[name="phoneCountryCode"]'),document.querySelector('input[name="phoneNumber"]')].filter(t=>t!==null).forEach(t=>{const i=this.handleAutofieldBlur.bind(this);t.removeEventListener("blur",i),t.addEventListener("blur",i)})}handleAutofieldBlur(e){var c;if(!this.inputDetector)return;const t=e.target,i=t.value.trim();if(!i)return;const n=this.inputDetector.getContent();let o=t.name;const r=this.inputDetector.inputMapping;(c=r==null?void 0:r.field_mappings)!=null&&c[o]?o=r.field_mappings[o]:o==="emailAddress"?o="email":o==="phoneNumber"?o="phone_number":o==="firstName"?o="first_name":o==="lastName"&&(o="last_name");const s={...n,[o]:i},l=o==="email"||o.toLowerCase().includes("email")||/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(i),u=o==="phone_number"||o.toLowerCase().includes("phone")||/^[\+]?[0-9\s\-\(\)]{7,}$/.test(i);if(l||u||this.inputDetector.hasEmailOrPhoneNumber()){const d=this.inputDetector.sessionId;this.debouncedHandleContentUpdate(s,d)}}setupAutofieldStorageListeners(){if(typeof document>"u"||this.autofieldStorageListenersSetup)return;const e=document.querySelector('input[name="emailAddress"]');e&&(e.addEventListener("input",n=>{const o=n.target;o.value&&this.saveToSessionStorage("autofield_email",o.value)}),e.addEventListener("blur",n=>{const o=n.target;o.value&&this.saveToSessionStorage("autofield_email",o.value)}));const t=document.querySelector('input[name="phoneCountryCode"]');t&&(t.addEventListener("input",n=>{const o=n.target;o.value&&this.saveToSessionStorage("autofield_phoneCountryCode",o.value)}),t.addEventListener("blur",n=>{const o=n.target;o.value&&this.saveToSessionStorage("autofield_phoneCountryCode",o.value)}));const i=document.querySelector('input[name="phoneNumber"]');i&&(i.addEventListener("input",n=>{const o=n.target;o.value&&this.saveToSessionStorage("autofield_phoneNumber",o.value)}),i.addEventListener("blur",n=>{const o=n.target;o.value&&this.saveToSessionStorage("autofield_phoneNumber",o.value)})),(e||t||i)&&(this.autofieldStorageListenersSetup=!0)}checkAndFillPaymentPageFields(){typeof window>"u"||!window.location.pathname.includes("payment/netseasy")||this.fillPaymentPageFields()}fillPaymentPageFields(){if(typeof document>"u")return;let e=0;const t=10,i=200,n=()=>{let o=!0;const r=this.getFromSessionStorage("autofield_email");if(r){const u=document.getElementById("registrationManualEmail");u&&!u.value?(u.value=r,u.dispatchEvent(new Event("input",{bubbles:!0})),u.dispatchEvent(new Event("change",{bubbles:!0})),console.log("Filled email from sessionStorage:",r)):u||(o=!1)}const s=this.getFromSessionStorage("autofield_phoneCountryCode"),l=this.getFromSessionStorage("autofield_phoneNumber");if(s||l){const u=document.querySelector('input[name="country-code"]');if(u&&s){u.value=s,u.dispatchEvent(new Event("change",{bubbles:!0}));const d=document.querySelector('#registrationManualPhonePrefix input[type="text"]');d&&(d.value=s,d.dispatchEvent(new Event("input",{bubbles:!0})),d.dispatchEvent(new Event("change",{bubbles:!0})));const f=document.getElementById("registrationManualPhonePrefix");if(f){const h=f.querySelector(".css-1yh68ch-singleValue");h&&(h.textContent=s)}console.log("Filled phone country code from sessionStorage:",s)}else s&&!u&&(o=!1);const c=document.getElementById("registrationManualPhoneNumber");c&&l&&!c.value?(c.value=l,c.dispatchEvent(new Event("input",{bubbles:!0})),c.dispatchEvent(new Event("change",{bubbles:!0})),console.log("Filled phone number from sessionStorage:",l)):l&&!c&&(o=!1)}!o&&e<t&&(e++,setTimeout(n,i))};n()}saveToSessionStorage(e,t){if(typeof window<"u"&&window.sessionStorage)try{sessionStorage.setItem(e,t),console.log(`Saved to sessionStorage: ${e} = ${t}`)}catch(i){console.warn(`Failed to save to sessionStorage (${e}):`,i)}}getFromSessionStorage(e){if(typeof window<"u"&&window.sessionStorage)try{return sessionStorage.getItem(e)}catch(t){return console.warn(`Failed to get from sessionStorage (${e}):`,t),null}return null}setupUrlChangeListener(){if(typeof window>"u")return;this.checkAndFillPaymentPageFields(),window.addEventListener("popstate",()=>{setTimeout(()=>{this.checkAndFillPaymentPageFields()},100)});let e=window.location.href;const t=setInterval(()=>{const i=window.location.href;i!==e&&(e=i,this.checkAndFillPaymentPageFields())},500);this._urlCheckInterval=t}}class T{constructor(e){a(this,"options");a(this,"supabaseService");a(this,"campaign");a(this,"formData",{});a(this,"inputListeners",[]);a(this,"buttonListeners",[]);a(this,"submitListener");a(this,"isInitialized",!1);this.options=e,this.supabaseService=new S(e.supabaseUrl,e.supabaseAnonKey)}async initialize(){if(this.isInitialized)return!0;if(!this.options.pipelineCampaignId)return console.error("pipelineCampaignId is required for organization pipeline"),!1;try{const e=await this.supabaseService.getPipelineCampaign(this.options.pipelineCampaignId);return e?(this.campaign=e,this.initializeFormData(),this.setupInputListeners(),this.setupButtonListeners(),this.setupSubmitListener(),this.isInitialized=!0,!0):(console.error("Failed to fetch pipeline campaign data"),!1)}catch(e){return console.error("Failed to initialize organization pipeline tool:",e),!1}}initializeFormData(){if(!this.campaign)return;const{input_mapping:e}=this.campaign;Object.keys(e).forEach(t=>{const i=e[t];if(i.type==="checkbox"){const n=this.getElementBySelector(i.selector_type,i.selector_value);if(n){const o=i.true_value||"on",r=this.isCheckboxChecked(n),s=this.getCheckboxValue(n);r&&s===o?this.formData[t]=!0:this.formData[t]=!1}else this.formData[t]=i.default_value!==void 0?i.default_value:!1}else i.default_value!==void 0&&(this.formData[t]=i.default_value)})}setupInputListeners(){if(!this.campaign)return;const{input_mapping:e}=this.campaign;Object.keys(e).forEach(t=>{const i=e[t];if(i.type!=="input"&&i.type!=="checkbox")return;const n=this.getElementBySelector(i.selector_type,i.selector_value);if(!n){console.warn(`Could not find element for field "${t}" with selector type "${i.selector_type}" and value "${i.selector_value}"`);return}const o=r=>{this.handleInputChange(t,r.target,i)};if(i.type==="checkbox"){if(n instanceof HTMLButtonElement||n.getAttribute("role")==="checkbox"){n.addEventListener("click",()=>{setTimeout(()=>{this.handleInputChange(t,n,i)},0)});const r=new MutationObserver(()=>{this.handleInputChange(t,n,i)});r.observe(n,{attributes:!0,attributeFilter:["aria-checked","data-state"]}),n._eiObserver=r}else n.addEventListener("change",o);this.handleInputChange(t,n,i)}else n.addEventListener("blur",o),n.addEventListener("change",o);this.inputListeners.push({element:n,fieldName:t,handler:o})})}setupButtonListeners(){if(!this.campaign)return;const{input_mapping:e}=this.campaign;Object.keys(e).forEach(t=>{const i=e[t];if(i.type!=="button"||i.mode!=="toggle")return;const n=this.getElementBySelector(i.selector_type,i.selector_value);if(!n){console.warn(`Could not find button element for field "${t}" with selector type "${i.selector_type}" and value "${i.selector_value}"`);return}const o=r=>{r.preventDefault(),this.handleButtonToggle(t,i.default_value)};n.addEventListener("click",o),this.buttonListeners.push({element:n,fieldName:t,handler:o})})}setupSubmitListener(){if(!this.campaign)return;const{button_mapping:e}=this.campaign,t=this.getElementBySelector(e.selector_type,e.selector_value);if(!t){console.warn(`Could not find submit button with selector type "${e.selector_type}" and value "${e.selector_value}"`);return}const i=n=>{this.handleSubmit(n)};t.addEventListener("click",i),this.submitListener={element:t,handler:i}}getElementBySelector(e,t){const i=t.replace(/\\\\/g,"\\");switch(e){case"name":return document.querySelector(`[name="${i}"]`);case"id":return document.getElementById(i);case"querySelector":try{return document.querySelector(i)}catch(n){return console.warn(`Invalid querySelector: ${i}`,n),null}case"class":return document.querySelector(`.${i}`);default:return e.startsWith("data-")?document.querySelector(`[${e}="${i}"]`):document.querySelector(`[${e}="${i}"]`)}}isCheckboxChecked(e){if(e instanceof HTMLInputElement&&e.type==="checkbox")return e.checked;if(e.getAttribute("role")==="checkbox"){const t=e.getAttribute("aria-checked"),i=e.getAttribute("data-state");if(t==="true")return!0;if(t==="false")return!1;if(i==="checked")return!0;if(i==="unchecked")return!1}return!1}getCheckboxValue(e){return e instanceof HTMLInputElement&&e.type==="checkbox"?e.value||"on":e.getAttribute("value")||"on"}handleInputChange(e,t,i){var n;if((i==null?void 0:i.type)==="checkbox"){const o=i.true_value||"on",r=this.isCheckboxChecked(t),s=this.getCheckboxValue(t);r&&s===o?this.formData[e]=!0:this.formData[e]=!1;return}t instanceof HTMLInputElement?this.formData[e]=t.value:t instanceof HTMLSelectElement?this.formData[e]=t.value:t instanceof HTMLTextAreaElement?this.formData[e]=t.value:this.formData[e]=t.getAttribute("value")||((n=t.textContent)==null?void 0:n.trim())||""}handleButtonToggle(e,t){const i=this.formData[e]??t??!1;this.formData[e]=!i}collectFormData(){var t;const e={...((t=this.campaign)==null?void 0:t.additional_properties)||{}};return Object.assign(e,this.formData),this.campaign&&(e.ainternal_pipeline_campaign_id=this.campaign.id),e}async handleSubmit(e){e.cancelable&&e.preventDefault();try{const t=this.collectFormData();t.ainternal_run_pipeline===!0&&(await this.supabaseService.runOrganizationPipeline(t)||console.error("Failed to execute organization pipeline"))}catch(t){console.error("Error handling submit:",t)}}destroy(){this.inputListeners.forEach(({element:e,handler:t})=>{e.removeEventListener("blur",t),e.removeEventListener("change",t),e.removeEventListener("click",t),e._eiObserver&&(e._eiObserver.disconnect(),delete e._eiObserver)}),this.inputListeners=[],this.buttonListeners.forEach(({element:e,handler:t})=>{e.removeEventListener("click",t)}),this.buttonListeners=[],this.submitListener&&(this.submitListener.element.removeEventListener("click",this.submitListener.handler),this.submitListener=void 0),this.isInitialized=!1,this.formData={},this.campaign=void 0}getFormData(){return{...this.formData}}}class L{constructor(e){a(this,"options");a(this,"isInitialized",!1);a(this,"currentPage","");a(this,"currentVisitStartTime",0);a(this,"data",{visits:[]});a(this,"storageKey","ei_enhanced_insights");a(this,"popstateHandler");a(this,"beforeunloadHandler");a(this,"visibilityChangeHandler");a(this,"originalPushState");a(this,"originalReplaceState");this.options=e}async initialize(){if(this.isInitialized)return!0;try{return this.loadDataFromStorage(),this.trackPageEntry(),this.setupNavigationListeners(),this.setupExitTracking(),this.isInitialized=!0,!0}catch(e){return console.error("Failed to initialize enhanced insights tool:",e),!1}}trackPageEntry(){if(typeof window>"u")return;const e=window.location.pathname+window.location.search;this.currentPage&&this.currentVisitStartTime>0&&this.trackPageExit(),this.currentPage=e,this.currentVisitStartTime=Date.now();const t={page:e,enteredAt:this.currentVisitStartTime};this.data.visits.push(t),this.saveDataToStorage()}trackPageExit(){if(!this.currentPage||this.currentVisitStartTime===0)return;const e=this.data.visits.find(t=>t.page===this.currentPage&&t.enteredAt===this.currentVisitStartTime&&!t.leftAt);e&&(e.leftAt=Date.now(),this.saveDataToStorage())}setupNavigationListeners(){if(typeof window>"u")return;this.popstateHandler=()=>{this.trackPageEntry()},window.addEventListener("popstate",this.popstateHandler),this.originalPushState=history.pushState,this.originalReplaceState=history.replaceState;const e=this;history.pushState=function(...t){e.trackPageExit();const i=e.originalPushState.apply(history,t);return setTimeout(()=>{e.trackPageEntry()},0),i},history.replaceState=function(...t){e.trackPageExit();const i=e.originalReplaceState.apply(history,t);return setTimeout(()=>{e.trackPageEntry()},0),i}}setupExitTracking(){typeof window>"u"||(this.beforeunloadHandler=()=>{this.trackPageExit()},window.addEventListener("beforeunload",this.beforeunloadHandler),this.visibilityChangeHandler=()=>{document.visibilityState==="hidden"?this.trackPageExit():document.visibilityState==="visible"&&window.location.pathname+window.location.search!==this.currentPage&&this.trackPageEntry()},document.addEventListener("visibilitychange",this.visibilityChangeHandler))}loadDataFromStorage(){if(!(typeof window>"u"||!window.localStorage))try{const e=localStorage.getItem(this.storageKey);e?(this.data=JSON.parse(e),Array.isArray(this.data.visits)||(this.data.visits=[])):this.data={visits:[]}}catch(e){console.warn("Failed to load enhanced insights data from localStorage:",e),this.data={visits:[]}}}saveDataToStorage(){if(!(typeof window>"u"||!window.localStorage))try{localStorage.setItem(this.storageKey,JSON.stringify(this.data))}catch(e){console.warn("Failed to save enhanced insights data to localStorage:",e)}}getData(){return this.loadDataFromStorage(),{...this.data}}getVisits(){return this.loadDataFromStorage(),[...this.data.visits]}clearData(){this.data={visits:[]},this.saveDataToStorage()}destroy(){this.trackPageExit(),typeof window<"u"&&(this.popstateHandler&&window.removeEventListener("popstate",this.popstateHandler),this.beforeunloadHandler&&window.removeEventListener("beforeunload",this.beforeunloadHandler),this.visibilityChangeHandler&&document.removeEventListener("visibilitychange",this.visibilityChangeHandler),this.originalPushState&&(history.pushState=this.originalPushState),this.originalReplaceState&&(history.replaceState=this.originalReplaceState)),this.isInitialized=!1,this.currentPage="",this.currentVisitStartTime=0}}class D{constructor(e){a(this,"options");a(this,"tools",new Map);a(this,"_isInitialized",!1);this.options=e}async initialize(){var e,t,i;if(this._isInitialized)return!0;try{if((e=this.options.features)!=null&&e.abandonedCart){const n=new F(this.options);await n.initialize(),this.tools.set("abandonedCart",n)}if((t=this.options.features)!=null&&t.organizationPipeline){const n=new T(this.options);await n.initialize(),this.tools.set("organizationPipeline",n)}if((i=this.options.features)!=null&&i.enhancedInsights){const n=new L(this.options);await n.initialize(),this.tools.set("enhancedInsights",n)}return this._isInitialized=!0,!0}catch{return!1}}getAbandonedCartTool(){return this.tools.get("abandonedCart")}getOrganizationPipelineTool(){return this.tools.get("organizationPipeline")}getEnhancedInsightsTool(){return this.tools.get("enhancedInsights")}destroy(){this.tools.forEach(e=>{e.destroy&&e.destroy()}),this.tools.clear(),this._isInitialized=!1}isInitialized(){return this._isInitialized}}typeof window<"u"&&(window.EkteIntelligensSDK=D);
+        `;
+  }
+  /**
+   * Get cookie value by name
+   */
+  getCookie(e) {
+    var n;
+    if (typeof document > "u")
+      return null;
+    const i = `; ${document.cookie}`.split(`; ${e}=`);
+    return i.length === 2 && ((n = i.pop()) == null ? void 0 : n.split(";").shift()) || null;
+  }
+  /**
+   * Set up autofield listeners with retry logic
+   * This ensures both InputDetector listeners and sessionStorage listeners are attached
+   */
+  setupAutofieldListenersWithRetry() {
+    let e = 0;
+    const t = 5, i = 100, n = () => {
+      const o = document.querySelector(
+        'input[name="emailAddress"]'
+      ), r = document.querySelector(
+        'input[name="phoneCountryCode"]'
+      ), s = document.querySelector(
+        'input[name="phoneNumber"]'
+      ), l = document.querySelector(
+        'input[name="firstName"]'
+      ), u = document.querySelector(
+        'input[name="lastName"]'
+      );
+      o || r || s || l || u ? (this.addDirectAutofieldListeners(), this.setupAutofieldStorageListeners(), this.inputDetector && (this.inputDetector.stopListening(), this.inputDetector.startListening())) : e < t ? (e++, setTimeout(n, i)) : console.warn(
+        "Autofield inputs not found after retries, listeners may not be attached"
+      );
+    };
+    n();
+  }
+  /**
+   * Add direct listeners to autofields to ensure they're detected by InputDetector
+   * This is necessary because InputDetector might use specific selectors that don't match autofields
+   */
+  addDirectAutofieldListeners() {
+    if (typeof document > "u" || !this.inputDetector)
+      return;
+    [
+      document.querySelector('input[name="firstName"]'),
+      document.querySelector('input[name="lastName"]'),
+      document.querySelector('input[name="emailAddress"]'),
+      document.querySelector('input[name="phoneCountryCode"]'),
+      document.querySelector('input[name="phoneNumber"]')
+    ].filter((t) => t !== null).forEach((t) => {
+      const i = this.handleAutofieldBlur.bind(this);
+      t.removeEventListener("blur", i), t.addEventListener("blur", i);
+    });
+  }
+  /**
+   * Handle blur event on autofield inputs
+   * Manually triggers the content update callback to ensure autofields are detected
+   */
+  handleAutofieldBlur(e) {
+    var c;
+    if (!this.inputDetector)
+      return;
+    const t = e.target, i = t.value.trim();
+    if (!i)
+      return;
+    const n = this.inputDetector.getContent();
+    let o = t.name;
+    const r = this.inputDetector.inputMapping;
+    (c = r == null ? void 0 : r.field_mappings) != null && c[o] ? o = r.field_mappings[o] : o === "emailAddress" ? o = "email" : o === "phoneNumber" ? o = "phone_number" : o === "firstName" ? o = "first_name" : o === "lastName" && (o = "last_name");
+    const s = { ...n, [o]: i }, l = o === "email" || o.toLowerCase().includes("email") || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(i), u = o === "phone_number" || o.toLowerCase().includes("phone") || /^[\+]?[0-9\s\-\(\)]{7,}$/.test(i);
+    if (l || u || this.inputDetector.hasEmailOrPhoneNumber()) {
+      const d = this.inputDetector.sessionId;
+      this.debouncedHandleContentUpdate(s, d);
+    }
+  }
+  /**
+   * Set up event listeners on autofield inputs to store values in sessionStorage
+   */
+  setupAutofieldStorageListeners() {
+    if (typeof document > "u" || this.autofieldStorageListenersSetup)
+      return;
+    const e = document.querySelector(
+      'input[name="emailAddress"]'
+    );
+    e && (e.addEventListener("input", (n) => {
+      const o = n.target;
+      o.value && this.saveToSessionStorage("autofield_email", o.value);
+    }), e.addEventListener("blur", (n) => {
+      const o = n.target;
+      o.value && this.saveToSessionStorage("autofield_email", o.value);
+    }));
+    const t = document.querySelector(
+      'input[name="phoneCountryCode"]'
+    );
+    t && (t.addEventListener("input", (n) => {
+      const o = n.target;
+      o.value && this.saveToSessionStorage(
+        "autofield_phoneCountryCode",
+        o.value
+      );
+    }), t.addEventListener("blur", (n) => {
+      const o = n.target;
+      o.value && this.saveToSessionStorage(
+        "autofield_phoneCountryCode",
+        o.value
+      );
+    }));
+    const i = document.querySelector(
+      'input[name="phoneNumber"]'
+    );
+    i && (i.addEventListener("input", (n) => {
+      const o = n.target;
+      o.value && this.saveToSessionStorage("autofield_phoneNumber", o.value);
+    }), i.addEventListener("blur", (n) => {
+      const o = n.target;
+      o.value && this.saveToSessionStorage("autofield_phoneNumber", o.value);
+    })), (e || t || i) && (this.autofieldStorageListenersSetup = !0);
+  }
+  /**
+   * Check if we're on the payment page and fill in fields from sessionStorage
+   */
+  checkAndFillPaymentPageFields() {
+    typeof window > "u" || !window.location.pathname.includes("payment/netseasy") || this.fillPaymentPageFields();
+  }
+  /**
+   * Fill in payment page fields from sessionStorage
+   */
+  fillPaymentPageFields() {
+    if (typeof document > "u")
+      return;
+    let e = 0;
+    const t = 10, i = 200, n = () => {
+      let o = !0;
+      const r = this.getFromSessionStorage("autofield_email");
+      if (r) {
+        const u = document.getElementById(
+          "registrationManualEmail"
+        );
+        u && !u.value ? (u.value = r, u.dispatchEvent(new Event("input", { bubbles: !0 })), u.dispatchEvent(new Event("change", { bubbles: !0 })), console.log("Filled email from sessionStorage:", r)) : u || (o = !1);
+      }
+      const s = this.getFromSessionStorage(
+        "autofield_phoneCountryCode"
+      ), l = this.getFromSessionStorage("autofield_phoneNumber");
+      if (s || l) {
+        const u = document.querySelector(
+          'input[name="country-code"]'
+        );
+        if (u && s) {
+          u.value = s, u.dispatchEvent(new Event("change", { bubbles: !0 }));
+          const d = document.querySelector(
+            '#registrationManualPhonePrefix input[type="text"]'
+          );
+          d && (d.value = s, d.dispatchEvent(new Event("input", { bubbles: !0 })), d.dispatchEvent(new Event("change", { bubbles: !0 })));
+          const f = document.getElementById(
+            "registrationManualPhonePrefix"
+          );
+          if (f) {
+            const h = f.querySelector(
+              ".css-1yh68ch-singleValue"
+            );
+            h && (h.textContent = s);
+          }
+          console.log(
+            "Filled phone country code from sessionStorage:",
+            s
+          );
+        } else s && !u && (o = !1);
+        const c = document.getElementById(
+          "registrationManualPhoneNumber"
+        );
+        c && l && !c.value ? (c.value = l, c.dispatchEvent(
+          new Event("input", { bubbles: !0 })
+        ), c.dispatchEvent(
+          new Event("change", { bubbles: !0 })
+        ), console.log(
+          "Filled phone number from sessionStorage:",
+          l
+        )) : l && !c && (o = !1);
+      }
+      !o && e < t && (e++, setTimeout(n, i));
+    };
+    n();
+  }
+  /**
+   * Save value to sessionStorage
+   */
+  saveToSessionStorage(e, t) {
+    if (typeof window < "u" && window.sessionStorage)
+      try {
+        sessionStorage.setItem(e, t), console.log(`Saved to sessionStorage: ${e} = ${t}`);
+      } catch (i) {
+        console.warn(`Failed to save to sessionStorage (${e}):`, i);
+      }
+  }
+  /**
+   * Get value from sessionStorage
+   */
+  getFromSessionStorage(e) {
+    if (typeof window < "u" && window.sessionStorage)
+      try {
+        return sessionStorage.getItem(e);
+      } catch (t) {
+        return console.warn(`Failed to get from sessionStorage (${e}):`, t), null;
+      }
+    return null;
+  }
+  /**
+   * Set up listener for URL changes (for SPA navigation)
+   */
+  setupUrlChangeListener() {
+    if (typeof window > "u")
+      return;
+    this.checkAndFillPaymentPageFields(), window.addEventListener("popstate", () => {
+      setTimeout(() => {
+        this.checkAndFillPaymentPageFields();
+      }, 100);
+    });
+    let e = window.location.href;
+    const t = setInterval(() => {
+      const i = window.location.href;
+      i !== e && (e = i, this.checkAndFillPaymentPageFields());
+    }, 500);
+    this._urlCheckInterval = t;
+  }
+}
+class T {
+  constructor(e) {
+    a(this, "options");
+    a(this, "supabaseService");
+    a(this, "campaign");
+    a(this, "formData", {});
+    a(this, "inputListeners", []);
+    a(this, "buttonListeners", []);
+    a(this, "submitListener");
+    a(this, "isInitialized", !1);
+    this.options = e, this.supabaseService = new S(
+      e.supabaseUrl,
+      e.supabaseAnonKey
+    );
+  }
+  async initialize() {
+    if (this.isInitialized)
+      return !0;
+    if (!this.options.pipelineCampaignId)
+      return console.error(
+        "pipelineCampaignId is required for organization pipeline"
+      ), !1;
+    try {
+      const e = await this.supabaseService.getPipelineCampaign(
+        this.options.pipelineCampaignId
+      );
+      return e ? (this.campaign = e, this.initializeFormData(), this.setupInputListeners(), this.setupButtonListeners(), this.setupSubmitListener(), this.isInitialized = !0, !0) : (console.error("Failed to fetch pipeline campaign data"), !1);
+    } catch (e) {
+      return console.error(
+        "Failed to initialize organization pipeline tool:",
+        e
+      ), !1;
+    }
+  }
+  initializeFormData() {
+    if (!this.campaign) return;
+    const { input_mapping: e } = this.campaign;
+    Object.keys(e).forEach((t) => {
+      const i = e[t];
+      if (i.type === "checkbox") {
+        const n = this.getElementBySelector(
+          i.selector_type,
+          i.selector_value
+        );
+        if (n) {
+          const o = i.true_value || "on", r = this.isCheckboxChecked(n), s = this.getCheckboxValue(n);
+          r && s === o ? this.formData[t] = !0 : this.formData[t] = !1;
+        } else
+          this.formData[t] = i.default_value !== void 0 ? i.default_value : !1;
+      } else i.default_value !== void 0 && (this.formData[t] = i.default_value);
+    });
+  }
+  setupInputListeners() {
+    if (!this.campaign) return;
+    const { input_mapping: e } = this.campaign;
+    Object.keys(e).forEach((t) => {
+      const i = e[t];
+      if (i.type !== "input" && i.type !== "checkbox") return;
+      const n = this.getElementBySelector(
+        i.selector_type,
+        i.selector_value
+      );
+      if (!n) {
+        console.warn(
+          `Could not find element for field "${t}" with selector type "${i.selector_type}" and value "${i.selector_value}"`
+        );
+        return;
+      }
+      const o = (r) => {
+        this.handleInputChange(
+          t,
+          r.target,
+          i
+        );
+      };
+      if (i.type === "checkbox") {
+        if (n instanceof HTMLButtonElement || n.getAttribute("role") === "checkbox") {
+          n.addEventListener("click", () => {
+            setTimeout(() => {
+              this.handleInputChange(t, n, i);
+            }, 0);
+          });
+          const r = new MutationObserver(() => {
+            this.handleInputChange(t, n, i);
+          });
+          r.observe(n, {
+            attributes: !0,
+            attributeFilter: ["aria-checked", "data-state"]
+          }), n._eiObserver = r;
+        } else
+          n.addEventListener("change", o);
+        this.handleInputChange(t, n, i);
+      } else
+        n.addEventListener("blur", o), n.addEventListener("change", o);
+      this.inputListeners.push({ element: n, fieldName: t, handler: o });
+    });
+  }
+  setupButtonListeners() {
+    if (!this.campaign) return;
+    const { input_mapping: e } = this.campaign;
+    Object.keys(e).forEach((t) => {
+      const i = e[t];
+      if (i.type !== "button" || i.mode !== "toggle") return;
+      const n = this.getElementBySelector(
+        i.selector_type,
+        i.selector_value
+      );
+      if (!n) {
+        console.warn(
+          `Could not find button element for field "${t}" with selector type "${i.selector_type}" and value "${i.selector_value}"`
+        );
+        return;
+      }
+      const o = (r) => {
+        r.preventDefault(), this.handleButtonToggle(t, i.default_value);
+      };
+      n.addEventListener("click", o), this.buttonListeners.push({ element: n, fieldName: t, handler: o });
+    });
+  }
+  setupSubmitListener() {
+    if (!this.campaign) return;
+    const { button_mapping: e } = this.campaign, t = this.getElementBySelector(
+      e.selector_type,
+      e.selector_value
+    );
+    if (!t) {
+      console.warn(
+        `Could not find submit button with selector type "${e.selector_type}" and value "${e.selector_value}"`
+      );
+      return;
+    }
+    const i = (n) => {
+      this.handleSubmit(n);
+    };
+    t.addEventListener("click", i), this.submitListener = { element: t, handler: i };
+  }
+  getElementBySelector(e, t) {
+    const i = t.replace(/\\\\/g, "\\");
+    switch (e) {
+      case "name":
+        return document.querySelector(
+          `[name="${i}"]`
+        );
+      case "id":
+        return document.getElementById(i);
+      case "querySelector":
+        try {
+          return document.querySelector(i);
+        } catch (n) {
+          return console.warn(
+            `Invalid querySelector: ${i}`,
+            n
+          ), null;
+        }
+      case "class":
+        return document.querySelector(
+          `.${i}`
+        );
+      default:
+        return e.startsWith("data-") ? document.querySelector(
+          `[${e}="${i}"]`
+        ) : document.querySelector(
+          `[${e}="${i}"]`
+        );
+    }
+  }
+  isCheckboxChecked(e) {
+    if (e instanceof HTMLInputElement && e.type === "checkbox")
+      return e.checked;
+    if (e.getAttribute("role") === "checkbox") {
+      const t = e.getAttribute("aria-checked"), i = e.getAttribute("data-state");
+      if (t === "true")
+        return !0;
+      if (t === "false")
+        return !1;
+      if (i === "checked")
+        return !0;
+      if (i === "unchecked")
+        return !1;
+    }
+    return !1;
+  }
+  getCheckboxValue(e) {
+    return e instanceof HTMLInputElement && e.type === "checkbox" ? e.value || "on" : e.getAttribute("value") || "on";
+  }
+  handleInputChange(e, t, i) {
+    var n;
+    if ((i == null ? void 0 : i.type) === "checkbox") {
+      const o = i.true_value || "on", r = this.isCheckboxChecked(t), s = this.getCheckboxValue(t);
+      r && s === o ? this.formData[e] = !0 : this.formData[e] = !1;
+      return;
+    }
+    t instanceof HTMLInputElement ? this.formData[e] = t.value : t instanceof HTMLSelectElement ? this.formData[e] = t.value : t instanceof HTMLTextAreaElement ? this.formData[e] = t.value : this.formData[e] = t.getAttribute("value") || ((n = t.textContent) == null ? void 0 : n.trim()) || "";
+  }
+  handleButtonToggle(e, t) {
+    const i = this.formData[e] ?? t ?? !1;
+    this.formData[e] = !i;
+  }
+  collectFormData() {
+    var t;
+    const e = {
+      ...((t = this.campaign) == null ? void 0 : t.additional_properties) || {}
+    };
+    return Object.assign(e, this.formData), this.campaign && (e.ainternal_pipeline_campaign_id = this.campaign.id), e;
+  }
+  async handleSubmit(e) {
+    e.cancelable && e.preventDefault();
+    try {
+      const t = this.collectFormData();
+      t.ainternal_run_pipeline === !0 && (await this.supabaseService.runOrganizationPipeline(
+        t
+      ) || console.error("Failed to execute organization pipeline"));
+    } catch (t) {
+      console.error("Error handling submit:", t);
+    }
+  }
+  destroy() {
+    this.inputListeners.forEach(({ element: e, handler: t }) => {
+      e.removeEventListener("blur", t), e.removeEventListener("change", t), e.removeEventListener("click", t), e._eiObserver && (e._eiObserver.disconnect(), delete e._eiObserver);
+    }), this.inputListeners = [], this.buttonListeners.forEach(({ element: e, handler: t }) => {
+      e.removeEventListener("click", t);
+    }), this.buttonListeners = [], this.submitListener && (this.submitListener.element.removeEventListener(
+      "click",
+      this.submitListener.handler
+    ), this.submitListener = void 0), this.isInitialized = !1, this.formData = {}, this.campaign = void 0;
+  }
+  getFormData() {
+    return { ...this.formData };
+  }
+}
+class L {
+  constructor(e) {
+    // @ts-ignore
+    a(this, "options");
+    a(this, "isInitialized", !1);
+    a(this, "currentPage", "");
+    a(this, "currentVisitStartTime", 0);
+    a(this, "data", { visits: [] });
+    a(this, "storageKey", "ei_enhanced_insights");
+    a(this, "popstateHandler");
+    // private pushstateHandler?: () => void;
+    // private replacestateHandler?: () => void;
+    a(this, "beforeunloadHandler");
+    a(this, "visibilityChangeHandler");
+    a(this, "originalPushState");
+    a(this, "originalReplaceState");
+    this.options = e;
+  }
+  async initialize() {
+    if (this.isInitialized)
+      return !0;
+    try {
+      return this.loadDataFromStorage(), this.trackPageEntry(), this.setupNavigationListeners(), this.setupExitTracking(), this.isInitialized = !0, !0;
+    } catch (e) {
+      return console.error(
+        "Failed to initialize enhanced insights tool:",
+        e
+      ), !1;
+    }
+  }
+  trackPageEntry() {
+    if (typeof window > "u")
+      return;
+    const e = window.location.pathname + window.location.search;
+    this.currentPage && this.currentVisitStartTime > 0 && this.trackPageExit(), this.currentPage = e, this.currentVisitStartTime = Date.now();
+    const t = {
+      page: e,
+      enteredAt: this.currentVisitStartTime
+    };
+    this.data.visits.push(t), this.saveDataToStorage();
+  }
+  trackPageExit() {
+    if (!this.currentPage || this.currentVisitStartTime === 0)
+      return;
+    const e = this.data.visits.find(
+      (t) => t.page === this.currentPage && t.enteredAt === this.currentVisitStartTime && !t.leftAt
+    );
+    e && (e.leftAt = Date.now(), this.saveDataToStorage());
+  }
+  setupNavigationListeners() {
+    if (typeof window > "u")
+      return;
+    this.popstateHandler = () => {
+      this.trackPageEntry();
+    }, window.addEventListener("popstate", this.popstateHandler), this.originalPushState = history.pushState, this.originalReplaceState = history.replaceState;
+    const e = this;
+    history.pushState = function(...t) {
+      e.trackPageExit();
+      const i = e.originalPushState.apply(history, t);
+      return setTimeout(() => {
+        e.trackPageEntry();
+      }, 0), i;
+    }, history.replaceState = function(...t) {
+      e.trackPageExit();
+      const i = e.originalReplaceState.apply(history, t);
+      return setTimeout(() => {
+        e.trackPageEntry();
+      }, 0), i;
+    };
+  }
+  setupExitTracking() {
+    typeof window > "u" || (this.beforeunloadHandler = () => {
+      this.trackPageExit();
+    }, window.addEventListener("beforeunload", this.beforeunloadHandler), this.visibilityChangeHandler = () => {
+      document.visibilityState === "hidden" ? this.trackPageExit() : document.visibilityState === "visible" && window.location.pathname + window.location.search !== this.currentPage && this.trackPageEntry();
+    }, document.addEventListener(
+      "visibilitychange",
+      this.visibilityChangeHandler
+    ));
+  }
+  loadDataFromStorage() {
+    if (!(typeof window > "u" || !window.localStorage))
+      try {
+        const e = localStorage.getItem(this.storageKey);
+        e ? (this.data = JSON.parse(e), Array.isArray(this.data.visits) || (this.data.visits = [])) : this.data = { visits: [] };
+      } catch (e) {
+        console.warn(
+          "Failed to load enhanced insights data from localStorage:",
+          e
+        ), this.data = { visits: [] };
+      }
+  }
+  saveDataToStorage() {
+    if (!(typeof window > "u" || !window.localStorage))
+      try {
+        localStorage.setItem(this.storageKey, JSON.stringify(this.data));
+      } catch (e) {
+        console.warn(
+          "Failed to save enhanced insights data to localStorage:",
+          e
+        );
+      }
+  }
+  getData() {
+    return this.loadDataFromStorage(), { ...this.data };
+  }
+  getVisits() {
+    return this.loadDataFromStorage(), [...this.data.visits];
+  }
+  clearData() {
+    this.data = { visits: [] }, this.saveDataToStorage();
+  }
+  destroy() {
+    this.trackPageExit(), typeof window < "u" && (this.popstateHandler && window.removeEventListener("popstate", this.popstateHandler), this.beforeunloadHandler && window.removeEventListener(
+      "beforeunload",
+      this.beforeunloadHandler
+    ), this.visibilityChangeHandler && document.removeEventListener(
+      "visibilitychange",
+      this.visibilityChangeHandler
+    ), this.originalPushState && (history.pushState = this.originalPushState), this.originalReplaceState && (history.replaceState = this.originalReplaceState)), this.isInitialized = !1, this.currentPage = "", this.currentVisitStartTime = 0;
+  }
+}
+class D {
+  constructor(e) {
+    a(this, "options");
+    a(this, "tools", /* @__PURE__ */ new Map());
+    a(this, "_isInitialized", !1);
+    this.options = e;
+  }
+  async initialize() {
+    var e, t, i;
+    if (this._isInitialized)
+      return !0;
+    try {
+      if ((e = this.options.features) != null && e.abandonedCart) {
+        const n = new F(this.options);
+        await n.initialize(), this.tools.set("abandonedCart", n);
+      }
+      if ((t = this.options.features) != null && t.organizationPipeline) {
+        const n = new T(
+          this.options
+        );
+        await n.initialize(), this.tools.set(
+          "organizationPipeline",
+          n
+        );
+      }
+      if ((i = this.options.features) != null && i.enhancedInsights) {
+        const n = new L(
+          this.options
+        );
+        await n.initialize(), this.tools.set("enhancedInsights", n);
+      }
+      return this._isInitialized = !0, !0;
+    } catch {
+      return !1;
+    }
+  }
+  // Public API methods
+  getAbandonedCartTool() {
+    return this.tools.get("abandonedCart");
+  }
+  getOrganizationPipelineTool() {
+    return this.tools.get("organizationPipeline");
+  }
+  getEnhancedInsightsTool() {
+    return this.tools.get("enhancedInsights");
+  }
+  destroy() {
+    this.tools.forEach((e) => {
+      e.destroy && e.destroy();
+    }), this.tools.clear(), this._isInitialized = !1;
+  }
+  isInitialized() {
+    return this._isInitialized;
+  }
+}
+typeof window < "u" && (window.EkteIntelligensSDK = D);
+export {
+  D as EkteIntelligensSDK
+};

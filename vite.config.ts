@@ -9,6 +9,11 @@ export default defineConfig({
         }),
     ],
     build: {
+        lib: {
+            entry: resolve(__dirname, "src/index.ts"),
+            name: "EkteIntelligensSDK",
+            fileName: (format) => `index.${format === "es" ? "es" : "js"}`,
+        },
         rollupOptions: {
             input: {
                 main: resolve(__dirname, "src/index.ts"),

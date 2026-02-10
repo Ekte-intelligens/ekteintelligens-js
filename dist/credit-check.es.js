@@ -1,39 +1,2440 @@
-var Qt=Object.defineProperty;var Xt=(h,o,s)=>o in h?Qt(h,o,{enumerable:!0,configurable:!0,writable:!0,value:s}):h[o]=s;var st=(h,o,s)=>Xt(h,typeof o!="symbol"?o+"":o,s);import{c as Zt,g as er}from"./assets/locale-B5LAuhde.js";const tr="stora_credit_check_email",Rt=h=>`${tr}_${h}`,at=(h,o)=>{try{const s=Rt(h);localStorage.setItem(s,o),console.log("Stored email for credit check:",o)}catch(s){console.error("Failed to store email in localStorage:",s)}},rr=h=>{try{const o=Rt(h);return localStorage.getItem(o)}catch(o){return console.error("Failed to get email from localStorage:",o),null}},ct=h=>h.includes("@")&&h.length>3,nr=h=>{h.integration_type==="stora"&&(document.readyState==="loading"?document.addEventListener("DOMContentLoaded",()=>{Ct(h)}):Ct(h))},Ct=h=>{const o=document.querySelector("#order_form_email");if(!o){setTimeout(()=>{const s=document.querySelector("#order_form_email");s&&Pt(s,h)},1e3);return}Pt(o,h)},Pt=(h,o)=>{h.value&&ct(h.value)&&at(o.organization_id,h.value.trim()),h.addEventListener("input",s=>{const i=s.target.value.trim();i&&ct(i)&&at(o.organization_id,i)}),h.addEventListener("change",s=>{const i=s.target.value.trim();i&&ct(i)&&at(o.organization_id,i)}),console.log("Email monitoring initialized for",o.organization_id)},Mt=(h,o)=>Zt(h||"https://yoflhmaayrceswiwvxba.supabase.co",o||"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlvZmxobWFheXJjZXN3aXd2eGJhIiwicm9sZSI6ImFub24iLCJpYXQiOjE2NzI5MzQ4MzUsImV4cCI6MTk4ODUxMDgzNX0.dq8OdZylVnB1Gwa_nYLALxUHk2NOPmRlhS_YbA7E8pg"),or=async(h,o,s)=>{const n=Mt(o,s),{data:i,error:t}=await n.functions.invoke("create-credit-check-session",{body:h});if(t)throw console.error("Error creating credit check session:",t),t;if(i.error)throw new Error(i.error);return i},ir=h=>{var o;return!h.config||h.config.integration_type!=="stora"||!((o=h.config.integration_meta)!=null&&o.contact)?null:h.config.integration_meta.contact},sr=h=>{var o;return((o=h.config)==null?void 0:o.integration_type)==="stora"&&!!h.config.integration_meta},Ot=async(h,o,s,n)=>{try{const i=Mt(s,n),{data:t,error:d}=await i.from("organizations_credit_check_sessions").select("*").eq("organization_id",h).eq("subscriber_id",o).order("created_at",{ascending:!1}).limit(1).single();if(d){if(d.code==="PGRST116")return null;throw console.error("Error checking credit check status:",d),d}return t}catch(i){return console.error("Error checking credit check status:",i),null}};var ar={987:h=>{var o={single_source_shortest_paths:function(s,n,i){var t={},d={};d[n]=0;var f,m,w,C,E,A,O,U=o.PriorityQueue.make();for(U.push(n,0);!U.empty();)for(w in m=(f=U.pop()).value,C=f.cost,E=s[m]||{})E.hasOwnProperty(w)&&(A=C+E[w],O=d[w],(d[w]===void 0||O>A)&&(d[w]=A,U.push(w,A),t[w]=m));if(i!==void 0&&d[i]===void 0){var D=["Could not find a path from ",n," to ",i,"."].join("");throw new Error(D)}return t},extract_shortest_path_from_predecessor_list:function(s,n){for(var i=[],t=n;t;)i.push(t),s[t],t=s[t];return i.reverse(),i},find_path:function(s,n,i){var t=o.single_source_shortest_paths(s,n,i);return o.extract_shortest_path_from_predecessor_list(t,i)},PriorityQueue:{make:function(s){var n,i=o.PriorityQueue,t={};for(n in s=s||{},i)i.hasOwnProperty(n)&&(t[n]=i[n]);return t.queue=[],t.sorter=s.sorter||i.default_sorter,t},default_sorter:function(s,n){return s.cost-n.cost},push:function(s,n){var i={value:s,cost:n};this.queue.push(i),this.queue.sort(this.sorter)},pop:function(){return this.queue.shift()},empty:function(){return this.queue.length===0}}};h.exports=o},378:h=>{h.exports=function(o){for(var s=[],n=o.length,i=0;i<n;i++){var t=o.charCodeAt(i);if(t>=55296&&t<=56319&&n>i+1){var d=o.charCodeAt(i+1);d>=56320&&d<=57343&&(t=1024*(t-55296)+d-56320+65536,i+=1)}t<128?s.push(t):t<2048?(s.push(t>>6|192),s.push(63&t|128)):t<55296||t>=57344&&t<65536?(s.push(t>>12|224),s.push(t>>6&63|128),s.push(63&t|128)):t>=65536&&t<=1114111?(s.push(t>>18|240),s.push(t>>12&63|128),s.push(t>>6&63|128),s.push(63&t|128)):s.push(239,191,189)}return new Uint8Array(s).buffer}},592:(h,o,s)=>{const n=s(138),i=s(115),t=s(907),d=s(776);function f(m,w,C,E,A){const O=[].slice.call(arguments,1),U=O.length,D=typeof O[U-1]=="function";if(!D&&!n())throw new Error("Callback required as last argument");if(!D){if(U<1)throw new Error("Too few arguments provided");return U===1?(C=w,w=E=void 0):U!==2||w.getContext||(E=C,C=w,w=void 0),new Promise(function(P,N){try{const _=i.create(C,E);P(m(_,w,E))}catch(_){N(_)}})}if(U<2)throw new Error("Too few arguments provided");U===2?(A=C,C=w,w=E=void 0):U===3&&(w.getContext&&A===void 0?(A=E,E=void 0):(A=E,E=C,C=w,w=void 0));try{const P=i.create(C,E);A(null,m(P,w,E))}catch(P){A(P)}}o.create=i.create,o.toCanvas=f.bind(null,t.render),o.toDataURL=f.bind(null,t.renderToDataURL),o.toString=f.bind(null,function(m,w,C){return d.render(m,C)})},138:h=>{h.exports=function(){return typeof Promise=="function"&&Promise.prototype&&Promise.prototype.then}},845:(h,o,s)=>{const n=s(242).getSymbolSize;o.getRowColCoords=function(i){if(i===1)return[];const t=Math.floor(i/7)+2,d=n(i),f=d===145?26:2*Math.ceil((d-13)/(2*t-2)),m=[d-7];for(let w=1;w<t-1;w++)m[w]=m[w-1]-f;return m.push(6),m.reverse()},o.getPositions=function(i){const t=[],d=o.getRowColCoords(i),f=d.length;for(let m=0;m<f;m++)for(let w=0;w<f;w++)m===0&&w===0||m===0&&w===f-1||m===f-1&&w===0||t.push([d[m],d[w]]);return t}},260:(h,o,s)=>{const n=s(910),i=["0","1","2","3","4","5","6","7","8","9","A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z"," ","$","%","*","+","-",".","/",":"];function t(d){this.mode=n.ALPHANUMERIC,this.data=d}t.getBitsLength=function(d){return 11*Math.floor(d/2)+d%2*6},t.prototype.getLength=function(){return this.data.length},t.prototype.getBitsLength=function(){return t.getBitsLength(this.data.length)},t.prototype.write=function(d){let f;for(f=0;f+2<=this.data.length;f+=2){let m=45*i.indexOf(this.data[f]);m+=i.indexOf(this.data[f+1]),d.put(m,11)}this.data.length%2&&d.put(i.indexOf(this.data[f]),6)},h.exports=t},245:h=>{function o(){this.buffer=[],this.length=0}o.prototype={get:function(s){const n=Math.floor(s/8);return(this.buffer[n]>>>7-s%8&1)==1},put:function(s,n){for(let i=0;i<n;i++)this.putBit((s>>>n-i-1&1)==1)},getLengthInBits:function(){return this.length},putBit:function(s){const n=Math.floor(this.length/8);this.buffer.length<=n&&this.buffer.push(0),s&&(this.buffer[n]|=128>>>this.length%8),this.length++}},h.exports=o},280:h=>{function o(s){if(!s||s<1)throw new Error("BitMatrix size must be defined and greater than 0");this.size=s,this.data=new Uint8Array(s*s),this.reservedBit=new Uint8Array(s*s)}o.prototype.set=function(s,n,i,t){const d=s*this.size+n;this.data[d]=i,t&&(this.reservedBit[d]=!0)},o.prototype.get=function(s,n){return this.data[s*this.size+n]},o.prototype.xor=function(s,n,i){this.data[s*this.size+n]^=i},o.prototype.isReserved=function(s,n){return this.reservedBit[s*this.size+n]},h.exports=o},424:(h,o,s)=>{const n=s(378),i=s(910);function t(d){this.mode=i.BYTE,typeof d=="string"&&(d=n(d)),this.data=new Uint8Array(d)}t.getBitsLength=function(d){return 8*d},t.prototype.getLength=function(){return this.data.length},t.prototype.getBitsLength=function(){return t.getBitsLength(this.data.length)},t.prototype.write=function(d){for(let f=0,m=this.data.length;f<m;f++)d.put(this.data[f],8)},h.exports=t},393:(h,o,s)=>{const n=s(908),i=[1,1,1,1,1,1,1,1,1,1,2,2,1,2,2,4,1,2,4,4,2,4,4,4,2,4,6,5,2,4,6,6,2,5,8,8,4,5,8,8,4,5,8,11,4,8,10,11,4,9,12,16,4,9,16,16,6,10,12,18,6,10,17,16,6,11,16,19,6,13,18,21,7,14,21,25,8,16,20,25,8,17,23,25,9,17,23,34,9,18,25,30,10,20,27,32,12,21,29,35,12,23,34,37,12,25,34,40,13,26,35,42,14,28,38,45,15,29,40,48,16,31,43,51,17,33,45,54,18,35,48,57,19,37,51,60,19,38,53,63,20,40,56,66,21,43,59,70,22,45,62,74,24,47,65,77,25,49,68,81],t=[7,10,13,17,10,16,22,28,15,26,36,44,20,36,52,64,26,48,72,88,36,64,96,112,40,72,108,130,48,88,132,156,60,110,160,192,72,130,192,224,80,150,224,264,96,176,260,308,104,198,288,352,120,216,320,384,132,240,360,432,144,280,408,480,168,308,448,532,180,338,504,588,196,364,546,650,224,416,600,700,224,442,644,750,252,476,690,816,270,504,750,900,300,560,810,960,312,588,870,1050,336,644,952,1110,360,700,1020,1200,390,728,1050,1260,420,784,1140,1350,450,812,1200,1440,480,868,1290,1530,510,924,1350,1620,540,980,1440,1710,570,1036,1530,1800,570,1064,1590,1890,600,1120,1680,1980,630,1204,1770,2100,660,1260,1860,2220,720,1316,1950,2310,750,1372,2040,2430];o.getBlocksCount=function(d,f){switch(f){case n.L:return i[4*(d-1)+0];case n.M:return i[4*(d-1)+1];case n.Q:return i[4*(d-1)+2];case n.H:return i[4*(d-1)+3];default:return}},o.getTotalCodewordsCount=function(d,f){switch(f){case n.L:return t[4*(d-1)+0];case n.M:return t[4*(d-1)+1];case n.Q:return t[4*(d-1)+2];case n.H:return t[4*(d-1)+3];default:return}}},908:(h,o)=>{o.L={bit:1},o.M={bit:0},o.Q={bit:3},o.H={bit:2},o.isValid=function(s){return s&&s.bit!==void 0&&s.bit>=0&&s.bit<4},o.from=function(s,n){if(o.isValid(s))return s;try{return function(i){if(typeof i!="string")throw new Error("Param is not a string");switch(i.toLowerCase()){case"l":case"low":return o.L;case"m":case"medium":return o.M;case"q":case"quartile":return o.Q;case"h":case"high":return o.H;default:throw new Error("Unknown EC Level: "+i)}}(s)}catch{return n}}},526:(h,o,s)=>{const n=s(242).getSymbolSize;o.getPositions=function(i){const t=n(i);return[[0,0],[t-7,0],[0,t-7]]}},642:(h,o,s)=>{const n=s(242),i=n.getBCHDigit(1335);o.getEncodedBits=function(t,d){const f=t.bit<<3|d;let m=f<<10;for(;n.getBCHDigit(m)-i>=0;)m^=1335<<n.getBCHDigit(m)-i;return 21522^(f<<10|m)}},729:(h,o)=>{const s=new Uint8Array(512),n=new Uint8Array(256);(function(){let i=1;for(let t=0;t<255;t++)s[t]=i,n[i]=t,i<<=1,256&i&&(i^=285);for(let t=255;t<512;t++)s[t]=s[t-255]})(),o.log=function(i){if(i<1)throw new Error("log("+i+")");return n[i]},o.exp=function(i){return s[i]},o.mul=function(i,t){return i===0||t===0?0:s[n[i]+n[t]]}},442:(h,o,s)=>{const n=s(910),i=s(242);function t(d){this.mode=n.KANJI,this.data=d}t.getBitsLength=function(d){return 13*d},t.prototype.getLength=function(){return this.data.length},t.prototype.getBitsLength=function(){return t.getBitsLength(this.data.length)},t.prototype.write=function(d){let f;for(f=0;f<this.data.length;f++){let m=i.toSJIS(this.data[f]);if(m>=33088&&m<=40956)m-=33088;else{if(!(m>=57408&&m<=60351))throw new Error("Invalid SJIS character: "+this.data[f]+`
-Make sure your charset is UTF-8`);m-=49472}m=192*(m>>>8&255)+(255&m),d.put(m,13)}},h.exports=t},126:(h,o)=>{o.Patterns={PATTERN000:0,PATTERN001:1,PATTERN010:2,PATTERN011:3,PATTERN100:4,PATTERN101:5,PATTERN110:6,PATTERN111:7};function s(n,i,t){switch(n){case o.Patterns.PATTERN000:return(i+t)%2==0;case o.Patterns.PATTERN001:return i%2==0;case o.Patterns.PATTERN010:return t%3==0;case o.Patterns.PATTERN011:return(i+t)%3==0;case o.Patterns.PATTERN100:return(Math.floor(i/2)+Math.floor(t/3))%2==0;case o.Patterns.PATTERN101:return i*t%2+i*t%3==0;case o.Patterns.PATTERN110:return(i*t%2+i*t%3)%2==0;case o.Patterns.PATTERN111:return(i*t%3+(i+t)%2)%2==0;default:throw new Error("bad maskPattern:"+n)}}o.isValid=function(n){return n!=null&&n!==""&&!isNaN(n)&&n>=0&&n<=7},o.from=function(n){return o.isValid(n)?parseInt(n,10):void 0},o.getPenaltyN1=function(n){const i=n.size;let t=0,d=0,f=0,m=null,w=null;for(let C=0;C<i;C++){d=f=0,m=w=null;for(let E=0;E<i;E++){let A=n.get(C,E);A===m?d++:(d>=5&&(t+=d-5+3),m=A,d=1),A=n.get(E,C),A===w?f++:(f>=5&&(t+=f-5+3),w=A,f=1)}d>=5&&(t+=d-5+3),f>=5&&(t+=f-5+3)}return t},o.getPenaltyN2=function(n){const i=n.size;let t=0;for(let d=0;d<i-1;d++)for(let f=0;f<i-1;f++){const m=n.get(d,f)+n.get(d,f+1)+n.get(d+1,f)+n.get(d+1,f+1);m!==4&&m!==0||t++}return 3*t},o.getPenaltyN3=function(n){const i=n.size;let t=0,d=0,f=0;for(let m=0;m<i;m++){d=f=0;for(let w=0;w<i;w++)d=d<<1&2047|n.get(m,w),w>=10&&(d===1488||d===93)&&t++,f=f<<1&2047|n.get(w,m),w>=10&&(f===1488||f===93)&&t++}return 40*t},o.getPenaltyN4=function(n){let i=0;const t=n.data.length;for(let d=0;d<t;d++)i+=n.data[d];return 10*Math.abs(Math.ceil(100*i/t/5)-10)},o.applyMask=function(n,i){const t=i.size;for(let d=0;d<t;d++)for(let f=0;f<t;f++)i.isReserved(f,d)||i.xor(f,d,s(n,f,d))},o.getBestMask=function(n,i){const t=Object.keys(o.Patterns).length;let d=0,f=1/0;for(let m=0;m<t;m++){i(m),o.applyMask(m,n);const w=o.getPenaltyN1(n)+o.getPenaltyN2(n)+o.getPenaltyN3(n)+o.getPenaltyN4(n);o.applyMask(m,n),w<f&&(f=w,d=m)}return d}},910:(h,o,s)=>{const n=s(114),i=s(7);o.NUMERIC={id:"Numeric",bit:1,ccBits:[10,12,14]},o.ALPHANUMERIC={id:"Alphanumeric",bit:2,ccBits:[9,11,13]},o.BYTE={id:"Byte",bit:4,ccBits:[8,16,16]},o.KANJI={id:"Kanji",bit:8,ccBits:[8,10,12]},o.MIXED={bit:-1},o.getCharCountIndicator=function(t,d){if(!t.ccBits)throw new Error("Invalid mode: "+t);if(!n.isValid(d))throw new Error("Invalid version: "+d);return d>=1&&d<10?t.ccBits[0]:d<27?t.ccBits[1]:t.ccBits[2]},o.getBestModeForData=function(t){return i.testNumeric(t)?o.NUMERIC:i.testAlphanumeric(t)?o.ALPHANUMERIC:i.testKanji(t)?o.KANJI:o.BYTE},o.toString=function(t){if(t&&t.id)return t.id;throw new Error("Invalid mode")},o.isValid=function(t){return t&&t.bit&&t.ccBits},o.from=function(t,d){if(o.isValid(t))return t;try{return function(f){if(typeof f!="string")throw new Error("Param is not a string");switch(f.toLowerCase()){case"numeric":return o.NUMERIC;case"alphanumeric":return o.ALPHANUMERIC;case"kanji":return o.KANJI;case"byte":return o.BYTE;default:throw new Error("Unknown mode: "+f)}}(t)}catch{return d}}},85:(h,o,s)=>{const n=s(910);function i(t){this.mode=n.NUMERIC,this.data=t.toString()}i.getBitsLength=function(t){return 10*Math.floor(t/3)+(t%3?t%3*3+1:0)},i.prototype.getLength=function(){return this.data.length},i.prototype.getBitsLength=function(){return i.getBitsLength(this.data.length)},i.prototype.write=function(t){let d,f,m;for(d=0;d+3<=this.data.length;d+=3)f=this.data.substr(d,3),m=parseInt(f,10),t.put(m,10);const w=this.data.length-d;w>0&&(f=this.data.substr(d),m=parseInt(f,10),t.put(m,3*w+1))},h.exports=i},143:(h,o,s)=>{const n=s(729);o.mul=function(i,t){const d=new Uint8Array(i.length+t.length-1);for(let f=0;f<i.length;f++)for(let m=0;m<t.length;m++)d[f+m]^=n.mul(i[f],t[m]);return d},o.mod=function(i,t){let d=new Uint8Array(i);for(;d.length-t.length>=0;){const f=d[0];for(let w=0;w<t.length;w++)d[w]^=n.mul(t[w],f);let m=0;for(;m<d.length&&d[m]===0;)m++;d=d.slice(m)}return d},o.generateECPolynomial=function(i){let t=new Uint8Array([1]);for(let d=0;d<i;d++)t=o.mul(t,new Uint8Array([1,n.exp(d)]));return t}},115:(h,o,s)=>{const n=s(242),i=s(908),t=s(245),d=s(280),f=s(845),m=s(526),w=s(126),C=s(393),E=s(882),A=s(103),O=s(642),U=s(910),D=s(130);function P(_,x,W){const F=_.size,I=O.getEncodedBits(x,W);let K,j;for(K=0;K<15;K++)j=(I>>K&1)==1,K<6?_.set(K,8,j,!0):K<8?_.set(K+1,8,j,!0):_.set(F-15+K,8,j,!0),K<8?_.set(8,F-K-1,j,!0):K<9?_.set(8,15-K-1+1,j,!0):_.set(8,15-K-1,j,!0);_.set(F-8,8,1,!0)}function N(_,x,W,F){let I;if(Array.isArray(_))I=D.fromArray(_);else{if(typeof _!="string")throw new Error("Invalid data");{let S=x;if(!S){const re=D.rawSplit(_);S=A.getBestVersionForData(re,W)}I=D.fromString(_,S||40)}}const K=A.getBestVersionForData(I,W);if(!K)throw new Error("The amount of data is too big to be stored in a QR Code");if(x){if(x<K)throw new Error(`
+var Qt = Object.defineProperty;
+var Xt = (h, o, s) => o in h ? Qt(h, o, { enumerable: !0, configurable: !0, writable: !0, value: s }) : h[o] = s;
+var st = (h, o, s) => Xt(h, typeof o != "symbol" ? o + "" : o, s);
+import { c as Zt, g as er } from "./locale-C4sWOXtX.mjs";
+const tr = "stora_credit_check_email", Rt = (h) => `${tr}_${h}`, at = (h, o) => {
+  try {
+    const s = Rt(h);
+    localStorage.setItem(s, o), console.log("Stored email for credit check:", o);
+  } catch (s) {
+    console.error("Failed to store email in localStorage:", s);
+  }
+}, rr = (h) => {
+  try {
+    const o = Rt(h);
+    return localStorage.getItem(o);
+  } catch (o) {
+    return console.error("Failed to get email from localStorage:", o), null;
+  }
+}, ct = (h) => h.includes("@") && h.length > 3, nr = (h) => {
+  h.integration_type === "stora" && (document.readyState === "loading" ? document.addEventListener("DOMContentLoaded", () => {
+    Ct(h);
+  }) : Ct(h));
+}, Ct = (h) => {
+  const o = document.querySelector(
+    "#order_form_email"
+  );
+  if (!o) {
+    setTimeout(() => {
+      const s = document.querySelector(
+        "#order_form_email"
+      );
+      s && Pt(s, h);
+    }, 1e3);
+    return;
+  }
+  Pt(o, h);
+}, Pt = (h, o) => {
+  h.value && ct(h.value) && at(o.organization_id, h.value.trim()), h.addEventListener("input", (s) => {
+    const i = s.target.value.trim();
+    i && ct(i) && at(o.organization_id, i);
+  }), h.addEventListener("change", (s) => {
+    const i = s.target.value.trim();
+    i && ct(i) && at(o.organization_id, i);
+  }), console.log(
+    "Email monitoring initialized for",
+    o.organization_id
+  );
+}, Mt = (h, o) => Zt(h || "https://yoflhmaayrceswiwvxba.supabase.co", o || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlvZmxobWFheXJjZXN3aXd2eGJhIiwicm9sZSI6ImFub24iLCJpYXQiOjE2NzI5MzQ4MzUsImV4cCI6MTk4ODUxMDgzNX0.dq8OdZylVnB1Gwa_nYLALxUHk2NOPmRlhS_YbA7E8pg"), or = async (h, o, s) => {
+  const n = Mt(o, s), { data: i, error: t } = await n.functions.invoke(
+    "create-credit-check-session",
+    {
+      body: h
+    }
+  );
+  if (t)
+    throw console.error("Error creating credit check session:", t), t;
+  if (i.error)
+    throw new Error(i.error);
+  return i;
+}, ir = (h) => {
+  var o;
+  return !h.config || h.config.integration_type !== "stora" || !((o = h.config.integration_meta) != null && o.contact) ? null : h.config.integration_meta.contact;
+}, sr = (h) => {
+  var o;
+  return ((o = h.config) == null ? void 0 : o.integration_type) === "stora" && !!h.config.integration_meta;
+}, Ot = async (h, o, s, n) => {
+  try {
+    const i = Mt(s, n), { data: t, error: d } = await i.from("organizations_credit_check_sessions").select("*").eq("organization_id", h).eq("subscriber_id", o).order("created_at", { ascending: !1 }).limit(1).single();
+    if (d) {
+      if (d.code === "PGRST116")
+        return null;
+      throw console.error("Error checking credit check status:", d), d;
+    }
+    return t;
+  } catch (i) {
+    return console.error("Error checking credit check status:", i), null;
+  }
+};
+var ar = { 987: (h) => {
+  var o = { single_source_shortest_paths: function(s, n, i) {
+    var t = {}, d = {};
+    d[n] = 0;
+    var f, m, w, C, E, A, O, U = o.PriorityQueue.make();
+    for (U.push(n, 0); !U.empty(); ) for (w in m = (f = U.pop()).value, C = f.cost, E = s[m] || {}) E.hasOwnProperty(w) && (A = C + E[w], O = d[w], (d[w] === void 0 || O > A) && (d[w] = A, U.push(w, A), t[w] = m));
+    if (i !== void 0 && d[i] === void 0) {
+      var D = ["Could not find a path from ", n, " to ", i, "."].join("");
+      throw new Error(D);
+    }
+    return t;
+  }, extract_shortest_path_from_predecessor_list: function(s, n) {
+    for (var i = [], t = n; t; ) i.push(t), s[t], t = s[t];
+    return i.reverse(), i;
+  }, find_path: function(s, n, i) {
+    var t = o.single_source_shortest_paths(s, n, i);
+    return o.extract_shortest_path_from_predecessor_list(t, i);
+  }, PriorityQueue: { make: function(s) {
+    var n, i = o.PriorityQueue, t = {};
+    for (n in s = s || {}, i) i.hasOwnProperty(n) && (t[n] = i[n]);
+    return t.queue = [], t.sorter = s.sorter || i.default_sorter, t;
+  }, default_sorter: function(s, n) {
+    return s.cost - n.cost;
+  }, push: function(s, n) {
+    var i = { value: s, cost: n };
+    this.queue.push(i), this.queue.sort(this.sorter);
+  }, pop: function() {
+    return this.queue.shift();
+  }, empty: function() {
+    return this.queue.length === 0;
+  } } };
+  h.exports = o;
+}, 378: (h) => {
+  h.exports = function(o) {
+    for (var s = [], n = o.length, i = 0; i < n; i++) {
+      var t = o.charCodeAt(i);
+      if (t >= 55296 && t <= 56319 && n > i + 1) {
+        var d = o.charCodeAt(i + 1);
+        d >= 56320 && d <= 57343 && (t = 1024 * (t - 55296) + d - 56320 + 65536, i += 1);
+      }
+      t < 128 ? s.push(t) : t < 2048 ? (s.push(t >> 6 | 192), s.push(63 & t | 128)) : t < 55296 || t >= 57344 && t < 65536 ? (s.push(t >> 12 | 224), s.push(t >> 6 & 63 | 128), s.push(63 & t | 128)) : t >= 65536 && t <= 1114111 ? (s.push(t >> 18 | 240), s.push(t >> 12 & 63 | 128), s.push(t >> 6 & 63 | 128), s.push(63 & t | 128)) : s.push(239, 191, 189);
+    }
+    return new Uint8Array(s).buffer;
+  };
+}, 592: (h, o, s) => {
+  const n = s(138), i = s(115), t = s(907), d = s(776);
+  function f(m, w, C, E, A) {
+    const O = [].slice.call(arguments, 1), U = O.length, D = typeof O[U - 1] == "function";
+    if (!D && !n()) throw new Error("Callback required as last argument");
+    if (!D) {
+      if (U < 1) throw new Error("Too few arguments provided");
+      return U === 1 ? (C = w, w = E = void 0) : U !== 2 || w.getContext || (E = C, C = w, w = void 0), new Promise(function(P, N) {
+        try {
+          const _ = i.create(C, E);
+          P(m(_, w, E));
+        } catch (_) {
+          N(_);
+        }
+      });
+    }
+    if (U < 2) throw new Error("Too few arguments provided");
+    U === 2 ? (A = C, C = w, w = E = void 0) : U === 3 && (w.getContext && A === void 0 ? (A = E, E = void 0) : (A = E, E = C, C = w, w = void 0));
+    try {
+      const P = i.create(C, E);
+      A(null, m(P, w, E));
+    } catch (P) {
+      A(P);
+    }
+  }
+  o.create = i.create, o.toCanvas = f.bind(null, t.render), o.toDataURL = f.bind(null, t.renderToDataURL), o.toString = f.bind(null, function(m, w, C) {
+    return d.render(m, C);
+  });
+}, 138: (h) => {
+  h.exports = function() {
+    return typeof Promise == "function" && Promise.prototype && Promise.prototype.then;
+  };
+}, 845: (h, o, s) => {
+  const n = s(242).getSymbolSize;
+  o.getRowColCoords = function(i) {
+    if (i === 1) return [];
+    const t = Math.floor(i / 7) + 2, d = n(i), f = d === 145 ? 26 : 2 * Math.ceil((d - 13) / (2 * t - 2)), m = [d - 7];
+    for (let w = 1; w < t - 1; w++) m[w] = m[w - 1] - f;
+    return m.push(6), m.reverse();
+  }, o.getPositions = function(i) {
+    const t = [], d = o.getRowColCoords(i), f = d.length;
+    for (let m = 0; m < f; m++) for (let w = 0; w < f; w++) m === 0 && w === 0 || m === 0 && w === f - 1 || m === f - 1 && w === 0 || t.push([d[m], d[w]]);
+    return t;
+  };
+}, 260: (h, o, s) => {
+  const n = s(910), i = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", " ", "$", "%", "*", "+", "-", ".", "/", ":"];
+  function t(d) {
+    this.mode = n.ALPHANUMERIC, this.data = d;
+  }
+  t.getBitsLength = function(d) {
+    return 11 * Math.floor(d / 2) + d % 2 * 6;
+  }, t.prototype.getLength = function() {
+    return this.data.length;
+  }, t.prototype.getBitsLength = function() {
+    return t.getBitsLength(this.data.length);
+  }, t.prototype.write = function(d) {
+    let f;
+    for (f = 0; f + 2 <= this.data.length; f += 2) {
+      let m = 45 * i.indexOf(this.data[f]);
+      m += i.indexOf(this.data[f + 1]), d.put(m, 11);
+    }
+    this.data.length % 2 && d.put(i.indexOf(this.data[f]), 6);
+  }, h.exports = t;
+}, 245: (h) => {
+  function o() {
+    this.buffer = [], this.length = 0;
+  }
+  o.prototype = { get: function(s) {
+    const n = Math.floor(s / 8);
+    return (this.buffer[n] >>> 7 - s % 8 & 1) == 1;
+  }, put: function(s, n) {
+    for (let i = 0; i < n; i++) this.putBit((s >>> n - i - 1 & 1) == 1);
+  }, getLengthInBits: function() {
+    return this.length;
+  }, putBit: function(s) {
+    const n = Math.floor(this.length / 8);
+    this.buffer.length <= n && this.buffer.push(0), s && (this.buffer[n] |= 128 >>> this.length % 8), this.length++;
+  } }, h.exports = o;
+}, 280: (h) => {
+  function o(s) {
+    if (!s || s < 1) throw new Error("BitMatrix size must be defined and greater than 0");
+    this.size = s, this.data = new Uint8Array(s * s), this.reservedBit = new Uint8Array(s * s);
+  }
+  o.prototype.set = function(s, n, i, t) {
+    const d = s * this.size + n;
+    this.data[d] = i, t && (this.reservedBit[d] = !0);
+  }, o.prototype.get = function(s, n) {
+    return this.data[s * this.size + n];
+  }, o.prototype.xor = function(s, n, i) {
+    this.data[s * this.size + n] ^= i;
+  }, o.prototype.isReserved = function(s, n) {
+    return this.reservedBit[s * this.size + n];
+  }, h.exports = o;
+}, 424: (h, o, s) => {
+  const n = s(378), i = s(910);
+  function t(d) {
+    this.mode = i.BYTE, typeof d == "string" && (d = n(d)), this.data = new Uint8Array(d);
+  }
+  t.getBitsLength = function(d) {
+    return 8 * d;
+  }, t.prototype.getLength = function() {
+    return this.data.length;
+  }, t.prototype.getBitsLength = function() {
+    return t.getBitsLength(this.data.length);
+  }, t.prototype.write = function(d) {
+    for (let f = 0, m = this.data.length; f < m; f++) d.put(this.data[f], 8);
+  }, h.exports = t;
+}, 393: (h, o, s) => {
+  const n = s(908), i = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 1, 2, 2, 4, 1, 2, 4, 4, 2, 4, 4, 4, 2, 4, 6, 5, 2, 4, 6, 6, 2, 5, 8, 8, 4, 5, 8, 8, 4, 5, 8, 11, 4, 8, 10, 11, 4, 9, 12, 16, 4, 9, 16, 16, 6, 10, 12, 18, 6, 10, 17, 16, 6, 11, 16, 19, 6, 13, 18, 21, 7, 14, 21, 25, 8, 16, 20, 25, 8, 17, 23, 25, 9, 17, 23, 34, 9, 18, 25, 30, 10, 20, 27, 32, 12, 21, 29, 35, 12, 23, 34, 37, 12, 25, 34, 40, 13, 26, 35, 42, 14, 28, 38, 45, 15, 29, 40, 48, 16, 31, 43, 51, 17, 33, 45, 54, 18, 35, 48, 57, 19, 37, 51, 60, 19, 38, 53, 63, 20, 40, 56, 66, 21, 43, 59, 70, 22, 45, 62, 74, 24, 47, 65, 77, 25, 49, 68, 81], t = [7, 10, 13, 17, 10, 16, 22, 28, 15, 26, 36, 44, 20, 36, 52, 64, 26, 48, 72, 88, 36, 64, 96, 112, 40, 72, 108, 130, 48, 88, 132, 156, 60, 110, 160, 192, 72, 130, 192, 224, 80, 150, 224, 264, 96, 176, 260, 308, 104, 198, 288, 352, 120, 216, 320, 384, 132, 240, 360, 432, 144, 280, 408, 480, 168, 308, 448, 532, 180, 338, 504, 588, 196, 364, 546, 650, 224, 416, 600, 700, 224, 442, 644, 750, 252, 476, 690, 816, 270, 504, 750, 900, 300, 560, 810, 960, 312, 588, 870, 1050, 336, 644, 952, 1110, 360, 700, 1020, 1200, 390, 728, 1050, 1260, 420, 784, 1140, 1350, 450, 812, 1200, 1440, 480, 868, 1290, 1530, 510, 924, 1350, 1620, 540, 980, 1440, 1710, 570, 1036, 1530, 1800, 570, 1064, 1590, 1890, 600, 1120, 1680, 1980, 630, 1204, 1770, 2100, 660, 1260, 1860, 2220, 720, 1316, 1950, 2310, 750, 1372, 2040, 2430];
+  o.getBlocksCount = function(d, f) {
+    switch (f) {
+      case n.L:
+        return i[4 * (d - 1) + 0];
+      case n.M:
+        return i[4 * (d - 1) + 1];
+      case n.Q:
+        return i[4 * (d - 1) + 2];
+      case n.H:
+        return i[4 * (d - 1) + 3];
+      default:
+        return;
+    }
+  }, o.getTotalCodewordsCount = function(d, f) {
+    switch (f) {
+      case n.L:
+        return t[4 * (d - 1) + 0];
+      case n.M:
+        return t[4 * (d - 1) + 1];
+      case n.Q:
+        return t[4 * (d - 1) + 2];
+      case n.H:
+        return t[4 * (d - 1) + 3];
+      default:
+        return;
+    }
+  };
+}, 908: (h, o) => {
+  o.L = { bit: 1 }, o.M = { bit: 0 }, o.Q = { bit: 3 }, o.H = { bit: 2 }, o.isValid = function(s) {
+    return s && s.bit !== void 0 && s.bit >= 0 && s.bit < 4;
+  }, o.from = function(s, n) {
+    if (o.isValid(s)) return s;
+    try {
+      return function(i) {
+        if (typeof i != "string") throw new Error("Param is not a string");
+        switch (i.toLowerCase()) {
+          case "l":
+          case "low":
+            return o.L;
+          case "m":
+          case "medium":
+            return o.M;
+          case "q":
+          case "quartile":
+            return o.Q;
+          case "h":
+          case "high":
+            return o.H;
+          default:
+            throw new Error("Unknown EC Level: " + i);
+        }
+      }(s);
+    } catch {
+      return n;
+    }
+  };
+}, 526: (h, o, s) => {
+  const n = s(242).getSymbolSize;
+  o.getPositions = function(i) {
+    const t = n(i);
+    return [[0, 0], [t - 7, 0], [0, t - 7]];
+  };
+}, 642: (h, o, s) => {
+  const n = s(242), i = n.getBCHDigit(1335);
+  o.getEncodedBits = function(t, d) {
+    const f = t.bit << 3 | d;
+    let m = f << 10;
+    for (; n.getBCHDigit(m) - i >= 0; ) m ^= 1335 << n.getBCHDigit(m) - i;
+    return 21522 ^ (f << 10 | m);
+  };
+}, 729: (h, o) => {
+  const s = new Uint8Array(512), n = new Uint8Array(256);
+  (function() {
+    let i = 1;
+    for (let t = 0; t < 255; t++) s[t] = i, n[i] = t, i <<= 1, 256 & i && (i ^= 285);
+    for (let t = 255; t < 512; t++) s[t] = s[t - 255];
+  })(), o.log = function(i) {
+    if (i < 1) throw new Error("log(" + i + ")");
+    return n[i];
+  }, o.exp = function(i) {
+    return s[i];
+  }, o.mul = function(i, t) {
+    return i === 0 || t === 0 ? 0 : s[n[i] + n[t]];
+  };
+}, 442: (h, o, s) => {
+  const n = s(910), i = s(242);
+  function t(d) {
+    this.mode = n.KANJI, this.data = d;
+  }
+  t.getBitsLength = function(d) {
+    return 13 * d;
+  }, t.prototype.getLength = function() {
+    return this.data.length;
+  }, t.prototype.getBitsLength = function() {
+    return t.getBitsLength(this.data.length);
+  }, t.prototype.write = function(d) {
+    let f;
+    for (f = 0; f < this.data.length; f++) {
+      let m = i.toSJIS(this.data[f]);
+      if (m >= 33088 && m <= 40956) m -= 33088;
+      else {
+        if (!(m >= 57408 && m <= 60351)) throw new Error("Invalid SJIS character: " + this.data[f] + `
+Make sure your charset is UTF-8`);
+        m -= 49472;
+      }
+      m = 192 * (m >>> 8 & 255) + (255 & m), d.put(m, 13);
+    }
+  }, h.exports = t;
+}, 126: (h, o) => {
+  o.Patterns = { PATTERN000: 0, PATTERN001: 1, PATTERN010: 2, PATTERN011: 3, PATTERN100: 4, PATTERN101: 5, PATTERN110: 6, PATTERN111: 7 };
+  function s(n, i, t) {
+    switch (n) {
+      case o.Patterns.PATTERN000:
+        return (i + t) % 2 == 0;
+      case o.Patterns.PATTERN001:
+        return i % 2 == 0;
+      case o.Patterns.PATTERN010:
+        return t % 3 == 0;
+      case o.Patterns.PATTERN011:
+        return (i + t) % 3 == 0;
+      case o.Patterns.PATTERN100:
+        return (Math.floor(i / 2) + Math.floor(t / 3)) % 2 == 0;
+      case o.Patterns.PATTERN101:
+        return i * t % 2 + i * t % 3 == 0;
+      case o.Patterns.PATTERN110:
+        return (i * t % 2 + i * t % 3) % 2 == 0;
+      case o.Patterns.PATTERN111:
+        return (i * t % 3 + (i + t) % 2) % 2 == 0;
+      default:
+        throw new Error("bad maskPattern:" + n);
+    }
+  }
+  o.isValid = function(n) {
+    return n != null && n !== "" && !isNaN(n) && n >= 0 && n <= 7;
+  }, o.from = function(n) {
+    return o.isValid(n) ? parseInt(n, 10) : void 0;
+  }, o.getPenaltyN1 = function(n) {
+    const i = n.size;
+    let t = 0, d = 0, f = 0, m = null, w = null;
+    for (let C = 0; C < i; C++) {
+      d = f = 0, m = w = null;
+      for (let E = 0; E < i; E++) {
+        let A = n.get(C, E);
+        A === m ? d++ : (d >= 5 && (t += d - 5 + 3), m = A, d = 1), A = n.get(E, C), A === w ? f++ : (f >= 5 && (t += f - 5 + 3), w = A, f = 1);
+      }
+      d >= 5 && (t += d - 5 + 3), f >= 5 && (t += f - 5 + 3);
+    }
+    return t;
+  }, o.getPenaltyN2 = function(n) {
+    const i = n.size;
+    let t = 0;
+    for (let d = 0; d < i - 1; d++) for (let f = 0; f < i - 1; f++) {
+      const m = n.get(d, f) + n.get(d, f + 1) + n.get(d + 1, f) + n.get(d + 1, f + 1);
+      m !== 4 && m !== 0 || t++;
+    }
+    return 3 * t;
+  }, o.getPenaltyN3 = function(n) {
+    const i = n.size;
+    let t = 0, d = 0, f = 0;
+    for (let m = 0; m < i; m++) {
+      d = f = 0;
+      for (let w = 0; w < i; w++) d = d << 1 & 2047 | n.get(m, w), w >= 10 && (d === 1488 || d === 93) && t++, f = f << 1 & 2047 | n.get(w, m), w >= 10 && (f === 1488 || f === 93) && t++;
+    }
+    return 40 * t;
+  }, o.getPenaltyN4 = function(n) {
+    let i = 0;
+    const t = n.data.length;
+    for (let d = 0; d < t; d++) i += n.data[d];
+    return 10 * Math.abs(Math.ceil(100 * i / t / 5) - 10);
+  }, o.applyMask = function(n, i) {
+    const t = i.size;
+    for (let d = 0; d < t; d++) for (let f = 0; f < t; f++) i.isReserved(f, d) || i.xor(f, d, s(n, f, d));
+  }, o.getBestMask = function(n, i) {
+    const t = Object.keys(o.Patterns).length;
+    let d = 0, f = 1 / 0;
+    for (let m = 0; m < t; m++) {
+      i(m), o.applyMask(m, n);
+      const w = o.getPenaltyN1(n) + o.getPenaltyN2(n) + o.getPenaltyN3(n) + o.getPenaltyN4(n);
+      o.applyMask(m, n), w < f && (f = w, d = m);
+    }
+    return d;
+  };
+}, 910: (h, o, s) => {
+  const n = s(114), i = s(7);
+  o.NUMERIC = { id: "Numeric", bit: 1, ccBits: [10, 12, 14] }, o.ALPHANUMERIC = { id: "Alphanumeric", bit: 2, ccBits: [9, 11, 13] }, o.BYTE = { id: "Byte", bit: 4, ccBits: [8, 16, 16] }, o.KANJI = { id: "Kanji", bit: 8, ccBits: [8, 10, 12] }, o.MIXED = { bit: -1 }, o.getCharCountIndicator = function(t, d) {
+    if (!t.ccBits) throw new Error("Invalid mode: " + t);
+    if (!n.isValid(d)) throw new Error("Invalid version: " + d);
+    return d >= 1 && d < 10 ? t.ccBits[0] : d < 27 ? t.ccBits[1] : t.ccBits[2];
+  }, o.getBestModeForData = function(t) {
+    return i.testNumeric(t) ? o.NUMERIC : i.testAlphanumeric(t) ? o.ALPHANUMERIC : i.testKanji(t) ? o.KANJI : o.BYTE;
+  }, o.toString = function(t) {
+    if (t && t.id) return t.id;
+    throw new Error("Invalid mode");
+  }, o.isValid = function(t) {
+    return t && t.bit && t.ccBits;
+  }, o.from = function(t, d) {
+    if (o.isValid(t)) return t;
+    try {
+      return function(f) {
+        if (typeof f != "string") throw new Error("Param is not a string");
+        switch (f.toLowerCase()) {
+          case "numeric":
+            return o.NUMERIC;
+          case "alphanumeric":
+            return o.ALPHANUMERIC;
+          case "kanji":
+            return o.KANJI;
+          case "byte":
+            return o.BYTE;
+          default:
+            throw new Error("Unknown mode: " + f);
+        }
+      }(t);
+    } catch {
+      return d;
+    }
+  };
+}, 85: (h, o, s) => {
+  const n = s(910);
+  function i(t) {
+    this.mode = n.NUMERIC, this.data = t.toString();
+  }
+  i.getBitsLength = function(t) {
+    return 10 * Math.floor(t / 3) + (t % 3 ? t % 3 * 3 + 1 : 0);
+  }, i.prototype.getLength = function() {
+    return this.data.length;
+  }, i.prototype.getBitsLength = function() {
+    return i.getBitsLength(this.data.length);
+  }, i.prototype.write = function(t) {
+    let d, f, m;
+    for (d = 0; d + 3 <= this.data.length; d += 3) f = this.data.substr(d, 3), m = parseInt(f, 10), t.put(m, 10);
+    const w = this.data.length - d;
+    w > 0 && (f = this.data.substr(d), m = parseInt(f, 10), t.put(m, 3 * w + 1));
+  }, h.exports = i;
+}, 143: (h, o, s) => {
+  const n = s(729);
+  o.mul = function(i, t) {
+    const d = new Uint8Array(i.length + t.length - 1);
+    for (let f = 0; f < i.length; f++) for (let m = 0; m < t.length; m++) d[f + m] ^= n.mul(i[f], t[m]);
+    return d;
+  }, o.mod = function(i, t) {
+    let d = new Uint8Array(i);
+    for (; d.length - t.length >= 0; ) {
+      const f = d[0];
+      for (let w = 0; w < t.length; w++) d[w] ^= n.mul(t[w], f);
+      let m = 0;
+      for (; m < d.length && d[m] === 0; ) m++;
+      d = d.slice(m);
+    }
+    return d;
+  }, o.generateECPolynomial = function(i) {
+    let t = new Uint8Array([1]);
+    for (let d = 0; d < i; d++) t = o.mul(t, new Uint8Array([1, n.exp(d)]));
+    return t;
+  };
+}, 115: (h, o, s) => {
+  const n = s(242), i = s(908), t = s(245), d = s(280), f = s(845), m = s(526), w = s(126), C = s(393), E = s(882), A = s(103), O = s(642), U = s(910), D = s(130);
+  function P(_, x, W) {
+    const F = _.size, I = O.getEncodedBits(x, W);
+    let K, j;
+    for (K = 0; K < 15; K++) j = (I >> K & 1) == 1, K < 6 ? _.set(K, 8, j, !0) : K < 8 ? _.set(K + 1, 8, j, !0) : _.set(F - 15 + K, 8, j, !0), K < 8 ? _.set(8, F - K - 1, j, !0) : K < 9 ? _.set(8, 15 - K - 1 + 1, j, !0) : _.set(8, 15 - K - 1, j, !0);
+    _.set(F - 8, 8, 1, !0);
+  }
+  function N(_, x, W, F) {
+    let I;
+    if (Array.isArray(_)) I = D.fromArray(_);
+    else {
+      if (typeof _ != "string") throw new Error("Invalid data");
+      {
+        let S = x;
+        if (!S) {
+          const re = D.rawSplit(_);
+          S = A.getBestVersionForData(re, W);
+        }
+        I = D.fromString(_, S || 40);
+      }
+    }
+    const K = A.getBestVersionForData(I, W);
+    if (!K) throw new Error("The amount of data is too big to be stored in a QR Code");
+    if (x) {
+      if (x < K) throw new Error(`
 The chosen QR Code version cannot contain this amount of data.
-Minimum version required to store current data is: `+K+`.
-`)}else x=K;const j=function(S,re,Q){const L=new t;Q.forEach(function(B){L.put(B.mode.bit,4),L.put(B.getLength(),U.getCharCountIndicator(B.mode,S)),B.write(L)});const z=8*(n.getSymbolTotalCodewords(S)-C.getTotalCodewordsCount(S,re));for(L.getLengthInBits()+4<=z&&L.put(0,4);L.getLengthInBits()%8!=0;)L.putBit(0);const Z=(z-L.getLengthInBits())/8;for(let B=0;B<Z;B++)L.put(B%2?17:236,8);return function(B,T,Y){const pe=n.getSymbolTotalCodewords(T),ke=pe-C.getTotalCodewordsCount(T,Y),de=C.getBlocksCount(T,Y),Je=de-pe%de,We=Math.floor(pe/de),ae=Math.floor(ke/de),Ee=ae+1,Ae=We-ae,rt=new E(Ae);let Me=0;const _e=new Array(de),Oe=new Array(de);let Se=0;const nt=new Uint8Array(B.buffer);for(let we=0;we<de;we++){const Ue=we<Je?ae:Ee;_e[we]=nt.slice(Me,Me+Ue),Oe[we]=rt.encode(_e[we]),Me+=Ue,Se=Math.max(Se,Ue)}const Ce=new Uint8Array(pe);let le,he,Ke=0;for(le=0;le<Se;le++)for(he=0;he<de;he++)le<_e[he].length&&(Ce[Ke++]=_e[he][le]);for(le=0;le<Ae;le++)for(he=0;he<de;he++)Ce[Ke++]=Oe[he][le];return Ce}(L,S,re)}(x,W,I),V=n.getSymbolSize(x),q=new d(V);return function(S,re){const Q=S.size,L=m.getPositions(re);for(let z=0;z<L.length;z++){const Z=L[z][0],B=L[z][1];for(let T=-1;T<=7;T++)if(!(Z+T<=-1||Q<=Z+T))for(let Y=-1;Y<=7;Y++)B+Y<=-1||Q<=B+Y||(T>=0&&T<=6&&(Y===0||Y===6)||Y>=0&&Y<=6&&(T===0||T===6)||T>=2&&T<=4&&Y>=2&&Y<=4?S.set(Z+T,B+Y,!0,!0):S.set(Z+T,B+Y,!1,!0))}}(q,x),function(S){const re=S.size;for(let Q=8;Q<re-8;Q++){const L=Q%2==0;S.set(Q,6,L,!0),S.set(6,Q,L,!0)}}(q),function(S,re){const Q=f.getPositions(re);for(let L=0;L<Q.length;L++){const z=Q[L][0],Z=Q[L][1];for(let B=-2;B<=2;B++)for(let T=-2;T<=2;T++)B===-2||B===2||T===-2||T===2||B===0&&T===0?S.set(z+B,Z+T,!0,!0):S.set(z+B,Z+T,!1,!0)}}(q,x),P(q,W,0),x>=7&&function(S,re){const Q=S.size,L=A.getEncodedBits(re);let z,Z,B;for(let T=0;T<18;T++)z=Math.floor(T/3),Z=T%3+Q-8-3,B=(L>>T&1)==1,S.set(z,Z,B,!0),S.set(Z,z,B,!0)}(q,x),function(S,re){const Q=S.size;let L=-1,z=Q-1,Z=7,B=0;for(let T=Q-1;T>0;T-=2)for(T===6&&T--;;){for(let Y=0;Y<2;Y++)if(!S.isReserved(z,T-Y)){let pe=!1;B<re.length&&(pe=(re[B]>>>Z&1)==1),S.set(z,T-Y,pe),Z--,Z===-1&&(B++,Z=7)}if(z+=L,z<0||Q<=z){z-=L,L=-L;break}}}(q,j),isNaN(F)&&(F=w.getBestMask(q,P.bind(null,q,W))),w.applyMask(F,q),P(q,W,F),{modules:q,version:x,errorCorrectionLevel:W,maskPattern:F,segments:I}}o.create=function(_,x){if(_===void 0||_==="")throw new Error("No input text");let W,F,I=i.M;return x!==void 0&&(I=i.from(x.errorCorrectionLevel,i.M),W=A.from(x.version),F=w.from(x.maskPattern),x.toSJISFunc&&n.setToSJISFunction(x.toSJISFunc)),N(_,W,I,F)}},882:(h,o,s)=>{const n=s(143);function i(t){this.genPoly=void 0,this.degree=t,this.degree&&this.initialize(this.degree)}i.prototype.initialize=function(t){this.degree=t,this.genPoly=n.generateECPolynomial(this.degree)},i.prototype.encode=function(t){if(!this.genPoly)throw new Error("Encoder not initialized");const d=new Uint8Array(t.length+this.degree);d.set(t);const f=n.mod(d,this.genPoly),m=this.degree-f.length;if(m>0){const w=new Uint8Array(this.degree);return w.set(f,m),w}return f},h.exports=i},7:(h,o)=>{const s="[0-9]+";let n="(?:[u3000-u303F]|[u3040-u309F]|[u30A0-u30FF]|[uFF00-uFFEF]|[u4E00-u9FAF]|[u2605-u2606]|[u2190-u2195]|u203B|[u2010u2015u2018u2019u2025u2026u201Cu201Du2225u2260]|[u0391-u0451]|[u00A7u00A8u00B1u00B4u00D7u00F7])+";n=n.replace(/u/g,"\\u");const i="(?:(?![A-Z0-9 $%*+\\-./:]|"+n+`)(?:.|[\r
-]))+`;o.KANJI=new RegExp(n,"g"),o.BYTE_KANJI=new RegExp("[^A-Z0-9 $%*+\\-./:]+","g"),o.BYTE=new RegExp(i,"g"),o.NUMERIC=new RegExp(s,"g"),o.ALPHANUMERIC=new RegExp("[A-Z $%*+\\-./:]+","g");const t=new RegExp("^"+n+"$"),d=new RegExp("^"+s+"$"),f=new RegExp("^[A-Z0-9 $%*+\\-./:]+$");o.testKanji=function(m){return t.test(m)},o.testNumeric=function(m){return d.test(m)},o.testAlphanumeric=function(m){return f.test(m)}},130:(h,o,s)=>{const n=s(910),i=s(85),t=s(260),d=s(424),f=s(442),m=s(7),w=s(242),C=s(987);function E(P){return unescape(encodeURIComponent(P)).length}function A(P,N,_){const x=[];let W;for(;(W=P.exec(_))!==null;)x.push({data:W[0],index:W.index,mode:N,length:W[0].length});return x}function O(P){const N=A(m.NUMERIC,n.NUMERIC,P),_=A(m.ALPHANUMERIC,n.ALPHANUMERIC,P);let x,W;return w.isKanjiModeEnabled()?(x=A(m.BYTE,n.BYTE,P),W=A(m.KANJI,n.KANJI,P)):(x=A(m.BYTE_KANJI,n.BYTE,P),W=[]),N.concat(_,x,W).sort(function(F,I){return F.index-I.index}).map(function(F){return{data:F.data,mode:F.mode,length:F.length}})}function U(P,N){switch(N){case n.NUMERIC:return i.getBitsLength(P);case n.ALPHANUMERIC:return t.getBitsLength(P);case n.KANJI:return f.getBitsLength(P);case n.BYTE:return d.getBitsLength(P)}}function D(P,N){let _;const x=n.getBestModeForData(P);if(_=n.from(N,x),_!==n.BYTE&&_.bit<x.bit)throw new Error('"'+P+'" cannot be encoded with mode '+n.toString(_)+`.
- Suggested mode is: `+n.toString(x));switch(_!==n.KANJI||w.isKanjiModeEnabled()||(_=n.BYTE),_){case n.NUMERIC:return new i(P);case n.ALPHANUMERIC:return new t(P);case n.KANJI:return new f(P);case n.BYTE:return new d(P)}}o.fromArray=function(P){return P.reduce(function(N,_){return typeof _=="string"?N.push(D(_,null)):_.data&&N.push(D(_.data,_.mode)),N},[])},o.fromString=function(P,N){const _=function(I){const K=[];for(let j=0;j<I.length;j++){const V=I[j];switch(V.mode){case n.NUMERIC:K.push([V,{data:V.data,mode:n.ALPHANUMERIC,length:V.length},{data:V.data,mode:n.BYTE,length:V.length}]);break;case n.ALPHANUMERIC:K.push([V,{data:V.data,mode:n.BYTE,length:V.length}]);break;case n.KANJI:K.push([V,{data:V.data,mode:n.BYTE,length:E(V.data)}]);break;case n.BYTE:K.push([{data:V.data,mode:n.BYTE,length:E(V.data)}])}}return K}(O(P,w.isKanjiModeEnabled())),x=function(I,K){const j={},V={start:{}};let q=["start"];for(let S=0;S<I.length;S++){const re=I[S],Q=[];for(let L=0;L<re.length;L++){const z=re[L],Z=""+S+L;Q.push(Z),j[Z]={node:z,lastCount:0},V[Z]={};for(let B=0;B<q.length;B++){const T=q[B];j[T]&&j[T].node.mode===z.mode?(V[T][Z]=U(j[T].lastCount+z.length,z.mode)-U(j[T].lastCount,z.mode),j[T].lastCount+=z.length):(j[T]&&(j[T].lastCount=z.length),V[T][Z]=U(z.length,z.mode)+4+n.getCharCountIndicator(z.mode,K))}}q=Q}for(let S=0;S<q.length;S++)V[q[S]].end=0;return{map:V,table:j}}(_,N),W=C.find_path(x.map,"start","end"),F=[];for(let I=1;I<W.length-1;I++)F.push(x.table[W[I]].node);return o.fromArray(F.reduce(function(I,K){const j=I.length-1>=0?I[I.length-1]:null;return j&&j.mode===K.mode?(I[I.length-1].data+=K.data,I):(I.push(K),I)},[]))},o.rawSplit=function(P){return o.fromArray(O(P,w.isKanjiModeEnabled()))}},242:(h,o)=>{let s;const n=[0,26,44,70,100,134,172,196,242,292,346,404,466,532,581,655,733,815,901,991,1085,1156,1258,1364,1474,1588,1706,1828,1921,2051,2185,2323,2465,2611,2761,2876,3034,3196,3362,3532,3706];o.getSymbolSize=function(i){if(!i)throw new Error('"version" cannot be null or undefined');if(i<1||i>40)throw new Error('"version" should be in range from 1 to 40');return 4*i+17},o.getSymbolTotalCodewords=function(i){return n[i]},o.getBCHDigit=function(i){let t=0;for(;i!==0;)t++,i>>>=1;return t},o.setToSJISFunction=function(i){if(typeof i!="function")throw new Error('"toSJISFunc" is not a valid function.');s=i},o.isKanjiModeEnabled=function(){return s!==void 0},o.toSJIS=function(i){return s(i)}},114:(h,o)=>{o.isValid=function(s){return!isNaN(s)&&s>=1&&s<=40}},103:(h,o,s)=>{const n=s(242),i=s(393),t=s(908),d=s(910),f=s(114),m=n.getBCHDigit(7973);function w(E,A){return d.getCharCountIndicator(E,A)+4}function C(E,A){let O=0;return E.forEach(function(U){const D=w(U.mode,A);O+=D+U.getBitsLength()}),O}o.from=function(E,A){return f.isValid(E)?parseInt(E,10):A},o.getCapacity=function(E,A,O){if(!f.isValid(E))throw new Error("Invalid QR Code version");O===void 0&&(O=d.BYTE);const U=8*(n.getSymbolTotalCodewords(E)-i.getTotalCodewordsCount(E,A));if(O===d.MIXED)return U;const D=U-w(O,E);switch(O){case d.NUMERIC:return Math.floor(D/10*3);case d.ALPHANUMERIC:return Math.floor(D/11*2);case d.KANJI:return Math.floor(D/13);case d.BYTE:default:return Math.floor(D/8)}},o.getBestVersionForData=function(E,A){let O;const U=t.from(A,t.M);if(Array.isArray(E)){if(E.length>1)return function(D,P){for(let N=1;N<=40;N++)if(C(D,N)<=o.getCapacity(N,P,d.MIXED))return N}(E,U);if(E.length===0)return 1;O=E[0]}else O=E;return function(D,P,N){for(let _=1;_<=40;_++)if(P<=o.getCapacity(_,N,D))return _}(O.mode,O.getLength(),U)},o.getEncodedBits=function(E){if(!f.isValid(E)||E<7)throw new Error("Invalid QR Code version");let A=E<<12;for(;n.getBCHDigit(A)-m>=0;)A^=7973<<n.getBCHDigit(A)-m;return E<<12|A}},907:(h,o,s)=>{const n=s(653);o.render=function(i,t,d){let f=d,m=t;f!==void 0||t&&t.getContext||(f=t,t=void 0),t||(m=function(){try{return document.createElement("canvas")}catch{throw new Error("You need to specify a canvas element")}}()),f=n.getOptions(f);const w=n.getImageWidth(i.modules.size,f),C=m.getContext("2d"),E=C.createImageData(w,w);return n.qrToImageData(E.data,i,f),function(A,O,U){A.clearRect(0,0,O.width,O.height),O.style||(O.style={}),O.height=U,O.width=U,O.style.height=U+"px",O.style.width=U+"px"}(C,m,w),C.putImageData(E,0,0),m},o.renderToDataURL=function(i,t,d){let f=d;f!==void 0||t&&t.getContext||(f=t,t=void 0),f||(f={});const m=o.render(i,t,f),w=f.type||"image/png",C=f.rendererOpts||{};return m.toDataURL(w,C.quality)}},776:(h,o,s)=>{const n=s(653);function i(d,f){const m=d.a/255,w=f+'="'+d.hex+'"';return m<1?w+" "+f+'-opacity="'+m.toFixed(2).slice(1)+'"':w}function t(d,f,m){let w=d+f;return m!==void 0&&(w+=" "+m),w}o.render=function(d,f,m){const w=n.getOptions(f),C=d.modules.size,E=d.modules.data,A=C+2*w.margin,O=w.color.light.a?"<path "+i(w.color.light,"fill")+' d="M0 0h'+A+"v"+A+'H0z"/>':"",U="<path "+i(w.color.dark,"stroke")+' d="'+function(N,_,x){let W="",F=0,I=!1,K=0;for(let j=0;j<N.length;j++){const V=Math.floor(j%_),q=Math.floor(j/_);V||I||(I=!0),N[j]?(K++,j>0&&V>0&&N[j-1]||(W+=I?t("M",V+x,.5+q+x):t("m",F,0),F=0,I=!1),V+1<_&&N[j+1]||(W+=t("h",K),K=0)):F++}return W}(E,C,w.margin)+'"/>',D='viewBox="0 0 '+A+" "+A+'"',P='<svg xmlns="http://www.w3.org/2000/svg" '+(w.width?'width="'+w.width+'" height="'+w.width+'" ':"")+D+' shape-rendering="crispEdges">'+O+U+`</svg>
-`;return typeof m=="function"&&m(null,P),P}},653:(h,o)=>{function s(n){if(typeof n=="number"&&(n=n.toString()),typeof n!="string")throw new Error("Color should be defined as hex string");let i=n.slice().replace("#","").split("");if(i.length<3||i.length===5||i.length>8)throw new Error("Invalid hex color: "+n);i.length!==3&&i.length!==4||(i=Array.prototype.concat.apply([],i.map(function(d){return[d,d]}))),i.length===6&&i.push("F","F");const t=parseInt(i.join(""),16);return{r:t>>24&255,g:t>>16&255,b:t>>8&255,a:255&t,hex:"#"+i.slice(0,6).join("")}}o.getOptions=function(n){n||(n={}),n.color||(n.color={});const i=n.margin===void 0||n.margin===null||n.margin<0?4:n.margin,t=n.width&&n.width>=21?n.width:void 0,d=n.scale||4;return{width:t,scale:t?4:d,margin:i,color:{dark:s(n.color.dark||"#000000ff"),light:s(n.color.light||"#ffffffff")},type:n.type,rendererOpts:n.rendererOpts||{}}},o.getScale=function(n,i){return i.width&&i.width>=n+2*i.margin?i.width/(n+2*i.margin):i.scale},o.getImageWidth=function(n,i){const t=o.getScale(n,i);return Math.floor((n+2*i.margin)*t)},o.qrToImageData=function(n,i,t){const d=i.modules.size,f=i.modules.data,m=o.getScale(d,t),w=Math.floor((d+2*t.margin)*m),C=t.margin*m,E=[t.color.light,t.color.dark];for(let A=0;A<w;A++)for(let O=0;O<w;O++){let U=4*(A*w+O),D=t.color.light;A>=C&&O>=C&&A<w-C&&O<w-C&&(D=E[f[Math.floor((A-C)/m)*d+Math.floor((O-C)/m)]?1:0]),n[U++]=D.r,n[U++]=D.g,n[U++]=D.b,n[U]=D.a}}}},It={};function me(h){var o=It[h];if(o!==void 0)return o.exports;var s=It[h]={exports:{}};return ar[h](s,s.exports,me),s.exports}me.d=(h,o)=>{for(var s in o)me.o(o,s)&&!me.o(h,s)&&Object.defineProperty(h,s,{enumerable:!0,get:o[s]})},me.o=(h,o)=>Object.prototype.hasOwnProperty.call(h,o),me.r=h=>{typeof Symbol<"u"&&Symbol.toStringTag&&Object.defineProperty(h,Symbol.toStringTag,{value:"Module"}),Object.defineProperty(h,"__esModule",{value:!0})};var se={};(()=>{me.d(se,{uJ:()=>h,bU:()=>St,Lk:()=>P,Ul:()=>dt,PK:()=>Ye,hs:()=>Ge,TU:()=>Et,q4:()=>_t,Op:()=>f,ZP:()=>Gt,nN:()=>n,um:()=>d,zi:()=>w,gM:()=>C,NT:()=>t});var h={};me.r(h),me.d(h,{IsAckMessage:()=>lt,IsCancelMessage:()=>ht,IsOAuth2CodeMessage:()=>pt,IsOAuth2ErrorMessage:()=>ft,SendWebsocketDirectMessage:()=>gt,SessionAPI:()=>ut,WebsocketDMSender:()=>Jt,arrayBufferToBase64:()=>je,base64ToArrayBuffer:()=>$e,exportPublicKeyAsBase64:()=>wt,generateClientId:()=>it,generateKeyPair:()=>yt,generateSessionId:()=>mt,importPublicKeyFromBase64:()=>$t});const o=["redirect","popup"];function s(a){return globalThis.btoa(String.fromCharCode(...a)).replace(/\+/g,"-").replace(/\//g,"_").replace(/=/g,"")}function n(){var a,e,r,c,u;return e=this,r=void 0,u=function*(){const p=new TextEncoder,k=new Uint8Array(32);globalThis.crypto.getRandomValues(k);const g=s(k),y=(a=globalThis.crypto.webkitSubtle)!==null&&a!==void 0?a:globalThis.crypto.subtle;if(!y)throw new Error("SubtleCrypto implementation required to generate PKCE values");const l=yield y.digest("SHA-256",p.encode(g));return{code_verifier:g,code_challenge:s(new Uint8Array(l)),code_challenge_method:"S256"}},new((c=void 0)||(c=Promise))(function(p,k){function g(v){try{l(u.next(v))}catch(b){k(b)}}function y(v){try{l(u.throw(v))}catch(b){k(b)}}function l(v){var b;v.done?p(v.value):(b=v.value,b instanceof c?b:new c(function(M){M(b)})).then(g,y)}l((u=u.apply(e,r||[])).next())})}const i="@criipto/verify-js:pkce:state";function t(a,e){a.setItem(i,JSON.stringify(e))}function d(a){const e=a.getItem(i);return e?JSON.parse(e):null}function f(a){a.removeItem(i)}function m(a){return a&&a.length?((a.startsWith("?")||a.startsWith("#"))&&(a=a.replace(/^(\?|\#)/,"")),a.split("&").reduce((e,r)=>{const c=r.split("=");return e[c[0]]=decodeURIComponent(c[1]),e},{})):{}}function w(a){var e,r,c,u,p,k,g,y,l,v;const b=new URL(a);return{domain:b.host,clientID:b.searchParams.get("client_id"),acrValues:(r=(e=b.searchParams.get("acr_values"))===null||e===void 0?void 0:e.split(" "))!==null&&r!==void 0?r:void 0,redirectUri:(c=b.searchParams.get("redirect_uri"))!==null&&c!==void 0?c:void 0,responseType:b.searchParams.get("response_type")?b.searchParams.get("response_type"):void 0,responseMode:(u=b.searchParams.get("response_mode"))!==null&&u!==void 0?u:void 0,pkce:b.searchParams.get("code_challenge")?{code_challenge:b.searchParams.get("code_challenge"),code_challenge_method:b.searchParams.get("code_challenge_method")}:void 0,state:(p=b.searchParams.get("state"))!==null&&p!==void 0?p:void 0,loginHint:(k=b.searchParams.get("login_hint"))!==null&&k!==void 0?k:void 0,uiLocales:(g=b.searchParams.get("ui_locales"))!==null&&g!==void 0?g:void 0,scope:(y=b.searchParams.get("scope"))!==null&&y!==void 0?y:void 0,nonce:(l=b.searchParams.get("nonce"))!==null&&l!==void 0?l:void 0,prompt:(v=b.searchParams.get("prompt"))!==null&&v!==void 0?v:void 0}}function C(a){return function(e){return Object.assign(Object.assign({},m(e.search)),m(e.hash))}(a)}function E(a){return m(new URL(a).search)}const A="CRIIPTO_AUTHORIZE_RESPONSE",O="criipto_popup_backdrop",U="criipto_popup_backdrop_button_open",D="criipto_popup_backdrop_button_close";class P extends Error{constructor(e,r,c){super(e+(r?` (${r})`:"")),this.name="OAuth2Error",this.error=e,this.error_description=r,this.state=c}}const N=crypto,_=a=>a instanceof CryptoKey,x=new TextEncoder,W=new TextDecoder,F=a=>{let e=a;e instanceof Uint8Array&&(e=W.decode(e)),e=e.replace(/-/g,"+").replace(/_/g,"/").replace(/\s/g,"");try{return(r=>{const c=atob(r),u=new Uint8Array(c.length);for(let p=0;p<c.length;p++)u[p]=c.charCodeAt(p);return u})(e)}catch{throw new TypeError("The input to be decoded is not correctly encoded.")}};class I extends Error{static get code(){return"ERR_JOSE_GENERIC"}constructor(e){var r;super(e),this.code="ERR_JOSE_GENERIC",this.name=this.constructor.name,(r=Error.captureStackTrace)===null||r===void 0||r.call(Error,this,this.constructor)}}class K extends I{static get code(){return"ERR_JWT_CLAIM_VALIDATION_FAILED"}constructor(e,r="unspecified",c="unspecified"){super(e),this.code="ERR_JWT_CLAIM_VALIDATION_FAILED",this.claim=r,this.reason=c}}class j extends I{static get code(){return"ERR_JWT_EXPIRED"}constructor(e,r="unspecified",c="unspecified"){super(e),this.code="ERR_JWT_EXPIRED",this.claim=r,this.reason=c}}class V extends I{constructor(){super(...arguments),this.code="ERR_JOSE_ALG_NOT_ALLOWED"}static get code(){return"ERR_JOSE_ALG_NOT_ALLOWED"}}class q extends I{constructor(){super(...arguments),this.code="ERR_JOSE_NOT_SUPPORTED"}static get code(){return"ERR_JOSE_NOT_SUPPORTED"}}class S extends I{constructor(){super(...arguments),this.code="ERR_JWS_INVALID"}static get code(){return"ERR_JWS_INVALID"}}class re extends I{constructor(){super(...arguments),this.code="ERR_JWT_INVALID"}static get code(){return"ERR_JWT_INVALID"}}class Q extends I{constructor(){super(...arguments),this.code="ERR_JWKS_INVALID"}static get code(){return"ERR_JWKS_INVALID"}}class L extends I{constructor(){super(...arguments),this.code="ERR_JWKS_NO_MATCHING_KEY",this.message="no applicable key found in the JSON Web Key Set"}static get code(){return"ERR_JWKS_NO_MATCHING_KEY"}}class z extends I{constructor(){super(...arguments),this.code="ERR_JWKS_MULTIPLE_MATCHING_KEYS",this.message="multiple matching keys found in the JSON Web Key Set"}static get code(){return"ERR_JWKS_MULTIPLE_MATCHING_KEYS"}}class Z extends I{constructor(){super(...arguments),this.code="ERR_JWKS_TIMEOUT",this.message="request timed out"}static get code(){return"ERR_JWKS_TIMEOUT"}}class B extends I{constructor(){super(...arguments),this.code="ERR_JWS_SIGNATURE_VERIFICATION_FAILED",this.message="signature verification failed"}static get code(){return"ERR_JWS_SIGNATURE_VERIFICATION_FAILED"}}N.getRandomValues.bind(N);const T=a=>_(a),Y=["CryptoKey"],pe=async a=>{var e,r;if(!a.alg)throw new TypeError('"alg" argument is required when "jwk.alg" is not present');const{algorithm:c,keyUsages:u}=function(g){let y,l;switch(g.kty){case"oct":switch(g.alg){case"HS256":case"HS384":case"HS512":y={name:"HMAC",hash:`SHA-${g.alg.slice(-3)}`},l=["sign","verify"];break;case"A128CBC-HS256":case"A192CBC-HS384":case"A256CBC-HS512":throw new q(`${g.alg} keys cannot be imported as CryptoKey instances`);case"A128GCM":case"A192GCM":case"A256GCM":case"A128GCMKW":case"A192GCMKW":case"A256GCMKW":y={name:"AES-GCM"},l=["encrypt","decrypt"];break;case"A128KW":case"A192KW":case"A256KW":y={name:"AES-KW"},l=["wrapKey","unwrapKey"];break;case"PBES2-HS256+A128KW":case"PBES2-HS384+A192KW":case"PBES2-HS512+A256KW":y={name:"PBKDF2"},l=["deriveBits"];break;default:throw new q('Invalid or unsupported JWK "alg" (Algorithm) Parameter value')}break;case"RSA":switch(g.alg){case"PS256":case"PS384":case"PS512":y={name:"RSA-PSS",hash:`SHA-${g.alg.slice(-3)}`},l=g.d?["sign"]:["verify"];break;case"RS256":case"RS384":case"RS512":y={name:"RSASSA-PKCS1-v1_5",hash:`SHA-${g.alg.slice(-3)}`},l=g.d?["sign"]:["verify"];break;case"RSA-OAEP":case"RSA-OAEP-256":case"RSA-OAEP-384":case"RSA-OAEP-512":y={name:"RSA-OAEP",hash:`SHA-${parseInt(g.alg.slice(-3),10)||1}`},l=g.d?["decrypt","unwrapKey"]:["encrypt","wrapKey"];break;default:throw new q('Invalid or unsupported JWK "alg" (Algorithm) Parameter value')}break;case"EC":switch(g.alg){case"ES256":y={name:"ECDSA",namedCurve:"P-256"},l=g.d?["sign"]:["verify"];break;case"ES384":y={name:"ECDSA",namedCurve:"P-384"},l=g.d?["sign"]:["verify"];break;case"ES512":y={name:"ECDSA",namedCurve:"P-521"},l=g.d?["sign"]:["verify"];break;case"ECDH-ES":case"ECDH-ES+A128KW":case"ECDH-ES+A192KW":case"ECDH-ES+A256KW":y={name:"ECDH",namedCurve:g.crv},l=g.d?["deriveBits"]:[];break;default:throw new q('Invalid or unsupported JWK "alg" (Algorithm) Parameter value')}break;case"OKP":switch(g.alg){case"EdDSA":y={name:g.crv},l=g.d?["sign"]:["verify"];break;case"ECDH-ES":case"ECDH-ES+A128KW":case"ECDH-ES+A192KW":case"ECDH-ES+A256KW":y={name:g.crv},l=g.d?["deriveBits"]:[];break;default:throw new q('Invalid or unsupported JWK "alg" (Algorithm) Parameter value')}break;default:throw new q('Invalid or unsupported JWK "kty" (Key Type) Parameter value')}return{algorithm:y,keyUsages:l}}(a),p=[c,(e=a.ext)!==null&&e!==void 0&&e,(r=a.key_ops)!==null&&r!==void 0?r:u];if(c.name==="PBKDF2")return N.subtle.importKey("raw",F(a.k),...p);const k={...a};return delete k.alg,delete k.use,N.subtle.importKey("jwk",k,...p)};function ke(a){if(typeof(e=a)!="object"||e===null||Object.prototype.toString.call(a)!=="[object Object]")return!1;var e;if(Object.getPrototypeOf(a)===null)return!0;let r=a;for(;Object.getPrototypeOf(r)!==null;)r=Object.getPrototypeOf(r);return Object.getPrototypeOf(a)===r}function de(a,e,...r){if(r.length>2){const c=r.pop();a+=`one of type ${r.join(", ")}, or ${c}.`}else r.length===2?a+=`one of type ${r[0]} or ${r[1]}.`:a+=`of type ${r[0]}.`;return e==null?a+=` Received ${e}`:typeof e=="function"&&e.name?a+=` Received function ${e.name}`:typeof e=="object"&&e!=null&&e.constructor&&e.constructor.name&&(a+=` Received an instance of ${e.constructor.name}`),a}const Je=(a,...e)=>de("Key must be ",a,...e);function We(a,e,...r){return de(`Key for the ${a} algorithm must be `,e,...r)}function ae(a,e="algorithm.name"){return new TypeError(`CryptoKey does not support this operation, its ${e} must be ${a}`)}function Ee(a,e){return a.name===e}function Ae(a){return parseInt(a.name.slice(4),10)}function rt(a,e,...r){switch(e){case"HS256":case"HS384":case"HS512":{if(!Ee(a.algorithm,"HMAC"))throw ae("HMAC");const c=parseInt(e.slice(2),10);if(Ae(a.algorithm.hash)!==c)throw ae(`SHA-${c}`,"algorithm.hash");break}case"RS256":case"RS384":case"RS512":{if(!Ee(a.algorithm,"RSASSA-PKCS1-v1_5"))throw ae("RSASSA-PKCS1-v1_5");const c=parseInt(e.slice(2),10);if(Ae(a.algorithm.hash)!==c)throw ae(`SHA-${c}`,"algorithm.hash");break}case"PS256":case"PS384":case"PS512":{if(!Ee(a.algorithm,"RSA-PSS"))throw ae("RSA-PSS");const c=parseInt(e.slice(2),10);if(Ae(a.algorithm.hash)!==c)throw ae(`SHA-${c}`,"algorithm.hash");break}case"EdDSA":if(a.algorithm.name!=="Ed25519"&&a.algorithm.name!=="Ed448")throw ae("Ed25519 or Ed448");break;case"ES256":case"ES384":case"ES512":{if(!Ee(a.algorithm,"ECDSA"))throw ae("ECDSA");const c=function(u){switch(u){case"ES256":return"P-256";case"ES384":return"P-384";case"ES512":return"P-521";default:throw new Error("unreachable")}}(e);if(a.algorithm.namedCurve!==c)throw ae(c,"algorithm.namedCurve");break}default:throw new TypeError("CryptoKey does not support this operation")}(function(c,u){if(u.length&&!u.some(p=>c.usages.includes(p))){let p="CryptoKey does not support this operation, its usages must include ";if(u.length>2){const k=u.pop();p+=`one of ${u.join(", ")}, or ${k}.`}else u.length===2?p+=`one of ${u[0]} or ${u[1]}.`:p+=`${u[0]}.`;throw new TypeError(p)}})(a,r)}async function Me(a,e,r){if(a instanceof Uint8Array&&(a=W.decode(a)),typeof a!="string")throw new S("Compact JWS must be a string or Uint8Array");const{0:c,1:u,2:p,length:k}=a.split(".");if(k!==3)throw new S("Invalid Compact JWS");const g=await async function(l,v,b){var M;if(!ke(l))throw new S("Flattened JWS must be an object");if(l.protected===void 0&&l.header===void 0)throw new S('Flattened JWS must have either of the "protected" or "header" members');if(l.protected!==void 0&&typeof l.protected!="string")throw new S("JWS Protected Header incorrect type");if(l.payload===void 0)throw new S("JWS Payload missing");if(typeof l.signature!="string")throw new S("JWS Signature missing or incorrect type");if(l.header!==void 0&&!ke(l.header))throw new S("JWS Unprotected Header incorrect type");let R={};if(l.protected)try{const J=F(l.protected);R=JSON.parse(W.decode(J))}catch{throw new S("JWS Protected Header is invalid")}if(!((...J)=>{const ee=J.filter(Boolean);if(ee.length===0||ee.length===1)return!0;let X;for(const $ of ee){const H=Object.keys($);if(X&&X.size!==0)for(const ie of H){if(X.has(ie))return!1;X.add(ie)}else X=new Set(H)}return!0})(R,l.header))throw new S("JWS Protected and JWS Unprotected Header Parameter names must be disjoint");const te={...R,...l.header};let ce=!0;if(function(J,ee,X,$,H){if(H.crit!==void 0&&$.crit===void 0)throw new J('"crit" (Critical) Header Parameter MUST be integrity protected');if(!$||$.crit===void 0)return new Set;if(!Array.isArray($.crit)||$.crit.length===0||$.crit.some(G=>typeof G!="string"||G.length===0))throw new J('"crit" (Critical) Header Parameter MUST be an array of non-empty strings when present');let ie;ie=X!==void 0?new Map([...Object.entries(X),...ee.entries()]):ee;for(const G of $.crit){if(!ie.has(G))throw new q(`Extension Header Parameter "${G}" is not recognized`);if(H[G]===void 0)throw new J(`Extension Header Parameter "${G}" is missing`);if(ie.get(G)&&$[G]===void 0)throw new J(`Extension Header Parameter "${G}" MUST be integrity protected`)}return new Set($.crit)}(S,new Map([["b64",!0]]),b==null?void 0:b.crit,R,te).has("b64")&&(ce=R.b64,typeof ce!="boolean"))throw new S('The "b64" (base64url-encode payload) Header Parameter must be a boolean');const{alg:ne}=te;if(typeof ne!="string"||!ne)throw new S('JWS "alg" (Algorithm) Header Parameter missing or invalid');const et=b&&((J,ee)=>{if(ee!==void 0&&(!Array.isArray(ee)||ee.some(X=>typeof X!="string")))throw new TypeError(`"${J}" option must be an array of strings`);if(ee)return new Set(ee)})("algorithms",b.algorithms);if(et&&!et.has(ne))throw new V('"alg" (Algorithm) Header Parameter not allowed');if(ce){if(typeof l.payload!="string")throw new S("JWS Payload must be a string")}else if(typeof l.payload!="string"&&!(l.payload instanceof Uint8Array))throw new S("JWS Payload must be a string or an Uint8Array instance");let be=!1;typeof v=="function"&&(v=await v(R,l),be=!0),((J,ee,X)=>{J.startsWith("HS")||J==="dir"||J.startsWith("PBES2")||/^A\d{3}(?:GCM)?KW$/.test(J)?(($,H)=>{if(!(H instanceof Uint8Array)){if(!T(H))throw new TypeError(We($,H,...Y,"Uint8Array"));if(H.type!=="secret")throw new TypeError(`${Y.join(" or ")} instances for symmetric algorithms must be of type "secret"`)}})(J,ee):(($,H,ie)=>{if(!T(H))throw new TypeError(We($,H,...Y));if(H.type==="secret")throw new TypeError(`${Y.join(" or ")} instances for asymmetric algorithms must not be of type "secret"`);if(H.algorithm&&ie==="verify"&&H.type==="private")throw new TypeError(`${Y.join(" or ")} instances for asymmetric algorithm verifying must be of type "public"`);H.algorithm})(J,ee,X)})(ne,v,"verify");const ze=function(...J){const ee=J.reduce((H,{length:ie})=>H+ie,0),X=new Uint8Array(ee);let $=0;return J.forEach(H=>{X.set(H,$),$+=H.length}),X}(x.encode((M=l.protected)!==null&&M!==void 0?M:""),x.encode("."),typeof l.payload=="string"?x.encode(l.payload):l.payload);let tt,Re;try{tt=F(l.signature)}catch{throw new S("Failed to base64url decode the signature")}if(!await(async(J,ee,X,$)=>{const H=await function(G,ue,ge){if(_(ue))return rt(ue,G,ge),ue;if(ue instanceof Uint8Array){if(!G.startsWith("HS"))throw new TypeError(Je(ue,...Y));return N.subtle.importKey("raw",ue,{hash:`SHA-${G.slice(-3)}`,name:"HMAC"},!1,[ge])}throw new TypeError(Je(ue,...Y,"Uint8Array"))}(J,ee,"verify");((G,ue)=>{if(G.startsWith("RS")||G.startsWith("PS")){const{modulusLength:ge}=ue.algorithm;if(typeof ge!="number"||ge<2048)throw new TypeError(`${G} requires key modulusLength to be 2048 bits or larger`)}})(J,H);const ie=function(G,ue){const ge=`SHA-${G.slice(-3)}`;switch(G){case"HS256":case"HS384":case"HS512":return{hash:ge,name:"HMAC"};case"PS256":case"PS384":case"PS512":return{hash:ge,name:"RSA-PSS",saltLength:G.slice(-3)>>3};case"RS256":case"RS384":case"RS512":return{hash:ge,name:"RSASSA-PKCS1-v1_5"};case"ES256":case"ES384":case"ES512":return{hash:ge,name:"ECDSA",namedCurve:ue.namedCurve};case"EdDSA":return{name:ue.name};default:throw new q(`alg ${G} is not supported either by JOSE or your javascript runtime`)}}(J,H.algorithm);try{return await N.subtle.verify(ie,H,X,$)}catch{return!1}})(ne,v,tt,ze))throw new B;if(ce)try{Re=F(l.payload)}catch{throw new S("Failed to base64url decode the payload")}else Re=typeof l.payload=="string"?x.encode(l.payload):l.payload;const fe={payload:Re};return l.protected!==void 0&&(fe.protectedHeader=R),l.header!==void 0&&(fe.unprotectedHeader=l.header),be?{...fe,key:v}:fe}({payload:u,protected:c,signature:p},e,r),y={payload:g.payload,protectedHeader:g.protectedHeader};return typeof e=="function"?{...y,key:g.key}:y}const _e=/^(\d+|\d+\.\d+) ?(seconds?|secs?|s|minutes?|mins?|m|hours?|hrs?|h|days?|d|weeks?|w|years?|yrs?|y)$/i,Oe=a=>{const e=_e.exec(a);if(!e)throw new TypeError("Invalid time period format");const r=parseFloat(e[1]);switch(e[2].toLowerCase()){case"sec":case"secs":case"second":case"seconds":case"s":return Math.round(r);case"minute":case"minutes":case"min":case"mins":case"m":return Math.round(60*r);case"hour":case"hours":case"hr":case"hrs":case"h":return Math.round(3600*r);case"day":case"days":case"d":return Math.round(86400*r);case"week":case"weeks":case"w":return Math.round(604800*r);default:return Math.round(31557600*r)}},Se=a=>a.toLowerCase().replace(/^application\//,""),nt=(a,e,r={})=>{const{typ:c}=r;if(c&&(typeof a.typ!="string"||Se(a.typ)!==Se(c)))throw new K('unexpected "typ" JWT header value',"typ","check_failed");let u;try{u=JSON.parse(W.decode(e))}catch{}if(!ke(u))throw new re("JWT Claims Set must be a top-level JSON object");const{requiredClaims:p=[],issuer:k,subject:g,audience:y,maxTokenAge:l}=r;l!==void 0&&p.push("iat"),y!==void 0&&p.push("aud"),g!==void 0&&p.push("sub"),k!==void 0&&p.push("iss");for(const ne of new Set(p.reverse()))if(!(ne in u))throw new K(`missing required "${ne}" claim`,ne,"missing");if(k&&!(Array.isArray(k)?k:[k]).includes(u.iss))throw new K('unexpected "iss" claim value',"iss","check_failed");if(g&&u.sub!==g)throw new K('unexpected "sub" claim value',"sub","check_failed");if(y&&(b=typeof y=="string"?[y]:y,!(typeof(v=u.aud)=="string"?b.includes(v):Array.isArray(v)&&b.some(Set.prototype.has.bind(new Set(v))))))throw new K('unexpected "aud" claim value',"aud","check_failed");var v,b;let M;switch(typeof r.clockTolerance){case"string":M=Oe(r.clockTolerance);break;case"number":M=r.clockTolerance;break;case"undefined":M=0;break;default:throw new TypeError("Invalid clockTolerance option type")}const{currentDate:R}=r,te=(ce=R||new Date,Math.floor(ce.getTime()/1e3));var ce;if((u.iat!==void 0||l)&&typeof u.iat!="number")throw new K('"iat" claim must be a number',"iat","invalid");if(u.nbf!==void 0){if(typeof u.nbf!="number")throw new K('"nbf" claim must be a number',"nbf","invalid");if(u.nbf>te+M)throw new K('"nbf" claim timestamp check failed',"nbf","check_failed")}if(u.exp!==void 0){if(typeof u.exp!="number")throw new K('"exp" claim must be a number',"exp","invalid");if(u.exp<=te-M)throw new j('"exp" claim timestamp check failed',"exp","check_failed")}if(l){const ne=te-u.iat;if(ne-M>(typeof l=="number"?l:Oe(l)))throw new j('"iat" claim timestamp check failed (too far in the past)',"iat","check_failed");if(ne<0-M)throw new K('"iat" claim timestamp check failed (it should be in the past)',"iat","check_failed")}return u};function Ce(a){return a&&typeof a=="object"&&Array.isArray(a.keys)&&a.keys.every(le)}function le(a){return ke(a)}class he{constructor(e){if(this._cached=new WeakMap,!Ce(e))throw new Q("JSON Web Key Set malformed");var r;this._jwks=(r=e,typeof structuredClone=="function"?structuredClone(r):JSON.parse(JSON.stringify(r)))}async getKey(e,r){const{alg:c,kid:u}={...e,...r==null?void 0:r.header},p=function(l){switch(typeof l=="string"&&l.slice(0,2)){case"RS":case"PS":return"RSA";case"ES":return"EC";case"Ed":return"OKP";default:throw new q('Unsupported "alg" value for a JSON Web Key Set')}}(c),k=this._jwks.keys.filter(l=>{let v=p===l.kty;if(v&&typeof u=="string"&&(v=u===l.kid),v&&typeof l.alg=="string"&&(v=c===l.alg),v&&typeof l.use=="string"&&(v=l.use==="sig"),v&&Array.isArray(l.key_ops)&&(v=l.key_ops.includes("verify")),v&&c==="EdDSA"&&(v=l.crv==="Ed25519"||l.crv==="Ed448"),v)switch(c){case"ES256":v=l.crv==="P-256";break;case"ES256K":v=l.crv==="secp256k1";break;case"ES384":v=l.crv==="P-384";break;case"ES512":v=l.crv==="P-521"}return v}),{0:g,length:y}=k;if(y===0)throw new L;if(y!==1){const l=new z,{_cached:v}=this;throw l[Symbol.asyncIterator]=async function*(){for(const b of k)try{yield await Ke(v,b,c)}catch{continue}},l}return Ke(this._cached,g,c)}}async function Ke(a,e,r){const c=a.get(e)||a.set(e,{}).get(e);if(c[r]===void 0){const u=await async function(p,k,g){var y;if(!ke(p))throw new TypeError("JWK must be an object");switch(k||(k=p.alg),p.kty){case"oct":if(typeof p.k!="string"||!p.k)throw new TypeError('missing "k" (Key Value) Parameter value');return g!=null||(g=p.ext!==!0),g?pe({...p,alg:k,ext:(y=p.ext)!==null&&y!==void 0&&y}):F(p.k);case"RSA":if(p.oth!==void 0)throw new q('RSA JWK "oth" (Other Primes Info) Parameter value is not supported');case"EC":case"OKP":return pe({...p,alg:k});default:throw new q('Unsupported "kty" (Key Type) Parameter value')}}({...e,ext:!0},r);if(u instanceof Uint8Array||u.type!=="public")throw new Q("JSON Web Key Set members must be public keys");c[r]=u}return c[r]}class we extends he{constructor(e,r){if(super({keys:[]}),this._jwks=void 0,!(e instanceof URL))throw new TypeError("url must be an instance of URL");this._url=new URL(e.href),this._options={agent:r==null?void 0:r.agent,headers:r==null?void 0:r.headers},this._timeoutDuration=typeof(r==null?void 0:r.timeoutDuration)=="number"?r==null?void 0:r.timeoutDuration:5e3,this._cooldownDuration=typeof(r==null?void 0:r.cooldownDuration)=="number"?r==null?void 0:r.cooldownDuration:3e4,this._cacheMaxAge=typeof(r==null?void 0:r.cacheMaxAge)=="number"?r==null?void 0:r.cacheMaxAge:6e5}coolingDown(){return typeof this._jwksTimestamp=="number"&&Date.now()<this._jwksTimestamp+this._cooldownDuration}fresh(){return typeof this._jwksTimestamp=="number"&&Date.now()<this._jwksTimestamp+this._cacheMaxAge}async getKey(e,r){this._jwks&&this.fresh()||await this.reload();try{return await super.getKey(e,r)}catch(c){if(c instanceof L&&this.coolingDown()===!1)return await this.reload(),super.getKey(e,r);throw c}}async reload(){this._pendingFetch&&(typeof WebSocketPair<"u"||typeof navigator<"u"&&navigator.userAgent==="Cloudflare-Workers"||typeof EdgeRuntime<"u"&&EdgeRuntime==="vercel")&&(this._pendingFetch=void 0),this._pendingFetch||(this._pendingFetch=(async(e,r,c)=>{let u,p,k=!1;typeof AbortController=="function"&&(u=new AbortController,p=setTimeout(()=>{k=!0,u.abort()},r));const g=await fetch(e.href,{signal:u?u.signal:void 0,redirect:"manual",headers:c.headers}).catch(y=>{throw k?new Z:y});if(p!==void 0&&clearTimeout(p),g.status!==200)throw new I("Expected 200 OK from the JSON Web Key Set HTTP response");try{return await g.json()}catch{throw new I("Failed to parse the JSON Web Key Set HTTP response as JSON")}})(this._url,this._timeoutDuration,this._options).then(e=>{if(!Ce(e))throw new Q("JSON Web Key Set malformed");this._jwks={keys:e.keys},this._jwksTimestamp=Date.now(),this._pendingFetch=void 0}).catch(e=>{throw this._pendingFetch=void 0,e})),await this._pendingFetch}}class Ue{}const dt=class extends Ue{constructor(a,e){super(),this.authority=a,this.clientID=e}fetchMetadata(){return globalThis.fetch(`${this.authority}/.well-known/openid-configuration?client_id=${this.clientID}`).then(a=>a.json()).then(a=>(Object.assign(this,a),this))}};class Kt{}const Ut=class extends Kt{constructor(a,e){super(),this.authority=a,this.clientID=e}fetchMetadata(){return globalThis.fetch(`${this.authority}/.well-known/criipto-configuration?client_id=${this.clientID}`).then(a=>a.json()).then(a=>(Object.assign(this,a),this.client=this.clients.find(e=>e.client_id===this.clientID),this))}};class xt{constructor(e){this.criiptoAuth=e,this.store=this.criiptoAuth.store}authorize(e){var r,c,u,p,k;return c=this,u=void 0,k=function*(){const g=e.redirectUri||this.criiptoAuth.options.redirectUri,y=(r=e.responseType)!==null&&r!==void 0?r:"id_token",l=yield e.pkce?Promise.resolve(e.pkce):y==="id_token"?n():Promise.resolve(void 0);t(this.store,l&&"code_verifier"in l?{response_type:"id_token",redirect_uri:g,pkce_code_verifier:l.code_verifier}:{response_type:"code",redirect_uri:g});const v=yield this.criiptoAuth.buildAuthorizeUrl(this.criiptoAuth.buildAuthorizeParams(Object.assign(Object.assign({},e),{responseMode:"query",responseType:"code",pkce:l})));globalThis.location.href=v},new((p=void 0)||(p=Promise))(function(g,y){function l(M){try{b(k.next(M))}catch(R){y(R)}}function v(M){try{b(k.throw(M))}catch(R){y(R)}}function b(M){var R;M.done?g(M.value):(R=M.value,R instanceof p?R:new p(function(te){te(R)})).then(l,v)}b((k=k.apply(c,u||[])).next())})}match(e={}){var r;const c=(r=e.location)!==null&&r!==void 0?r:"location"in globalThis?globalThis.location:void 0;if(!c)return Promise.resolve(null);const u=C(c);if(!u.code&&!u.error&&!u.id_token)return Promise.resolve(null);if(u.error)return Promise.reject(new P(u.error,u.error_description,u.state));if(u.id_token)return Promise.resolve(u);const p=d(this.store);return p?this.criiptoAuth.processResponse(u,p.response_type==="id_token"?{code_verifier:p.pkce_code_verifier,redirect_uri:p.redirect_uri}:void 0).then(k=>(k&&f(this.store),k)).catch(k=>(f(this.store),Promise.reject(k))):Promise.reject(new Error("No redirect state available"))}hasMatch(e={}){var r;const c=(r=e.location)!==null&&r!==void 0?r:"location"in globalThis?globalThis.location:void 0;if(!c)return!1;const u=C(c);return!!(u.code||u.error||u.id_token)}}class jt{constructor(e){this.criiptoAuth=e,this.backdrop=new Ht(this)}open(e,r){var c,u,p,k,g,y;let{width:l,height:v}=r;l=l||400,v=v||660;const b=(c=window.screenLeft)!==null&&c!==void 0?c:window.screenX,M=(u=window.screenTop)!==null&&u!==void 0?u:window.screenY,R=(k=(p=window.innerWidth)!==null&&p!==void 0?p:document.documentElement.clientWidth)!==null&&k!==void 0?k:screen.width,te=(y=(g=window.innerHeight)!==null&&g!==void 0?g:document.documentElement.clientHeight)!==null&&y!==void 0?y:screen.height,ce=R/window.screen.availWidth,ne=`width=${l},height=${v},top=${(te-v)/2/ce+M},left=${(R-l)/2/ce+b}`;return this.window=window.open(e,"CRIIPTO_POPUP_ID",ne),r.backdrop!==!1&&(this._latestParams=r,this._latestUrl=e,this.backdrop.render(r)),this.window}listen(e){return new Promise((r,c)=>{this.checker&&clearTimeout(this.checker);const u=g=>!(!(g.code||g.error||g.id_token)||e.state&&e.state!==g.state||(window.removeEventListener("message",p),this.checker&&clearTimeout(this.checker),this.window.close(),r(g),0)),p=g=>{if((g.source===this.window||g.origin===`https://${this.criiptoAuth.domain}`)&&g.data&&typeof g.data=="string"){if((g.data.startsWith(A)?A:null)===A){const y=JSON.parse(g.data.replace(A,""));y&&(y.code||y.id_token||y.error)&&u(y)}else if(g.data.includes("code=")||g.data.includes("id_token=")||g.data.includes("error=")){const y=E(g.data);u(y)}}},k=()=>{if(!this.checker||!e.redirectUri)return;const g=()=>this.checker=window.setTimeout(k,250);try{const y=new URL(e.redirectUri);if(this.window.location.href.replace(this.window.location.search,"")===y.href.replace(y.search,"")){const l=E(this.window.location.href);if(u(l))return}g()}catch{g()}};this.checker=window.setTimeout(k,250),window.addEventListener("message",p)}).finally(()=>{this.backdrop.remove()})}buildAuthorizeUrl(e){const r=this.criiptoAuth.buildAuthorizeParams(Object.assign(Object.assign({},e),{responseMode:"post_message"}));return this.criiptoAuth.buildAuthorizeUrl(r).then(c=>({url:c,params:r}))}trigger(e){return this.buildAuthorizeUrl(e).then(({url:r,params:c})=>(this.open(r,e),this.listen(e).then(u=>this.criiptoAuth.processResponse(u,c.pkce&&"code_verifier"in c.pkce?{code_verifier:c.pkce.code_verifier,redirect_uri:c.redirectUri}:void 0).then(p=>p)))).finally(()=>{e.backdrop!==!1&&this.backdrop.remove()})}authorize(e){var r,c,u,p,k;return c=this,u=void 0,k=function*(){const g=(r=e.responseType)!==null&&r!==void 0?r:"id_token",y=yield e.pkce?Promise.resolve(e.pkce):g==="id_token"?n():Promise.resolve(void 0);return this.trigger(Object.assign(Object.assign({},e),{responseType:"code",pkce:y}))},new((p=void 0)||(p=Promise))(function(g,y){function l(M){try{b(k.next(M))}catch(R){y(R)}}function v(M){try{b(k.throw(M))}catch(R){y(R)}}function b(M){var R;M.done?g(M.value):(R=M.value,R instanceof p?R:new p(function(te){te(R)})).then(l,v)}b((k=k.apply(c,u||[])).next())})}close(){this.window.close()}callback(e){if(!e)throw new Error("popup.callback required argument origin");const r=C(window.location);window.opener.postMessage(A+JSON.stringify(r),e),window.close()}}const Nt=`
+Minimum version required to store current data is: ` + K + `.
+`);
+    } else x = K;
+    const j = function(S, re, Q) {
+      const L = new t();
+      Q.forEach(function(B) {
+        L.put(B.mode.bit, 4), L.put(B.getLength(), U.getCharCountIndicator(B.mode, S)), B.write(L);
+      });
+      const z = 8 * (n.getSymbolTotalCodewords(S) - C.getTotalCodewordsCount(S, re));
+      for (L.getLengthInBits() + 4 <= z && L.put(0, 4); L.getLengthInBits() % 8 != 0; ) L.putBit(0);
+      const Z = (z - L.getLengthInBits()) / 8;
+      for (let B = 0; B < Z; B++) L.put(B % 2 ? 17 : 236, 8);
+      return function(B, T, Y) {
+        const pe = n.getSymbolTotalCodewords(T), ke = pe - C.getTotalCodewordsCount(T, Y), de = C.getBlocksCount(T, Y), Je = de - pe % de, We = Math.floor(pe / de), ae = Math.floor(ke / de), Ee = ae + 1, Ae = We - ae, rt = new E(Ae);
+        let Me = 0;
+        const _e = new Array(de), Oe = new Array(de);
+        let Se = 0;
+        const nt = new Uint8Array(B.buffer);
+        for (let we = 0; we < de; we++) {
+          const Ue = we < Je ? ae : Ee;
+          _e[we] = nt.slice(Me, Me + Ue), Oe[we] = rt.encode(_e[we]), Me += Ue, Se = Math.max(Se, Ue);
+        }
+        const Ce = new Uint8Array(pe);
+        let le, he, Ke = 0;
+        for (le = 0; le < Se; le++) for (he = 0; he < de; he++) le < _e[he].length && (Ce[Ke++] = _e[he][le]);
+        for (le = 0; le < Ae; le++) for (he = 0; he < de; he++) Ce[Ke++] = Oe[he][le];
+        return Ce;
+      }(L, S, re);
+    }(x, W, I), V = n.getSymbolSize(x), q = new d(V);
+    return function(S, re) {
+      const Q = S.size, L = m.getPositions(re);
+      for (let z = 0; z < L.length; z++) {
+        const Z = L[z][0], B = L[z][1];
+        for (let T = -1; T <= 7; T++) if (!(Z + T <= -1 || Q <= Z + T)) for (let Y = -1; Y <= 7; Y++) B + Y <= -1 || Q <= B + Y || (T >= 0 && T <= 6 && (Y === 0 || Y === 6) || Y >= 0 && Y <= 6 && (T === 0 || T === 6) || T >= 2 && T <= 4 && Y >= 2 && Y <= 4 ? S.set(Z + T, B + Y, !0, !0) : S.set(Z + T, B + Y, !1, !0));
+      }
+    }(q, x), function(S) {
+      const re = S.size;
+      for (let Q = 8; Q < re - 8; Q++) {
+        const L = Q % 2 == 0;
+        S.set(Q, 6, L, !0), S.set(6, Q, L, !0);
+      }
+    }(q), function(S, re) {
+      const Q = f.getPositions(re);
+      for (let L = 0; L < Q.length; L++) {
+        const z = Q[L][0], Z = Q[L][1];
+        for (let B = -2; B <= 2; B++) for (let T = -2; T <= 2; T++) B === -2 || B === 2 || T === -2 || T === 2 || B === 0 && T === 0 ? S.set(z + B, Z + T, !0, !0) : S.set(z + B, Z + T, !1, !0);
+      }
+    }(q, x), P(q, W, 0), x >= 7 && function(S, re) {
+      const Q = S.size, L = A.getEncodedBits(re);
+      let z, Z, B;
+      for (let T = 0; T < 18; T++) z = Math.floor(T / 3), Z = T % 3 + Q - 8 - 3, B = (L >> T & 1) == 1, S.set(z, Z, B, !0), S.set(Z, z, B, !0);
+    }(q, x), function(S, re) {
+      const Q = S.size;
+      let L = -1, z = Q - 1, Z = 7, B = 0;
+      for (let T = Q - 1; T > 0; T -= 2) for (T === 6 && T--; ; ) {
+        for (let Y = 0; Y < 2; Y++) if (!S.isReserved(z, T - Y)) {
+          let pe = !1;
+          B < re.length && (pe = (re[B] >>> Z & 1) == 1), S.set(z, T - Y, pe), Z--, Z === -1 && (B++, Z = 7);
+        }
+        if (z += L, z < 0 || Q <= z) {
+          z -= L, L = -L;
+          break;
+        }
+      }
+    }(q, j), isNaN(F) && (F = w.getBestMask(q, P.bind(null, q, W))), w.applyMask(F, q), P(q, W, F), { modules: q, version: x, errorCorrectionLevel: W, maskPattern: F, segments: I };
+  }
+  o.create = function(_, x) {
+    if (_ === void 0 || _ === "") throw new Error("No input text");
+    let W, F, I = i.M;
+    return x !== void 0 && (I = i.from(x.errorCorrectionLevel, i.M), W = A.from(x.version), F = w.from(x.maskPattern), x.toSJISFunc && n.setToSJISFunction(x.toSJISFunc)), N(_, W, I, F);
+  };
+}, 882: (h, o, s) => {
+  const n = s(143);
+  function i(t) {
+    this.genPoly = void 0, this.degree = t, this.degree && this.initialize(this.degree);
+  }
+  i.prototype.initialize = function(t) {
+    this.degree = t, this.genPoly = n.generateECPolynomial(this.degree);
+  }, i.prototype.encode = function(t) {
+    if (!this.genPoly) throw new Error("Encoder not initialized");
+    const d = new Uint8Array(t.length + this.degree);
+    d.set(t);
+    const f = n.mod(d, this.genPoly), m = this.degree - f.length;
+    if (m > 0) {
+      const w = new Uint8Array(this.degree);
+      return w.set(f, m), w;
+    }
+    return f;
+  }, h.exports = i;
+}, 7: (h, o) => {
+  const s = "[0-9]+";
+  let n = "(?:[u3000-u303F]|[u3040-u309F]|[u30A0-u30FF]|[uFF00-uFFEF]|[u4E00-u9FAF]|[u2605-u2606]|[u2190-u2195]|u203B|[u2010u2015u2018u2019u2025u2026u201Cu201Du2225u2260]|[u0391-u0451]|[u00A7u00A8u00B1u00B4u00D7u00F7])+";
+  n = n.replace(/u/g, "\\u");
+  const i = "(?:(?![A-Z0-9 $%*+\\-./:]|" + n + `)(?:.|[\r
+]))+`;
+  o.KANJI = new RegExp(n, "g"), o.BYTE_KANJI = new RegExp("[^A-Z0-9 $%*+\\-./:]+", "g"), o.BYTE = new RegExp(i, "g"), o.NUMERIC = new RegExp(s, "g"), o.ALPHANUMERIC = new RegExp("[A-Z $%*+\\-./:]+", "g");
+  const t = new RegExp("^" + n + "$"), d = new RegExp("^" + s + "$"), f = new RegExp("^[A-Z0-9 $%*+\\-./:]+$");
+  o.testKanji = function(m) {
+    return t.test(m);
+  }, o.testNumeric = function(m) {
+    return d.test(m);
+  }, o.testAlphanumeric = function(m) {
+    return f.test(m);
+  };
+}, 130: (h, o, s) => {
+  const n = s(910), i = s(85), t = s(260), d = s(424), f = s(442), m = s(7), w = s(242), C = s(987);
+  function E(P) {
+    return unescape(encodeURIComponent(P)).length;
+  }
+  function A(P, N, _) {
+    const x = [];
+    let W;
+    for (; (W = P.exec(_)) !== null; ) x.push({ data: W[0], index: W.index, mode: N, length: W[0].length });
+    return x;
+  }
+  function O(P) {
+    const N = A(m.NUMERIC, n.NUMERIC, P), _ = A(m.ALPHANUMERIC, n.ALPHANUMERIC, P);
+    let x, W;
+    return w.isKanjiModeEnabled() ? (x = A(m.BYTE, n.BYTE, P), W = A(m.KANJI, n.KANJI, P)) : (x = A(m.BYTE_KANJI, n.BYTE, P), W = []), N.concat(_, x, W).sort(function(F, I) {
+      return F.index - I.index;
+    }).map(function(F) {
+      return { data: F.data, mode: F.mode, length: F.length };
+    });
+  }
+  function U(P, N) {
+    switch (N) {
+      case n.NUMERIC:
+        return i.getBitsLength(P);
+      case n.ALPHANUMERIC:
+        return t.getBitsLength(P);
+      case n.KANJI:
+        return f.getBitsLength(P);
+      case n.BYTE:
+        return d.getBitsLength(P);
+    }
+  }
+  function D(P, N) {
+    let _;
+    const x = n.getBestModeForData(P);
+    if (_ = n.from(N, x), _ !== n.BYTE && _.bit < x.bit) throw new Error('"' + P + '" cannot be encoded with mode ' + n.toString(_) + `.
+ Suggested mode is: ` + n.toString(x));
+    switch (_ !== n.KANJI || w.isKanjiModeEnabled() || (_ = n.BYTE), _) {
+      case n.NUMERIC:
+        return new i(P);
+      case n.ALPHANUMERIC:
+        return new t(P);
+      case n.KANJI:
+        return new f(P);
+      case n.BYTE:
+        return new d(P);
+    }
+  }
+  o.fromArray = function(P) {
+    return P.reduce(function(N, _) {
+      return typeof _ == "string" ? N.push(D(_, null)) : _.data && N.push(D(_.data, _.mode)), N;
+    }, []);
+  }, o.fromString = function(P, N) {
+    const _ = function(I) {
+      const K = [];
+      for (let j = 0; j < I.length; j++) {
+        const V = I[j];
+        switch (V.mode) {
+          case n.NUMERIC:
+            K.push([V, { data: V.data, mode: n.ALPHANUMERIC, length: V.length }, { data: V.data, mode: n.BYTE, length: V.length }]);
+            break;
+          case n.ALPHANUMERIC:
+            K.push([V, { data: V.data, mode: n.BYTE, length: V.length }]);
+            break;
+          case n.KANJI:
+            K.push([V, { data: V.data, mode: n.BYTE, length: E(V.data) }]);
+            break;
+          case n.BYTE:
+            K.push([{ data: V.data, mode: n.BYTE, length: E(V.data) }]);
+        }
+      }
+      return K;
+    }(O(P, w.isKanjiModeEnabled())), x = function(I, K) {
+      const j = {}, V = { start: {} };
+      let q = ["start"];
+      for (let S = 0; S < I.length; S++) {
+        const re = I[S], Q = [];
+        for (let L = 0; L < re.length; L++) {
+          const z = re[L], Z = "" + S + L;
+          Q.push(Z), j[Z] = { node: z, lastCount: 0 }, V[Z] = {};
+          for (let B = 0; B < q.length; B++) {
+            const T = q[B];
+            j[T] && j[T].node.mode === z.mode ? (V[T][Z] = U(j[T].lastCount + z.length, z.mode) - U(j[T].lastCount, z.mode), j[T].lastCount += z.length) : (j[T] && (j[T].lastCount = z.length), V[T][Z] = U(z.length, z.mode) + 4 + n.getCharCountIndicator(z.mode, K));
+          }
+        }
+        q = Q;
+      }
+      for (let S = 0; S < q.length; S++) V[q[S]].end = 0;
+      return { map: V, table: j };
+    }(_, N), W = C.find_path(x.map, "start", "end"), F = [];
+    for (let I = 1; I < W.length - 1; I++) F.push(x.table[W[I]].node);
+    return o.fromArray(F.reduce(function(I, K) {
+      const j = I.length - 1 >= 0 ? I[I.length - 1] : null;
+      return j && j.mode === K.mode ? (I[I.length - 1].data += K.data, I) : (I.push(K), I);
+    }, []));
+  }, o.rawSplit = function(P) {
+    return o.fromArray(O(P, w.isKanjiModeEnabled()));
+  };
+}, 242: (h, o) => {
+  let s;
+  const n = [0, 26, 44, 70, 100, 134, 172, 196, 242, 292, 346, 404, 466, 532, 581, 655, 733, 815, 901, 991, 1085, 1156, 1258, 1364, 1474, 1588, 1706, 1828, 1921, 2051, 2185, 2323, 2465, 2611, 2761, 2876, 3034, 3196, 3362, 3532, 3706];
+  o.getSymbolSize = function(i) {
+    if (!i) throw new Error('"version" cannot be null or undefined');
+    if (i < 1 || i > 40) throw new Error('"version" should be in range from 1 to 40');
+    return 4 * i + 17;
+  }, o.getSymbolTotalCodewords = function(i) {
+    return n[i];
+  }, o.getBCHDigit = function(i) {
+    let t = 0;
+    for (; i !== 0; ) t++, i >>>= 1;
+    return t;
+  }, o.setToSJISFunction = function(i) {
+    if (typeof i != "function") throw new Error('"toSJISFunc" is not a valid function.');
+    s = i;
+  }, o.isKanjiModeEnabled = function() {
+    return s !== void 0;
+  }, o.toSJIS = function(i) {
+    return s(i);
+  };
+}, 114: (h, o) => {
+  o.isValid = function(s) {
+    return !isNaN(s) && s >= 1 && s <= 40;
+  };
+}, 103: (h, o, s) => {
+  const n = s(242), i = s(393), t = s(908), d = s(910), f = s(114), m = n.getBCHDigit(7973);
+  function w(E, A) {
+    return d.getCharCountIndicator(E, A) + 4;
+  }
+  function C(E, A) {
+    let O = 0;
+    return E.forEach(function(U) {
+      const D = w(U.mode, A);
+      O += D + U.getBitsLength();
+    }), O;
+  }
+  o.from = function(E, A) {
+    return f.isValid(E) ? parseInt(E, 10) : A;
+  }, o.getCapacity = function(E, A, O) {
+    if (!f.isValid(E)) throw new Error("Invalid QR Code version");
+    O === void 0 && (O = d.BYTE);
+    const U = 8 * (n.getSymbolTotalCodewords(E) - i.getTotalCodewordsCount(E, A));
+    if (O === d.MIXED) return U;
+    const D = U - w(O, E);
+    switch (O) {
+      case d.NUMERIC:
+        return Math.floor(D / 10 * 3);
+      case d.ALPHANUMERIC:
+        return Math.floor(D / 11 * 2);
+      case d.KANJI:
+        return Math.floor(D / 13);
+      case d.BYTE:
+      default:
+        return Math.floor(D / 8);
+    }
+  }, o.getBestVersionForData = function(E, A) {
+    let O;
+    const U = t.from(A, t.M);
+    if (Array.isArray(E)) {
+      if (E.length > 1) return function(D, P) {
+        for (let N = 1; N <= 40; N++) if (C(D, N) <= o.getCapacity(N, P, d.MIXED)) return N;
+      }(E, U);
+      if (E.length === 0) return 1;
+      O = E[0];
+    } else O = E;
+    return function(D, P, N) {
+      for (let _ = 1; _ <= 40; _++) if (P <= o.getCapacity(_, N, D)) return _;
+    }(O.mode, O.getLength(), U);
+  }, o.getEncodedBits = function(E) {
+    if (!f.isValid(E) || E < 7) throw new Error("Invalid QR Code version");
+    let A = E << 12;
+    for (; n.getBCHDigit(A) - m >= 0; ) A ^= 7973 << n.getBCHDigit(A) - m;
+    return E << 12 | A;
+  };
+}, 907: (h, o, s) => {
+  const n = s(653);
+  o.render = function(i, t, d) {
+    let f = d, m = t;
+    f !== void 0 || t && t.getContext || (f = t, t = void 0), t || (m = function() {
+      try {
+        return document.createElement("canvas");
+      } catch {
+        throw new Error("You need to specify a canvas element");
+      }
+    }()), f = n.getOptions(f);
+    const w = n.getImageWidth(i.modules.size, f), C = m.getContext("2d"), E = C.createImageData(w, w);
+    return n.qrToImageData(E.data, i, f), function(A, O, U) {
+      A.clearRect(0, 0, O.width, O.height), O.style || (O.style = {}), O.height = U, O.width = U, O.style.height = U + "px", O.style.width = U + "px";
+    }(C, m, w), C.putImageData(E, 0, 0), m;
+  }, o.renderToDataURL = function(i, t, d) {
+    let f = d;
+    f !== void 0 || t && t.getContext || (f = t, t = void 0), f || (f = {});
+    const m = o.render(i, t, f), w = f.type || "image/png", C = f.rendererOpts || {};
+    return m.toDataURL(w, C.quality);
+  };
+}, 776: (h, o, s) => {
+  const n = s(653);
+  function i(d, f) {
+    const m = d.a / 255, w = f + '="' + d.hex + '"';
+    return m < 1 ? w + " " + f + '-opacity="' + m.toFixed(2).slice(1) + '"' : w;
+  }
+  function t(d, f, m) {
+    let w = d + f;
+    return m !== void 0 && (w += " " + m), w;
+  }
+  o.render = function(d, f, m) {
+    const w = n.getOptions(f), C = d.modules.size, E = d.modules.data, A = C + 2 * w.margin, O = w.color.light.a ? "<path " + i(w.color.light, "fill") + ' d="M0 0h' + A + "v" + A + 'H0z"/>' : "", U = "<path " + i(w.color.dark, "stroke") + ' d="' + function(N, _, x) {
+      let W = "", F = 0, I = !1, K = 0;
+      for (let j = 0; j < N.length; j++) {
+        const V = Math.floor(j % _), q = Math.floor(j / _);
+        V || I || (I = !0), N[j] ? (K++, j > 0 && V > 0 && N[j - 1] || (W += I ? t("M", V + x, 0.5 + q + x) : t("m", F, 0), F = 0, I = !1), V + 1 < _ && N[j + 1] || (W += t("h", K), K = 0)) : F++;
+      }
+      return W;
+    }(E, C, w.margin) + '"/>', D = 'viewBox="0 0 ' + A + " " + A + '"', P = '<svg xmlns="http://www.w3.org/2000/svg" ' + (w.width ? 'width="' + w.width + '" height="' + w.width + '" ' : "") + D + ' shape-rendering="crispEdges">' + O + U + `</svg>
+`;
+    return typeof m == "function" && m(null, P), P;
+  };
+}, 653: (h, o) => {
+  function s(n) {
+    if (typeof n == "number" && (n = n.toString()), typeof n != "string") throw new Error("Color should be defined as hex string");
+    let i = n.slice().replace("#", "").split("");
+    if (i.length < 3 || i.length === 5 || i.length > 8) throw new Error("Invalid hex color: " + n);
+    i.length !== 3 && i.length !== 4 || (i = Array.prototype.concat.apply([], i.map(function(d) {
+      return [d, d];
+    }))), i.length === 6 && i.push("F", "F");
+    const t = parseInt(i.join(""), 16);
+    return { r: t >> 24 & 255, g: t >> 16 & 255, b: t >> 8 & 255, a: 255 & t, hex: "#" + i.slice(0, 6).join("") };
+  }
+  o.getOptions = function(n) {
+    n || (n = {}), n.color || (n.color = {});
+    const i = n.margin === void 0 || n.margin === null || n.margin < 0 ? 4 : n.margin, t = n.width && n.width >= 21 ? n.width : void 0, d = n.scale || 4;
+    return { width: t, scale: t ? 4 : d, margin: i, color: { dark: s(n.color.dark || "#000000ff"), light: s(n.color.light || "#ffffffff") }, type: n.type, rendererOpts: n.rendererOpts || {} };
+  }, o.getScale = function(n, i) {
+    return i.width && i.width >= n + 2 * i.margin ? i.width / (n + 2 * i.margin) : i.scale;
+  }, o.getImageWidth = function(n, i) {
+    const t = o.getScale(n, i);
+    return Math.floor((n + 2 * i.margin) * t);
+  }, o.qrToImageData = function(n, i, t) {
+    const d = i.modules.size, f = i.modules.data, m = o.getScale(d, t), w = Math.floor((d + 2 * t.margin) * m), C = t.margin * m, E = [t.color.light, t.color.dark];
+    for (let A = 0; A < w; A++) for (let O = 0; O < w; O++) {
+      let U = 4 * (A * w + O), D = t.color.light;
+      A >= C && O >= C && A < w - C && O < w - C && (D = E[f[Math.floor((A - C) / m) * d + Math.floor((O - C) / m)] ? 1 : 0]), n[U++] = D.r, n[U++] = D.g, n[U++] = D.b, n[U] = D.a;
+    }
+  };
+} }, It = {};
+function me(h) {
+  var o = It[h];
+  if (o !== void 0) return o.exports;
+  var s = It[h] = { exports: {} };
+  return ar[h](s, s.exports, me), s.exports;
+}
+me.d = (h, o) => {
+  for (var s in o) me.o(o, s) && !me.o(h, s) && Object.defineProperty(h, s, { enumerable: !0, get: o[s] });
+}, me.o = (h, o) => Object.prototype.hasOwnProperty.call(h, o), me.r = (h) => {
+  typeof Symbol < "u" && Symbol.toStringTag && Object.defineProperty(h, Symbol.toStringTag, { value: "Module" }), Object.defineProperty(h, "__esModule", { value: !0 });
+};
+var se = {};
+(() => {
+  me.d(se, { uJ: () => h, bU: () => St, Lk: () => P, Ul: () => dt, PK: () => Ye, hs: () => Ge, TU: () => Et, q4: () => _t, Op: () => f, ZP: () => Gt, nN: () => n, um: () => d, zi: () => w, gM: () => C, NT: () => t });
+  var h = {};
+  me.r(h), me.d(h, { IsAckMessage: () => lt, IsCancelMessage: () => ht, IsOAuth2CodeMessage: () => pt, IsOAuth2ErrorMessage: () => ft, SendWebsocketDirectMessage: () => gt, SessionAPI: () => ut, WebsocketDMSender: () => Jt, arrayBufferToBase64: () => je, base64ToArrayBuffer: () => $e, exportPublicKeyAsBase64: () => wt, generateClientId: () => it, generateKeyPair: () => yt, generateSessionId: () => mt, importPublicKeyFromBase64: () => $t });
+  const o = ["redirect", "popup"];
+  function s(a) {
+    return globalThis.btoa(String.fromCharCode(...a)).replace(/\+/g, "-").replace(/\//g, "_").replace(/=/g, "");
+  }
+  function n() {
+    var a, e, r, c, u;
+    return e = this, r = void 0, u = function* () {
+      const p = new TextEncoder(), k = new Uint8Array(32);
+      globalThis.crypto.getRandomValues(k);
+      const g = s(k), y = (a = globalThis.crypto.webkitSubtle) !== null && a !== void 0 ? a : globalThis.crypto.subtle;
+      if (!y) throw new Error("SubtleCrypto implementation required to generate PKCE values");
+      const l = yield y.digest("SHA-256", p.encode(g));
+      return { code_verifier: g, code_challenge: s(new Uint8Array(l)), code_challenge_method: "S256" };
+    }, new ((c = void 0) || (c = Promise))(function(p, k) {
+      function g(v) {
+        try {
+          l(u.next(v));
+        } catch (b) {
+          k(b);
+        }
+      }
+      function y(v) {
+        try {
+          l(u.throw(v));
+        } catch (b) {
+          k(b);
+        }
+      }
+      function l(v) {
+        var b;
+        v.done ? p(v.value) : (b = v.value, b instanceof c ? b : new c(function(M) {
+          M(b);
+        })).then(g, y);
+      }
+      l((u = u.apply(e, r || [])).next());
+    });
+  }
+  const i = "@criipto/verify-js:pkce:state";
+  function t(a, e) {
+    a.setItem(i, JSON.stringify(e));
+  }
+  function d(a) {
+    const e = a.getItem(i);
+    return e ? JSON.parse(e) : null;
+  }
+  function f(a) {
+    a.removeItem(i);
+  }
+  function m(a) {
+    return a && a.length ? ((a.startsWith("?") || a.startsWith("#")) && (a = a.replace(/^(\?|\#)/, "")), a.split("&").reduce((e, r) => {
+      const c = r.split("=");
+      return e[c[0]] = decodeURIComponent(c[1]), e;
+    }, {})) : {};
+  }
+  function w(a) {
+    var e, r, c, u, p, k, g, y, l, v;
+    const b = new URL(a);
+    return { domain: b.host, clientID: b.searchParams.get("client_id"), acrValues: (r = (e = b.searchParams.get("acr_values")) === null || e === void 0 ? void 0 : e.split(" ")) !== null && r !== void 0 ? r : void 0, redirectUri: (c = b.searchParams.get("redirect_uri")) !== null && c !== void 0 ? c : void 0, responseType: b.searchParams.get("response_type") ? b.searchParams.get("response_type") : void 0, responseMode: (u = b.searchParams.get("response_mode")) !== null && u !== void 0 ? u : void 0, pkce: b.searchParams.get("code_challenge") ? { code_challenge: b.searchParams.get("code_challenge"), code_challenge_method: b.searchParams.get("code_challenge_method") } : void 0, state: (p = b.searchParams.get("state")) !== null && p !== void 0 ? p : void 0, loginHint: (k = b.searchParams.get("login_hint")) !== null && k !== void 0 ? k : void 0, uiLocales: (g = b.searchParams.get("ui_locales")) !== null && g !== void 0 ? g : void 0, scope: (y = b.searchParams.get("scope")) !== null && y !== void 0 ? y : void 0, nonce: (l = b.searchParams.get("nonce")) !== null && l !== void 0 ? l : void 0, prompt: (v = b.searchParams.get("prompt")) !== null && v !== void 0 ? v : void 0 };
+  }
+  function C(a) {
+    return function(e) {
+      return Object.assign(Object.assign({}, m(e.search)), m(e.hash));
+    }(a);
+  }
+  function E(a) {
+    return m(new URL(a).search);
+  }
+  const A = "CRIIPTO_AUTHORIZE_RESPONSE", O = "criipto_popup_backdrop", U = "criipto_popup_backdrop_button_open", D = "criipto_popup_backdrop_button_close";
+  class P extends Error {
+    constructor(e, r, c) {
+      super(e + (r ? ` (${r})` : "")), this.name = "OAuth2Error", this.error = e, this.error_description = r, this.state = c;
+    }
+  }
+  const N = crypto, _ = (a) => a instanceof CryptoKey, x = new TextEncoder(), W = new TextDecoder(), F = (a) => {
+    let e = a;
+    e instanceof Uint8Array && (e = W.decode(e)), e = e.replace(/-/g, "+").replace(/_/g, "/").replace(/\s/g, "");
+    try {
+      return ((r) => {
+        const c = atob(r), u = new Uint8Array(c.length);
+        for (let p = 0; p < c.length; p++) u[p] = c.charCodeAt(p);
+        return u;
+      })(e);
+    } catch {
+      throw new TypeError("The input to be decoded is not correctly encoded.");
+    }
+  };
+  class I extends Error {
+    static get code() {
+      return "ERR_JOSE_GENERIC";
+    }
+    constructor(e) {
+      var r;
+      super(e), this.code = "ERR_JOSE_GENERIC", this.name = this.constructor.name, (r = Error.captureStackTrace) === null || r === void 0 || r.call(Error, this, this.constructor);
+    }
+  }
+  class K extends I {
+    static get code() {
+      return "ERR_JWT_CLAIM_VALIDATION_FAILED";
+    }
+    constructor(e, r = "unspecified", c = "unspecified") {
+      super(e), this.code = "ERR_JWT_CLAIM_VALIDATION_FAILED", this.claim = r, this.reason = c;
+    }
+  }
+  class j extends I {
+    static get code() {
+      return "ERR_JWT_EXPIRED";
+    }
+    constructor(e, r = "unspecified", c = "unspecified") {
+      super(e), this.code = "ERR_JWT_EXPIRED", this.claim = r, this.reason = c;
+    }
+  }
+  class V extends I {
+    constructor() {
+      super(...arguments), this.code = "ERR_JOSE_ALG_NOT_ALLOWED";
+    }
+    static get code() {
+      return "ERR_JOSE_ALG_NOT_ALLOWED";
+    }
+  }
+  class q extends I {
+    constructor() {
+      super(...arguments), this.code = "ERR_JOSE_NOT_SUPPORTED";
+    }
+    static get code() {
+      return "ERR_JOSE_NOT_SUPPORTED";
+    }
+  }
+  class S extends I {
+    constructor() {
+      super(...arguments), this.code = "ERR_JWS_INVALID";
+    }
+    static get code() {
+      return "ERR_JWS_INVALID";
+    }
+  }
+  class re extends I {
+    constructor() {
+      super(...arguments), this.code = "ERR_JWT_INVALID";
+    }
+    static get code() {
+      return "ERR_JWT_INVALID";
+    }
+  }
+  class Q extends I {
+    constructor() {
+      super(...arguments), this.code = "ERR_JWKS_INVALID";
+    }
+    static get code() {
+      return "ERR_JWKS_INVALID";
+    }
+  }
+  class L extends I {
+    constructor() {
+      super(...arguments), this.code = "ERR_JWKS_NO_MATCHING_KEY", this.message = "no applicable key found in the JSON Web Key Set";
+    }
+    static get code() {
+      return "ERR_JWKS_NO_MATCHING_KEY";
+    }
+  }
+  class z extends I {
+    constructor() {
+      super(...arguments), this.code = "ERR_JWKS_MULTIPLE_MATCHING_KEYS", this.message = "multiple matching keys found in the JSON Web Key Set";
+    }
+    static get code() {
+      return "ERR_JWKS_MULTIPLE_MATCHING_KEYS";
+    }
+  }
+  class Z extends I {
+    constructor() {
+      super(...arguments), this.code = "ERR_JWKS_TIMEOUT", this.message = "request timed out";
+    }
+    static get code() {
+      return "ERR_JWKS_TIMEOUT";
+    }
+  }
+  class B extends I {
+    constructor() {
+      super(...arguments), this.code = "ERR_JWS_SIGNATURE_VERIFICATION_FAILED", this.message = "signature verification failed";
+    }
+    static get code() {
+      return "ERR_JWS_SIGNATURE_VERIFICATION_FAILED";
+    }
+  }
+  N.getRandomValues.bind(N);
+  const T = (a) => _(a), Y = ["CryptoKey"], pe = async (a) => {
+    var e, r;
+    if (!a.alg) throw new TypeError('"alg" argument is required when "jwk.alg" is not present');
+    const { algorithm: c, keyUsages: u } = function(g) {
+      let y, l;
+      switch (g.kty) {
+        case "oct":
+          switch (g.alg) {
+            case "HS256":
+            case "HS384":
+            case "HS512":
+              y = { name: "HMAC", hash: `SHA-${g.alg.slice(-3)}` }, l = ["sign", "verify"];
+              break;
+            case "A128CBC-HS256":
+            case "A192CBC-HS384":
+            case "A256CBC-HS512":
+              throw new q(`${g.alg} keys cannot be imported as CryptoKey instances`);
+            case "A128GCM":
+            case "A192GCM":
+            case "A256GCM":
+            case "A128GCMKW":
+            case "A192GCMKW":
+            case "A256GCMKW":
+              y = { name: "AES-GCM" }, l = ["encrypt", "decrypt"];
+              break;
+            case "A128KW":
+            case "A192KW":
+            case "A256KW":
+              y = { name: "AES-KW" }, l = ["wrapKey", "unwrapKey"];
+              break;
+            case "PBES2-HS256+A128KW":
+            case "PBES2-HS384+A192KW":
+            case "PBES2-HS512+A256KW":
+              y = { name: "PBKDF2" }, l = ["deriveBits"];
+              break;
+            default:
+              throw new q('Invalid or unsupported JWK "alg" (Algorithm) Parameter value');
+          }
+          break;
+        case "RSA":
+          switch (g.alg) {
+            case "PS256":
+            case "PS384":
+            case "PS512":
+              y = { name: "RSA-PSS", hash: `SHA-${g.alg.slice(-3)}` }, l = g.d ? ["sign"] : ["verify"];
+              break;
+            case "RS256":
+            case "RS384":
+            case "RS512":
+              y = { name: "RSASSA-PKCS1-v1_5", hash: `SHA-${g.alg.slice(-3)}` }, l = g.d ? ["sign"] : ["verify"];
+              break;
+            case "RSA-OAEP":
+            case "RSA-OAEP-256":
+            case "RSA-OAEP-384":
+            case "RSA-OAEP-512":
+              y = { name: "RSA-OAEP", hash: `SHA-${parseInt(g.alg.slice(-3), 10) || 1}` }, l = g.d ? ["decrypt", "unwrapKey"] : ["encrypt", "wrapKey"];
+              break;
+            default:
+              throw new q('Invalid or unsupported JWK "alg" (Algorithm) Parameter value');
+          }
+          break;
+        case "EC":
+          switch (g.alg) {
+            case "ES256":
+              y = { name: "ECDSA", namedCurve: "P-256" }, l = g.d ? ["sign"] : ["verify"];
+              break;
+            case "ES384":
+              y = { name: "ECDSA", namedCurve: "P-384" }, l = g.d ? ["sign"] : ["verify"];
+              break;
+            case "ES512":
+              y = { name: "ECDSA", namedCurve: "P-521" }, l = g.d ? ["sign"] : ["verify"];
+              break;
+            case "ECDH-ES":
+            case "ECDH-ES+A128KW":
+            case "ECDH-ES+A192KW":
+            case "ECDH-ES+A256KW":
+              y = { name: "ECDH", namedCurve: g.crv }, l = g.d ? ["deriveBits"] : [];
+              break;
+            default:
+              throw new q('Invalid or unsupported JWK "alg" (Algorithm) Parameter value');
+          }
+          break;
+        case "OKP":
+          switch (g.alg) {
+            case "EdDSA":
+              y = { name: g.crv }, l = g.d ? ["sign"] : ["verify"];
+              break;
+            case "ECDH-ES":
+            case "ECDH-ES+A128KW":
+            case "ECDH-ES+A192KW":
+            case "ECDH-ES+A256KW":
+              y = { name: g.crv }, l = g.d ? ["deriveBits"] : [];
+              break;
+            default:
+              throw new q('Invalid or unsupported JWK "alg" (Algorithm) Parameter value');
+          }
+          break;
+        default:
+          throw new q('Invalid or unsupported JWK "kty" (Key Type) Parameter value');
+      }
+      return { algorithm: y, keyUsages: l };
+    }(a), p = [c, (e = a.ext) !== null && e !== void 0 && e, (r = a.key_ops) !== null && r !== void 0 ? r : u];
+    if (c.name === "PBKDF2") return N.subtle.importKey("raw", F(a.k), ...p);
+    const k = { ...a };
+    return delete k.alg, delete k.use, N.subtle.importKey("jwk", k, ...p);
+  };
+  function ke(a) {
+    if (typeof (e = a) != "object" || e === null || Object.prototype.toString.call(a) !== "[object Object]") return !1;
+    var e;
+    if (Object.getPrototypeOf(a) === null) return !0;
+    let r = a;
+    for (; Object.getPrototypeOf(r) !== null; ) r = Object.getPrototypeOf(r);
+    return Object.getPrototypeOf(a) === r;
+  }
+  function de(a, e, ...r) {
+    if (r.length > 2) {
+      const c = r.pop();
+      a += `one of type ${r.join(", ")}, or ${c}.`;
+    } else r.length === 2 ? a += `one of type ${r[0]} or ${r[1]}.` : a += `of type ${r[0]}.`;
+    return e == null ? a += ` Received ${e}` : typeof e == "function" && e.name ? a += ` Received function ${e.name}` : typeof e == "object" && e != null && e.constructor && e.constructor.name && (a += ` Received an instance of ${e.constructor.name}`), a;
+  }
+  const Je = (a, ...e) => de("Key must be ", a, ...e);
+  function We(a, e, ...r) {
+    return de(`Key for the ${a} algorithm must be `, e, ...r);
+  }
+  function ae(a, e = "algorithm.name") {
+    return new TypeError(`CryptoKey does not support this operation, its ${e} must be ${a}`);
+  }
+  function Ee(a, e) {
+    return a.name === e;
+  }
+  function Ae(a) {
+    return parseInt(a.name.slice(4), 10);
+  }
+  function rt(a, e, ...r) {
+    switch (e) {
+      case "HS256":
+      case "HS384":
+      case "HS512": {
+        if (!Ee(a.algorithm, "HMAC")) throw ae("HMAC");
+        const c = parseInt(e.slice(2), 10);
+        if (Ae(a.algorithm.hash) !== c) throw ae(`SHA-${c}`, "algorithm.hash");
+        break;
+      }
+      case "RS256":
+      case "RS384":
+      case "RS512": {
+        if (!Ee(a.algorithm, "RSASSA-PKCS1-v1_5")) throw ae("RSASSA-PKCS1-v1_5");
+        const c = parseInt(e.slice(2), 10);
+        if (Ae(a.algorithm.hash) !== c) throw ae(`SHA-${c}`, "algorithm.hash");
+        break;
+      }
+      case "PS256":
+      case "PS384":
+      case "PS512": {
+        if (!Ee(a.algorithm, "RSA-PSS")) throw ae("RSA-PSS");
+        const c = parseInt(e.slice(2), 10);
+        if (Ae(a.algorithm.hash) !== c) throw ae(`SHA-${c}`, "algorithm.hash");
+        break;
+      }
+      case "EdDSA":
+        if (a.algorithm.name !== "Ed25519" && a.algorithm.name !== "Ed448") throw ae("Ed25519 or Ed448");
+        break;
+      case "ES256":
+      case "ES384":
+      case "ES512": {
+        if (!Ee(a.algorithm, "ECDSA")) throw ae("ECDSA");
+        const c = function(u) {
+          switch (u) {
+            case "ES256":
+              return "P-256";
+            case "ES384":
+              return "P-384";
+            case "ES512":
+              return "P-521";
+            default:
+              throw new Error("unreachable");
+          }
+        }(e);
+        if (a.algorithm.namedCurve !== c) throw ae(c, "algorithm.namedCurve");
+        break;
+      }
+      default:
+        throw new TypeError("CryptoKey does not support this operation");
+    }
+    (function(c, u) {
+      if (u.length && !u.some((p) => c.usages.includes(p))) {
+        let p = "CryptoKey does not support this operation, its usages must include ";
+        if (u.length > 2) {
+          const k = u.pop();
+          p += `one of ${u.join(", ")}, or ${k}.`;
+        } else u.length === 2 ? p += `one of ${u[0]} or ${u[1]}.` : p += `${u[0]}.`;
+        throw new TypeError(p);
+      }
+    })(a, r);
+  }
+  async function Me(a, e, r) {
+    if (a instanceof Uint8Array && (a = W.decode(a)), typeof a != "string") throw new S("Compact JWS must be a string or Uint8Array");
+    const { 0: c, 1: u, 2: p, length: k } = a.split(".");
+    if (k !== 3) throw new S("Invalid Compact JWS");
+    const g = await async function(l, v, b) {
+      var M;
+      if (!ke(l)) throw new S("Flattened JWS must be an object");
+      if (l.protected === void 0 && l.header === void 0) throw new S('Flattened JWS must have either of the "protected" or "header" members');
+      if (l.protected !== void 0 && typeof l.protected != "string") throw new S("JWS Protected Header incorrect type");
+      if (l.payload === void 0) throw new S("JWS Payload missing");
+      if (typeof l.signature != "string") throw new S("JWS Signature missing or incorrect type");
+      if (l.header !== void 0 && !ke(l.header)) throw new S("JWS Unprotected Header incorrect type");
+      let R = {};
+      if (l.protected) try {
+        const J = F(l.protected);
+        R = JSON.parse(W.decode(J));
+      } catch {
+        throw new S("JWS Protected Header is invalid");
+      }
+      if (!((...J) => {
+        const ee = J.filter(Boolean);
+        if (ee.length === 0 || ee.length === 1) return !0;
+        let X;
+        for (const $ of ee) {
+          const H = Object.keys($);
+          if (X && X.size !== 0) for (const ie of H) {
+            if (X.has(ie)) return !1;
+            X.add(ie);
+          }
+          else X = new Set(H);
+        }
+        return !0;
+      })(R, l.header)) throw new S("JWS Protected and JWS Unprotected Header Parameter names must be disjoint");
+      const te = { ...R, ...l.header };
+      let ce = !0;
+      if (function(J, ee, X, $, H) {
+        if (H.crit !== void 0 && $.crit === void 0) throw new J('"crit" (Critical) Header Parameter MUST be integrity protected');
+        if (!$ || $.crit === void 0) return /* @__PURE__ */ new Set();
+        if (!Array.isArray($.crit) || $.crit.length === 0 || $.crit.some((G) => typeof G != "string" || G.length === 0)) throw new J('"crit" (Critical) Header Parameter MUST be an array of non-empty strings when present');
+        let ie;
+        ie = X !== void 0 ? new Map([...Object.entries(X), ...ee.entries()]) : ee;
+        for (const G of $.crit) {
+          if (!ie.has(G)) throw new q(`Extension Header Parameter "${G}" is not recognized`);
+          if (H[G] === void 0) throw new J(`Extension Header Parameter "${G}" is missing`);
+          if (ie.get(G) && $[G] === void 0) throw new J(`Extension Header Parameter "${G}" MUST be integrity protected`);
+        }
+        return new Set($.crit);
+      }(S, /* @__PURE__ */ new Map([["b64", !0]]), b == null ? void 0 : b.crit, R, te).has("b64") && (ce = R.b64, typeof ce != "boolean")) throw new S('The "b64" (base64url-encode payload) Header Parameter must be a boolean');
+      const { alg: ne } = te;
+      if (typeof ne != "string" || !ne) throw new S('JWS "alg" (Algorithm) Header Parameter missing or invalid');
+      const et = b && ((J, ee) => {
+        if (ee !== void 0 && (!Array.isArray(ee) || ee.some((X) => typeof X != "string"))) throw new TypeError(`"${J}" option must be an array of strings`);
+        if (ee) return new Set(ee);
+      })("algorithms", b.algorithms);
+      if (et && !et.has(ne)) throw new V('"alg" (Algorithm) Header Parameter not allowed');
+      if (ce) {
+        if (typeof l.payload != "string") throw new S("JWS Payload must be a string");
+      } else if (typeof l.payload != "string" && !(l.payload instanceof Uint8Array)) throw new S("JWS Payload must be a string or an Uint8Array instance");
+      let be = !1;
+      typeof v == "function" && (v = await v(R, l), be = !0), ((J, ee, X) => {
+        J.startsWith("HS") || J === "dir" || J.startsWith("PBES2") || /^A\d{3}(?:GCM)?KW$/.test(J) ? (($, H) => {
+          if (!(H instanceof Uint8Array)) {
+            if (!T(H)) throw new TypeError(We($, H, ...Y, "Uint8Array"));
+            if (H.type !== "secret") throw new TypeError(`${Y.join(" or ")} instances for symmetric algorithms must be of type "secret"`);
+          }
+        })(J, ee) : (($, H, ie) => {
+          if (!T(H)) throw new TypeError(We($, H, ...Y));
+          if (H.type === "secret") throw new TypeError(`${Y.join(" or ")} instances for asymmetric algorithms must not be of type "secret"`);
+          if (H.algorithm && ie === "verify" && H.type === "private") throw new TypeError(`${Y.join(" or ")} instances for asymmetric algorithm verifying must be of type "public"`);
+          H.algorithm;
+        })(J, ee, X);
+      })(ne, v, "verify");
+      const ze = function(...J) {
+        const ee = J.reduce((H, { length: ie }) => H + ie, 0), X = new Uint8Array(ee);
+        let $ = 0;
+        return J.forEach((H) => {
+          X.set(H, $), $ += H.length;
+        }), X;
+      }(x.encode((M = l.protected) !== null && M !== void 0 ? M : ""), x.encode("."), typeof l.payload == "string" ? x.encode(l.payload) : l.payload);
+      let tt, Re;
+      try {
+        tt = F(l.signature);
+      } catch {
+        throw new S("Failed to base64url decode the signature");
+      }
+      if (!await (async (J, ee, X, $) => {
+        const H = await function(G, ue, ge) {
+          if (_(ue)) return rt(ue, G, ge), ue;
+          if (ue instanceof Uint8Array) {
+            if (!G.startsWith("HS")) throw new TypeError(Je(ue, ...Y));
+            return N.subtle.importKey("raw", ue, { hash: `SHA-${G.slice(-3)}`, name: "HMAC" }, !1, [ge]);
+          }
+          throw new TypeError(Je(ue, ...Y, "Uint8Array"));
+        }(J, ee, "verify");
+        ((G, ue) => {
+          if (G.startsWith("RS") || G.startsWith("PS")) {
+            const { modulusLength: ge } = ue.algorithm;
+            if (typeof ge != "number" || ge < 2048) throw new TypeError(`${G} requires key modulusLength to be 2048 bits or larger`);
+          }
+        })(J, H);
+        const ie = function(G, ue) {
+          const ge = `SHA-${G.slice(-3)}`;
+          switch (G) {
+            case "HS256":
+            case "HS384":
+            case "HS512":
+              return { hash: ge, name: "HMAC" };
+            case "PS256":
+            case "PS384":
+            case "PS512":
+              return { hash: ge, name: "RSA-PSS", saltLength: G.slice(-3) >> 3 };
+            case "RS256":
+            case "RS384":
+            case "RS512":
+              return { hash: ge, name: "RSASSA-PKCS1-v1_5" };
+            case "ES256":
+            case "ES384":
+            case "ES512":
+              return { hash: ge, name: "ECDSA", namedCurve: ue.namedCurve };
+            case "EdDSA":
+              return { name: ue.name };
+            default:
+              throw new q(`alg ${G} is not supported either by JOSE or your javascript runtime`);
+          }
+        }(J, H.algorithm);
+        try {
+          return await N.subtle.verify(ie, H, X, $);
+        } catch {
+          return !1;
+        }
+      })(ne, v, tt, ze)) throw new B();
+      if (ce) try {
+        Re = F(l.payload);
+      } catch {
+        throw new S("Failed to base64url decode the payload");
+      }
+      else Re = typeof l.payload == "string" ? x.encode(l.payload) : l.payload;
+      const fe = { payload: Re };
+      return l.protected !== void 0 && (fe.protectedHeader = R), l.header !== void 0 && (fe.unprotectedHeader = l.header), be ? { ...fe, key: v } : fe;
+    }({ payload: u, protected: c, signature: p }, e, r), y = { payload: g.payload, protectedHeader: g.protectedHeader };
+    return typeof e == "function" ? { ...y, key: g.key } : y;
+  }
+  const _e = /^(\d+|\d+\.\d+) ?(seconds?|secs?|s|minutes?|mins?|m|hours?|hrs?|h|days?|d|weeks?|w|years?|yrs?|y)$/i, Oe = (a) => {
+    const e = _e.exec(a);
+    if (!e) throw new TypeError("Invalid time period format");
+    const r = parseFloat(e[1]);
+    switch (e[2].toLowerCase()) {
+      case "sec":
+      case "secs":
+      case "second":
+      case "seconds":
+      case "s":
+        return Math.round(r);
+      case "minute":
+      case "minutes":
+      case "min":
+      case "mins":
+      case "m":
+        return Math.round(60 * r);
+      case "hour":
+      case "hours":
+      case "hr":
+      case "hrs":
+      case "h":
+        return Math.round(3600 * r);
+      case "day":
+      case "days":
+      case "d":
+        return Math.round(86400 * r);
+      case "week":
+      case "weeks":
+      case "w":
+        return Math.round(604800 * r);
+      default:
+        return Math.round(31557600 * r);
+    }
+  }, Se = (a) => a.toLowerCase().replace(/^application\//, ""), nt = (a, e, r = {}) => {
+    const { typ: c } = r;
+    if (c && (typeof a.typ != "string" || Se(a.typ) !== Se(c))) throw new K('unexpected "typ" JWT header value', "typ", "check_failed");
+    let u;
+    try {
+      u = JSON.parse(W.decode(e));
+    } catch {
+    }
+    if (!ke(u)) throw new re("JWT Claims Set must be a top-level JSON object");
+    const { requiredClaims: p = [], issuer: k, subject: g, audience: y, maxTokenAge: l } = r;
+    l !== void 0 && p.push("iat"), y !== void 0 && p.push("aud"), g !== void 0 && p.push("sub"), k !== void 0 && p.push("iss");
+    for (const ne of new Set(p.reverse())) if (!(ne in u)) throw new K(`missing required "${ne}" claim`, ne, "missing");
+    if (k && !(Array.isArray(k) ? k : [k]).includes(u.iss)) throw new K('unexpected "iss" claim value', "iss", "check_failed");
+    if (g && u.sub !== g) throw new K('unexpected "sub" claim value', "sub", "check_failed");
+    if (y && (b = typeof y == "string" ? [y] : y, !(typeof (v = u.aud) == "string" ? b.includes(v) : Array.isArray(v) && b.some(Set.prototype.has.bind(new Set(v)))))) throw new K('unexpected "aud" claim value', "aud", "check_failed");
+    var v, b;
+    let M;
+    switch (typeof r.clockTolerance) {
+      case "string":
+        M = Oe(r.clockTolerance);
+        break;
+      case "number":
+        M = r.clockTolerance;
+        break;
+      case "undefined":
+        M = 0;
+        break;
+      default:
+        throw new TypeError("Invalid clockTolerance option type");
+    }
+    const { currentDate: R } = r, te = (ce = R || /* @__PURE__ */ new Date(), Math.floor(ce.getTime() / 1e3));
+    var ce;
+    if ((u.iat !== void 0 || l) && typeof u.iat != "number") throw new K('"iat" claim must be a number', "iat", "invalid");
+    if (u.nbf !== void 0) {
+      if (typeof u.nbf != "number") throw new K('"nbf" claim must be a number', "nbf", "invalid");
+      if (u.nbf > te + M) throw new K('"nbf" claim timestamp check failed', "nbf", "check_failed");
+    }
+    if (u.exp !== void 0) {
+      if (typeof u.exp != "number") throw new K('"exp" claim must be a number', "exp", "invalid");
+      if (u.exp <= te - M) throw new j('"exp" claim timestamp check failed', "exp", "check_failed");
+    }
+    if (l) {
+      const ne = te - u.iat;
+      if (ne - M > (typeof l == "number" ? l : Oe(l))) throw new j('"iat" claim timestamp check failed (too far in the past)', "iat", "check_failed");
+      if (ne < 0 - M) throw new K('"iat" claim timestamp check failed (it should be in the past)', "iat", "check_failed");
+    }
+    return u;
+  };
+  function Ce(a) {
+    return a && typeof a == "object" && Array.isArray(a.keys) && a.keys.every(le);
+  }
+  function le(a) {
+    return ke(a);
+  }
+  class he {
+    constructor(e) {
+      if (this._cached = /* @__PURE__ */ new WeakMap(), !Ce(e)) throw new Q("JSON Web Key Set malformed");
+      var r;
+      this._jwks = (r = e, typeof structuredClone == "function" ? structuredClone(r) : JSON.parse(JSON.stringify(r)));
+    }
+    async getKey(e, r) {
+      const { alg: c, kid: u } = { ...e, ...r == null ? void 0 : r.header }, p = function(l) {
+        switch (typeof l == "string" && l.slice(0, 2)) {
+          case "RS":
+          case "PS":
+            return "RSA";
+          case "ES":
+            return "EC";
+          case "Ed":
+            return "OKP";
+          default:
+            throw new q('Unsupported "alg" value for a JSON Web Key Set');
+        }
+      }(c), k = this._jwks.keys.filter((l) => {
+        let v = p === l.kty;
+        if (v && typeof u == "string" && (v = u === l.kid), v && typeof l.alg == "string" && (v = c === l.alg), v && typeof l.use == "string" && (v = l.use === "sig"), v && Array.isArray(l.key_ops) && (v = l.key_ops.includes("verify")), v && c === "EdDSA" && (v = l.crv === "Ed25519" || l.crv === "Ed448"), v) switch (c) {
+          case "ES256":
+            v = l.crv === "P-256";
+            break;
+          case "ES256K":
+            v = l.crv === "secp256k1";
+            break;
+          case "ES384":
+            v = l.crv === "P-384";
+            break;
+          case "ES512":
+            v = l.crv === "P-521";
+        }
+        return v;
+      }), { 0: g, length: y } = k;
+      if (y === 0) throw new L();
+      if (y !== 1) {
+        const l = new z(), { _cached: v } = this;
+        throw l[Symbol.asyncIterator] = async function* () {
+          for (const b of k) try {
+            yield await Ke(v, b, c);
+          } catch {
+            continue;
+          }
+        }, l;
+      }
+      return Ke(this._cached, g, c);
+    }
+  }
+  async function Ke(a, e, r) {
+    const c = a.get(e) || a.set(e, {}).get(e);
+    if (c[r] === void 0) {
+      const u = await async function(p, k, g) {
+        var y;
+        if (!ke(p)) throw new TypeError("JWK must be an object");
+        switch (k || (k = p.alg), p.kty) {
+          case "oct":
+            if (typeof p.k != "string" || !p.k) throw new TypeError('missing "k" (Key Value) Parameter value');
+            return g != null || (g = p.ext !== !0), g ? pe({ ...p, alg: k, ext: (y = p.ext) !== null && y !== void 0 && y }) : F(p.k);
+          case "RSA":
+            if (p.oth !== void 0) throw new q('RSA JWK "oth" (Other Primes Info) Parameter value is not supported');
+          case "EC":
+          case "OKP":
+            return pe({ ...p, alg: k });
+          default:
+            throw new q('Unsupported "kty" (Key Type) Parameter value');
+        }
+      }({ ...e, ext: !0 }, r);
+      if (u instanceof Uint8Array || u.type !== "public") throw new Q("JSON Web Key Set members must be public keys");
+      c[r] = u;
+    }
+    return c[r];
+  }
+  class we extends he {
+    constructor(e, r) {
+      if (super({ keys: [] }), this._jwks = void 0, !(e instanceof URL)) throw new TypeError("url must be an instance of URL");
+      this._url = new URL(e.href), this._options = { agent: r == null ? void 0 : r.agent, headers: r == null ? void 0 : r.headers }, this._timeoutDuration = typeof (r == null ? void 0 : r.timeoutDuration) == "number" ? r == null ? void 0 : r.timeoutDuration : 5e3, this._cooldownDuration = typeof (r == null ? void 0 : r.cooldownDuration) == "number" ? r == null ? void 0 : r.cooldownDuration : 3e4, this._cacheMaxAge = typeof (r == null ? void 0 : r.cacheMaxAge) == "number" ? r == null ? void 0 : r.cacheMaxAge : 6e5;
+    }
+    coolingDown() {
+      return typeof this._jwksTimestamp == "number" && Date.now() < this._jwksTimestamp + this._cooldownDuration;
+    }
+    fresh() {
+      return typeof this._jwksTimestamp == "number" && Date.now() < this._jwksTimestamp + this._cacheMaxAge;
+    }
+    async getKey(e, r) {
+      this._jwks && this.fresh() || await this.reload();
+      try {
+        return await super.getKey(e, r);
+      } catch (c) {
+        if (c instanceof L && this.coolingDown() === !1) return await this.reload(), super.getKey(e, r);
+        throw c;
+      }
+    }
+    async reload() {
+      this._pendingFetch && (typeof WebSocketPair < "u" || typeof navigator < "u" && navigator.userAgent === "Cloudflare-Workers" || typeof EdgeRuntime < "u" && EdgeRuntime === "vercel") && (this._pendingFetch = void 0), this._pendingFetch || (this._pendingFetch = (async (e, r, c) => {
+        let u, p, k = !1;
+        typeof AbortController == "function" && (u = new AbortController(), p = setTimeout(() => {
+          k = !0, u.abort();
+        }, r));
+        const g = await fetch(e.href, { signal: u ? u.signal : void 0, redirect: "manual", headers: c.headers }).catch((y) => {
+          throw k ? new Z() : y;
+        });
+        if (p !== void 0 && clearTimeout(p), g.status !== 200) throw new I("Expected 200 OK from the JSON Web Key Set HTTP response");
+        try {
+          return await g.json();
+        } catch {
+          throw new I("Failed to parse the JSON Web Key Set HTTP response as JSON");
+        }
+      })(this._url, this._timeoutDuration, this._options).then((e) => {
+        if (!Ce(e)) throw new Q("JSON Web Key Set malformed");
+        this._jwks = { keys: e.keys }, this._jwksTimestamp = Date.now(), this._pendingFetch = void 0;
+      }).catch((e) => {
+        throw this._pendingFetch = void 0, e;
+      })), await this._pendingFetch;
+    }
+  }
+  class Ue {
+  }
+  const dt = class extends Ue {
+    constructor(a, e) {
+      super(), this.authority = a, this.clientID = e;
+    }
+    fetchMetadata() {
+      return globalThis.fetch(`${this.authority}/.well-known/openid-configuration?client_id=${this.clientID}`).then((a) => a.json()).then((a) => (Object.assign(this, a), this));
+    }
+  };
+  class Kt {
+  }
+  const Ut = class extends Kt {
+    constructor(a, e) {
+      super(), this.authority = a, this.clientID = e;
+    }
+    fetchMetadata() {
+      return globalThis.fetch(`${this.authority}/.well-known/criipto-configuration?client_id=${this.clientID}`).then((a) => a.json()).then((a) => (Object.assign(this, a), this.client = this.clients.find((e) => e.client_id === this.clientID), this));
+    }
+  };
+  class xt {
+    constructor(e) {
+      this.criiptoAuth = e, this.store = this.criiptoAuth.store;
+    }
+    authorize(e) {
+      var r, c, u, p, k;
+      return c = this, u = void 0, k = function* () {
+        const g = e.redirectUri || this.criiptoAuth.options.redirectUri, y = (r = e.responseType) !== null && r !== void 0 ? r : "id_token", l = yield e.pkce ? Promise.resolve(e.pkce) : y === "id_token" ? n() : Promise.resolve(void 0);
+        t(this.store, l && "code_verifier" in l ? { response_type: "id_token", redirect_uri: g, pkce_code_verifier: l.code_verifier } : { response_type: "code", redirect_uri: g });
+        const v = yield this.criiptoAuth.buildAuthorizeUrl(this.criiptoAuth.buildAuthorizeParams(Object.assign(Object.assign({}, e), { responseMode: "query", responseType: "code", pkce: l })));
+        globalThis.location.href = v;
+      }, new ((p = void 0) || (p = Promise))(function(g, y) {
+        function l(M) {
+          try {
+            b(k.next(M));
+          } catch (R) {
+            y(R);
+          }
+        }
+        function v(M) {
+          try {
+            b(k.throw(M));
+          } catch (R) {
+            y(R);
+          }
+        }
+        function b(M) {
+          var R;
+          M.done ? g(M.value) : (R = M.value, R instanceof p ? R : new p(function(te) {
+            te(R);
+          })).then(l, v);
+        }
+        b((k = k.apply(c, u || [])).next());
+      });
+    }
+    match(e = {}) {
+      var r;
+      const c = (r = e.location) !== null && r !== void 0 ? r : "location" in globalThis ? globalThis.location : void 0;
+      if (!c) return Promise.resolve(null);
+      const u = C(c);
+      if (!u.code && !u.error && !u.id_token) return Promise.resolve(null);
+      if (u.error) return Promise.reject(new P(u.error, u.error_description, u.state));
+      if (u.id_token) return Promise.resolve(u);
+      const p = d(this.store);
+      return p ? this.criiptoAuth.processResponse(u, p.response_type === "id_token" ? { code_verifier: p.pkce_code_verifier, redirect_uri: p.redirect_uri } : void 0).then((k) => (k && f(this.store), k)).catch((k) => (f(this.store), Promise.reject(k))) : Promise.reject(new Error("No redirect state available"));
+    }
+    hasMatch(e = {}) {
+      var r;
+      const c = (r = e.location) !== null && r !== void 0 ? r : "location" in globalThis ? globalThis.location : void 0;
+      if (!c) return !1;
+      const u = C(c);
+      return !!(u.code || u.error || u.id_token);
+    }
+  }
+  class jt {
+    constructor(e) {
+      this.criiptoAuth = e, this.backdrop = new Ht(this);
+    }
+    open(e, r) {
+      var c, u, p, k, g, y;
+      let { width: l, height: v } = r;
+      l = l || 400, v = v || 660;
+      const b = (c = window.screenLeft) !== null && c !== void 0 ? c : window.screenX, M = (u = window.screenTop) !== null && u !== void 0 ? u : window.screenY, R = (k = (p = window.innerWidth) !== null && p !== void 0 ? p : document.documentElement.clientWidth) !== null && k !== void 0 ? k : screen.width, te = (y = (g = window.innerHeight) !== null && g !== void 0 ? g : document.documentElement.clientHeight) !== null && y !== void 0 ? y : screen.height, ce = R / window.screen.availWidth, ne = `width=${l},height=${v},top=${(te - v) / 2 / ce + M},left=${(R - l) / 2 / ce + b}`;
+      return this.window = window.open(e, "CRIIPTO_POPUP_ID", ne), r.backdrop !== !1 && (this._latestParams = r, this._latestUrl = e, this.backdrop.render(r)), this.window;
+    }
+    listen(e) {
+      return new Promise((r, c) => {
+        this.checker && clearTimeout(this.checker);
+        const u = (g) => !(!(g.code || g.error || g.id_token) || e.state && e.state !== g.state || (window.removeEventListener("message", p), this.checker && clearTimeout(this.checker), this.window.close(), r(g), 0)), p = (g) => {
+          if ((g.source === this.window || g.origin === `https://${this.criiptoAuth.domain}`) && g.data && typeof g.data == "string") {
+            if ((g.data.startsWith(A) ? A : null) === A) {
+              const y = JSON.parse(g.data.replace(A, ""));
+              y && (y.code || y.id_token || y.error) && u(y);
+            } else if (g.data.includes("code=") || g.data.includes("id_token=") || g.data.includes("error=")) {
+              const y = E(g.data);
+              u(y);
+            }
+          }
+        }, k = () => {
+          if (!this.checker || !e.redirectUri) return;
+          const g = () => this.checker = window.setTimeout(k, 250);
+          try {
+            const y = new URL(e.redirectUri);
+            if (this.window.location.href.replace(this.window.location.search, "") === y.href.replace(y.search, "")) {
+              const l = E(this.window.location.href);
+              if (u(l)) return;
+            }
+            g();
+          } catch {
+            g();
+          }
+        };
+        this.checker = window.setTimeout(k, 250), window.addEventListener("message", p);
+      }).finally(() => {
+        this.backdrop.remove();
+      });
+    }
+    buildAuthorizeUrl(e) {
+      const r = this.criiptoAuth.buildAuthorizeParams(Object.assign(Object.assign({}, e), { responseMode: "post_message" }));
+      return this.criiptoAuth.buildAuthorizeUrl(r).then((c) => ({ url: c, params: r }));
+    }
+    trigger(e) {
+      return this.buildAuthorizeUrl(e).then(({ url: r, params: c }) => (this.open(r, e), this.listen(e).then((u) => this.criiptoAuth.processResponse(u, c.pkce && "code_verifier" in c.pkce ? { code_verifier: c.pkce.code_verifier, redirect_uri: c.redirectUri } : void 0).then((p) => p)))).finally(() => {
+        e.backdrop !== !1 && this.backdrop.remove();
+      });
+    }
+    authorize(e) {
+      var r, c, u, p, k;
+      return c = this, u = void 0, k = function* () {
+        const g = (r = e.responseType) !== null && r !== void 0 ? r : "id_token", y = yield e.pkce ? Promise.resolve(e.pkce) : g === "id_token" ? n() : Promise.resolve(void 0);
+        return this.trigger(Object.assign(Object.assign({}, e), { responseType: "code", pkce: y }));
+      }, new ((p = void 0) || (p = Promise))(function(g, y) {
+        function l(M) {
+          try {
+            b(k.next(M));
+          } catch (R) {
+            y(R);
+          }
+        }
+        function v(M) {
+          try {
+            b(k.throw(M));
+          } catch (R) {
+            y(R);
+          }
+        }
+        function b(M) {
+          var R;
+          M.done ? g(M.value) : (R = M.value, R instanceof p ? R : new p(function(te) {
+            te(R);
+          })).then(l, v);
+        }
+        b((k = k.apply(c, u || [])).next());
+      });
+    }
+    close() {
+      this.window.close();
+    }
+    callback(e) {
+      if (!e) throw new Error("popup.callback required argument origin");
+      const r = C(window.location);
+      window.opener.postMessage(A + JSON.stringify(r), e), window.close();
+    }
+  }
+  const Nt = `
 <div class="criipto-auth-popup-backdrop-background"></div>
 <div class="criipto-auth-popup-backdrop-content">
   <p>Don't see the login popup?</p>
   <button id="${U}">Reopen popup</button>
   <button id="${D}">Cancel</button>
 </div>
-`,Lt=`
+`, Lt = `
 <div class="criipto-auth-popup-backdrop-background"></div>
 <div class="criipto-auth-popup-backdrop-content">
   <p>Kan du ikke se pop-uppen?</p>
   <button id="${U}">Åben popup</button>
   <button id="${D}">Fortryd</button>
 </div>
-`,Bt=`
+`, Bt = `
 <div class="criipto-auth-popup-backdrop-background"></div>
 <div class="criipto-auth-popup-backdrop-content">
   <p>Ser du inte inloggningspopupen?</p>
   <button id="${U}">Öppna popup igen</button>
   <button id="${D}">Avbryt</button>
 </div>
-`,Dt=`
+`, Dt = `
 <div class="criipto-auth-popup-backdrop-background"></div>
 <div class="criipto-auth-popup-backdrop-content">
   <p>Ser du ikke popup-dialogboksen for pålogging?</p>
   <button id="${U}">Åpne popup på nytt</button>
   <button id="${D}">Avbryt</button>
 </div>
-`;class Ht{constructor(e){this.template=null,this.popup=e,this.enabled=!0}render(e){var r,c,u;const p=document.getElementById(O),k=((r=this.template)!==null&&r!==void 0?r:e.uiLocales=="da")?Lt:e.uiLocales=="se"||e.uiLocales=="sv"?Bt:e.uiLocales=="nb"?Dt:Nt;if(!p){const g=document.createElement("div");g.id=O,g.className="criipto-auth-popup-backdrop",g.innerHTML=k,document.body.appendChild(g),(c=document.getElementById(U))===null||c===void 0||c.addEventListener("click",()=>this.handleOpen()),(u=document.getElementById(D))===null||u===void 0||u.addEventListener("click",()=>this.handleCancel())}}handleOpen(){this.popup.open(this.popup._latestUrl,this.popup._latestParams)}handleCancel(){this.remove(),this.popup.close()}remove(){const e=document.getElementById(O);e&&document.body.removeChild(e)}}var zt=me(592),ot=function(a,e,r,c){return new(r||(r=Promise))(function(u,p){function k(l){try{y(c.next(l))}catch(v){p(v)}}function g(l){try{y(c.throw(l))}catch(v){p(v)}}function y(l){var v;l.done?u(l.value):(v=l.value,v instanceof r?v:new r(function(b){b(v)})).then(k,g)}y((c=c.apply(a,[])).next())})};class ut{constructor(e){if(this.URL=e,!e.includes("{id}"))throw new Error("Expected URL to include {id} template arg.")}get(e){return ot(this,void 0,void 0,function*(){const r=this.URL.replace("{id}",e),c=yield fetch(r);if(c.ok)return yield c.json();if(c.status===404)return null;const u=yield c.text();throw new Error(u)})}save(e,r){return ot(this,void 0,void 0,function*(){const c=this.URL.replace("{id}",e),u=yield fetch(c,{method:"POST",body:JSON.stringify(r),headers:{"Content-Type":"application/json"}});if(u.ok)return;const p=yield u.text();throw new Error(p)})}delete(e){return ot(this,void 0,void 0,function*(){const r=this.URL.replace("{id}",e),c=yield fetch(r,{method:"DELETE"});if(c.ok)return;const u=yield c.text();throw new Error(u)})}}var xe=function(a,e,r,c){return new(r||(r=Promise))(function(u,p){function k(l){try{y(c.next(l))}catch(v){p(v)}}function g(l){try{y(c.throw(l))}catch(v){p(v)}}function y(l){var v;l.done?u(l.value):(v=l.value,v instanceof r?v:new r(function(b){b(v)})).then(k,g)}y((c=c.apply(a,[])).next())})};function lt(a){return a.type==="ACK"}function ht(a){return a.type==="CANCEL"}function pt(a){return a.type==="OAUTH2_CODE"}function ft(a){return a.type==="OAUTH2_ERROR"}function gt(a,e,r,c){return xe(this,void 0,void 0,function*(){const u=new TextEncoder,p=yield globalThis.crypto.subtle.encrypt({name:"RSA-OAEP"},e,u.encode(JSON.stringify(c))),k={type:"DM",recipientClientId:r,message:je(p)};a.send(JSON.stringify(k))})}function Jt(a,e,r){return c=>xe(this,void 0,void 0,function*(){return gt(a,e,r,c)})}function Wt(a){let e=a.toString(16);return e.length==1?`0${e}`:e}function it(){if(crypto.randomUUID===void 0){const a=new Uint8Array(16);return window.crypto.getRandomValues(a),Array.from(a,Wt).join("")}return crypto.randomUUID().replace(/-/g,"")}function mt(){return it()}function yt(){return xe(this,void 0,void 0,function*(){const a={name:"RSA-OAEP",modulusLength:2048,publicExponent:new Uint8Array([1,0,1]),hash:"SHA-512"},e=yield crypto.subtle.generateKey(a,!0,["encrypt","decrypt"]);return{algorithm:"RSA-OAEP",privateKey:e.privateKey,publicKey:e.publicKey}})}function je(a){let e="",r=new Uint8Array(a),c=r.byteLength;for(let u=0;u<c;u++)e+=String.fromCharCode(r[u]);return window.btoa(e)}function $e(a){const e=window.atob(a),r=new ArrayBuffer(e.length),c=new Uint8Array(r);for(let u=0,p=e.length;u<p;u++)c[u]=e.charCodeAt(u);return r}function wt(a){return xe(this,void 0,void 0,function*(){return je(yield crypto.subtle.exportKey("spki",a.publicKey))})}function $t(a,e){return xe(this,void 0,void 0,function*(){const r=$e(a);return yield crypto.subtle.importKey("spki",r,{name:e,hash:"SHA-512"},!1,["encrypt"])})}var Fe,vt,qe,Ne,Ve,ye,Le,Be,kt,bt,Pe=function(a,e,r,c){return new(r||(r=Promise))(function(u,p){function k(l){try{y(c.next(l))}catch(v){p(v)}}function g(l){try{y(c.throw(l))}catch(v){p(v)}}function y(l){var v;l.done?u(l.value):(v=l.value,v instanceof r?v:new r(function(b){b(v)})).then(k,g)}y((c=c.apply(a,[])).next())})},Ie=function(a,e,r,c,u){if(typeof e=="function"?a!==e||!0:!e.has(a))throw new TypeError("Cannot write private member to an object whose class did not declare it");return e.set(a,r),r},oe=function(a,e,r,c){if(r==="a"&&!c)throw new TypeError("Private accessor was defined without a getter");if(typeof e=="function"?a!==e||!c:!e.has(a))throw new TypeError("Cannot read private member from an object whose class did not declare it");return r==="m"?c:r==="a"?c.call(a):c?c.value:e.get(a)};const Ft=Math.floor(12);class Ye extends Error{constructor(){super("Promise cancelled"),Object.setPrototypeOf(this,Ye.prototype)}}class Et extends P{constructor(e,r,c){super(e,r,c)}}class Ge extends Error{constructor(e){super(e),Object.setPrototypeOf(this,Ge.prototype)}}class qt extends Promise{constructor(e){let r;super((c,u)=>{e(c,u),r=u}),this.cancelled=!1,this.acknowledged=!1,Fe.set(this,void 0),vt.set(this,void 0),Ie(this,Fe,r)}cancel(){this.cancelled=!0,oe(this,Fe,"f").call(this,new Ye),this.onCancel&&this.onCancel()}acknowledge(){this.acknowledged=!0,this.onAcknowledged&&this.onAcknowledged()}}Fe=new WeakMap,vt=new WeakMap;class Vt{constructor(e){qe.add(this),Ne.set(this,void 0),Ve.set(this,void 0),ye.set(this,void 0),Le.set(this,void 0),Be.set(this,void 0),this.criiptoAuth=e}setup(){return Pe(this,void 0,void 0,function*(){return oe(this,Le,"f")||Ie(this,Le,Promise.resolve().then(()=>Pe(this,void 0,void 0,function*(){Ie(this,Be,new Image,"f"),oe(this,Be,"f").src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGgAAABoCAYAAAAdHLWhAAAACXBIWXMAABYlAAAWJQFJUiTwAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAEqSURBVHgB7d2rDQIBEEXRgYCkDwT9YZAICsTQBpqETxPs3eQcMQ3cPD0zpG1+5/01JG2HNIHiBIoTKE6gOIHiBIoTKE6gOIHiBIoTKE6gOIHiBIoTKE6gOIHiBIoTKE6gOIHiBIoTKE6gOIHiBIoTKE6gOIHiBIoTKE6gOIHiBIoTKE6gOIHiBIrbzUJul+c87q9Zk+NpP+frYf7JguIEihMoTqA4geIEihMoTqA4geIEihMoTqA4geIEihMoTqA4geIEihMoTqA4geIEihMozv+gOAuKEyhOoDiB4gSKEyhOoDiB4gSKEyhOoDiB4gSKEyhOoDiB4gSKEyhOoDiB4gSKEyhOoDiB4gSKEyhOoDiB4gSKEyhOoDiB4gSKEyhOoDiB4gSKEyjuA1QSDsex8ZN1AAAAAElFTkSuQmCC",Ie(this,Ne,it(),"f");const e=yield this.criiptoAuth.fetchCriiptoConfiguration();return Ie(this,Ve,new ut(e.csdc_session_url),"f"),Ie(this,ye,new WebSocket(`${e.csdc_wss_url}?clientId=${oe(this,Ne,"f")}`),"f"),yield new Promise((r,c)=>{oe(this,ye,"f").addEventListener("open",r)}),e}))),yield oe(this,Le,"f")})}authorize(e,r){const c=new qt((u,p)=>Pe(this,void 0,void 0,function*(){var k,g;const y=oe(this,qe,"m",kt).call(this,e),l=(k=r==null?void 0:r.responseType)!==null&&k!==void 0?k:"id_token";let v,b=null,M=[];const R=()=>{v&&clearInterval(v),y.parentElement===e&&e.removeChild(y)};try{const te=yield this.setup();if(!te.client.qr_enabled)throw new Ge("QR is not enabled for this Criipto Application. Please go to https://dashboard.criipto.com and enable it.");const ce=(g=te.client.qr_intermediary_url)!==null&&g!==void 0?g:te.qr_intermediary_url,ne=ce.replace("{id}",""),et=te.client.qr_branding!==!1,be=yield r!=null&&r.pkce?Promise.resolve(r.pkce):l==="id_token"?n():Promise.resolve(void 0),ze=r==null?void 0:r.state,tt=yield this.criiptoAuth.buildAuthorizeUrl(this.criiptoAuth.buildAuthorizeParams(Object.assign(Object.assign({},r),{pkce:be,redirectUri:ne,responseMode:"query",responseType:"code",prompt:"login"}))),Re=()=>Pe(this,void 0,void 0,function*(){var J;if(c.acknowledged)return void(v&&clearInterval(v));if(c.cancelled)return void R();const ee=yield oe(this,qe,"m",bt).call(this,{action:{authorize:tt}});M=[ee].concat(M).slice(0,Ft);const X=ce.replace("{id}",ee.id),$=yield zt.toCanvas(X,{errorCorrectionLevel:"low",scale:10,width:y.width,margin:(J=r==null?void 0:r.margin)!==null&&J!==void 0?J:4}),H=.15*y.width,ie=.15*y.height,G=y.getContext("2d");G.drawImage($,0,0),et&&(G.imageSmoothingEnabled=!1,G.drawImage(oe(this,Be,"f"),(y.width-H)/2,(y.width-ie)/2,H,ie))});yield Re(),v=setInterval(()=>{Re()},2500);const fe=J=>Pe(this,void 0,void 0,function*(){var ee;if(!c.cancelled)if(c.acknowledged){if(b){const X=yield globalThis.crypto.subtle.decrypt({name:b.keyPair.algorithm},b.keyPair.privateKey,$e(J.data)).catch(H=>null);if(!X)return;const $=JSON.parse(atob(je(X)));pt($)?(R(),yield this.criiptoAuth.processResponse({code:$.code,state:ze},be&&"code_verifier"in be?{redirect_uri:ne,code_verifier:be.code_verifier}:void 0).then(H=>{u(H),oe(this,ye,"f").removeEventListener("message",fe)}).catch(H=>{p(H),oe(this,ye,"f").removeEventListener("message",fe)})):ht($)?(p(new Et("access_denied","User cancelled login.",ze)),R()):ft($)&&(p(new P($.error,(ee=$.error_description)!==null&&ee!==void 0?ee:void 0,ze)),oe(this,ye,"f").removeEventListener("message",fe),R())}}else for(const X of M){const $=yield globalThis.crypto.subtle.decrypt({name:X.keyPair.algorithm},X.keyPair.privateKey,$e(J.data)).catch(H=>null);$&&lt(JSON.parse(atob(je($))))&&(M=[X],b=X,c.acknowledge())}});oe(this,ye,"f").addEventListener("message",fe),c.onCancel=()=>{oe(this,ye,"f").removeEventListener("message",fe),R()}}catch(te){R(),p(te)}}));return c}}Ne=new WeakMap,Ve=new WeakMap,ye=new WeakMap,Le=new WeakMap,Be=new WeakMap,qe=new WeakSet,kt=function(a){const e=getComputedStyle(a),r=document.createElement("canvas");r.setAttribute("data-criipto-id","criiptoqrcanvas"),r.width=a.clientWidth-parseFloat(e.paddingLeft)-parseFloat(e.paddingRight),r.height=r.width;const c=a.querySelector('[data-criipto-id="criiptoqrcanvas"]');return c&&a.removeChild(c),a.appendChild(r),r},bt=function(a){return Pe(this,void 0,void 0,function*(){const e=yield this.setup(),r=mt(),c=yield yt(),u=yield wt(c);return yield oe(this,Ve,"f").save(r,Object.assign({csdc_algo:"RSA-OAEP",csdc_initiator_id:oe(this,Ne,"f"),csdc_wss:e.csdc_wss_url,csdc_key:u},a)),{id:r,keyPair:c}})};class Yt{constructor(e){this.criiptoAuth=e}open(e){const r=document.createElement("iframe");return r.style.width="0px",r.style.height="0px",r.style.visibility="hidden",r.src=e,document.body.appendChild(r),r}remove(e){(e==null?void 0:e.parentNode)===document.body&&document.body.removeChild(e)}listen(e){return new Promise((r,c)=>{const u=p=>{(p.source===e.contentWindow||p.origin===`https://${this.criiptoAuth.domain}`)&&p.data&&(p.data.includes("code=")||p.data.includes("id_token=")||p.data.includes("error="))&&(window.removeEventListener("message",u),this.remove(e),r(E(p.data)))};window.addEventListener("message",u)})}authorize(e){var r,c,u,p,k;return c=this,u=void 0,k=function*(){const g=e.redirectUri||this.criiptoAuth.options.redirectUri,y=(r=e.responseType)!==null&&r!==void 0?r:"id_token",l=yield y==="id_token"?n():Promise.resolve(void 0),v=yield this.criiptoAuth.buildAuthorizeUrl(this.criiptoAuth.buildAuthorizeParams(Object.assign(Object.assign({},e),{responseMode:"post_message",responseType:"code",pkce:l,prompt:"none"}))),b=e.timeout||1e4,M=this.open(v);return Promise.race([new Promise((R,te)=>{setTimeout(()=>{te("Timed out")},b)}),this.listen(M).then(R=>this.criiptoAuth.processResponse(R,l&&"code_verifier"in l?{code_verifier:l.code_verifier,redirect_uri:g}:void 0).then(te=>te))]).finally(()=>this.remove(M))},new((p=void 0)||(p=Promise))(function(g,y){function l(M){try{b(k.next(M))}catch(R){y(R)}}function v(M){try{b(k.throw(M))}catch(R){y(R)}}function b(M){var R;M.done?g(M.value):(R=M.value,R instanceof p?R:new p(function(te){te(R)})).then(l,v)}b((k=k.apply(c,u||[])).next())})}}var De,He,Qe,Xe,At=function(a,e,r,c){return new(r||(r=Promise))(function(u,p){function k(l){try{y(c.next(l))}catch(v){p(v)}}function g(l){try{y(c.throw(l))}catch(v){p(v)}}function y(l){var v;l.done?u(l.value):(v=l.value,v instanceof r?v:new r(function(b){b(v)})).then(k,g)}y((c=c.apply(a,[])).next())})},Ze=function(a,e,r,c,u){if(typeof e=="function"?a!==e||!0:!e.has(a))throw new TypeError("Cannot write private member to an object whose class did not declare it");return e.set(a,r),r},Te=function(a,e,r,c){if(typeof e=="function"?a!==e||!0:!e.has(a))throw new TypeError("Cannot read private member from an object whose class did not declare it");return e.get(a)};const _t="3.8.0";class St{constructor(e){var r;if(De.set(this,void 0),He.set(this,void 0),Qe.set(this,void 0),Xe.set(this,void 0),!e.domain||!e.clientID||!e.store)throw new Error("new criipto.Auth({domain, clientID, store}) required");this.options=e,this.domain=e.domain,this.clientID=e.clientID,this.store=e.store,this.popup=new jt(this),this.redirect=new xt(this),this.qr=new Vt(this),this.silent=new Yt(this);const c=(r=e.protocol)!==null&&r!==void 0?r:"https";this._openIdConfiguration=new dt(`${c}://${this.domain}`,this.clientID),Ze(this,Qe,new Ut(`${c}://${this.domain}`,this.clientID))}_setup(){return Te(this,De)||Ze(this,De,this._openIdConfiguration.fetchMetadata().then(e=>(Ze(this,Xe,function(r,c){const u=new we(r,void 0);return async function(p,k){return u.getKey(p,k)}}(new URL(e.jwks_uri)),"f"),e))),Te(this,De)}fetchOpenIDConfiguration(){return this._setup().then(()=>this._openIdConfiguration)}fetchCriiptoConfiguration(){return Te(this,He)||Ze(this,He,Te(this,Qe).fetchMetadata()),Te(this,He)}logout(e){return At(this,void 0,void 0,function*(){const{redirectUri:r,state:c}=e,u=yield this.fetchOpenIDConfiguration(),p=new URL(u.end_session_endpoint);p.searchParams.set("post_logout_redirect_uri",r),c&&p.searchParams.set("state",c),window.location.href=p.href})}authorize(e){return this.redirect.authorize(e)}checkSession(e){return At(this,void 0,void 0,function*(){return this.silent.authorize(e)})}authorizeResponsive(e){let r;for(let[p,k]of Object.entries(e)){if(!o.includes(k.via))throw new Error("Unknown match.via");if(window.matchMedia(p).matches){r=k;break}}if(r===void 0)throw new Error("No media queries matched");const{via:c}=r,u=function(p,k){var g={};for(var y in p)Object.prototype.hasOwnProperty.call(p,y)&&k.indexOf(y)<0&&(g[y]=p[y]);if(p!=null&&typeof Object.getOwnPropertySymbols=="function"){var l=0;for(y=Object.getOwnPropertySymbols(p);l<y.length;l++)k.indexOf(y[l])<0&&Object.prototype.propertyIsEnumerable.call(p,y[l])&&(g[y[l]]=p[y[l]])}return g}(r,["via"]);if(c==="redirect")return this.redirect.authorize(u);if(c==="popup")return this.popup.authorize(u);throw new Error("Invalid media query")}buildAuthorizeUrl(e){return this._setup().then(()=>{var r,c,u;const p=this._openIdConfiguration.response_modes_supported.concat(["json","post_message"]);if(!p.includes(e.responseMode))throw new Error(`responseMode must be one of ${p.join(",")}`);if(!this._openIdConfiguration.response_types_supported.includes(e.responseType))throw new Error(`responseType must be one of ${this._openIdConfiguration.response_types_supported.join(",")}`);const k=e.acrValues?Array.isArray(e.acrValues)?e.acrValues:e.acrValues.includes(" ")?e.acrValues.split(" "):e.acrValues:void 0;if(!e.redirectUri)throw new Error("redirectUri must be defined");const g=new URL(this._openIdConfiguration.authorization_endpoint);if(g.searchParams.append("scope",e.scope),g.searchParams.append("client_id",this.clientID),k&&g.searchParams.append("acr_values",Array.isArray(k)?k.join(" "):k),g.searchParams.append("redirect_uri",e.redirectUri),g.searchParams.append("response_type",e.responseType),g.searchParams.append("response_mode",e.responseMode),e.pkce&&(g.searchParams.append("code_challenge",e.pkce.code_challenge),g.searchParams.append("code_challenge_method",e.pkce.code_challenge_method)),e.state&&g.searchParams.append("state",e.state),e.nonce&&g.searchParams.append("nonce",e.nonce),e.loginHint&&g.searchParams.append("login_hint",e.loginHint),e.uiLocales&&g.searchParams.append("ui_locales",e.uiLocales),e.prompt&&g.searchParams.append("prompt",e.prompt),e.extraUrlParams)for(let y of Object.entries(e.extraUrlParams))y[1]&&g.searchParams.append(y[0],y[1]);return g.searchParams.set("criipto_sdk",`@criipto/auth-js@${_t}`),((r=e.extraUrlParams)===null||r===void 0?void 0:r.criipto_sdk)!==void 0&&(((c=e.extraUrlParams)===null||c===void 0?void 0:c.criipto_sdk)===null?g.searchParams.delete("criipto_sdk"):g.searchParams.set("criipto_sdk",(u=e.extraUrlParams)===null||u===void 0?void 0:u.criipto_sdk)),g.toString()})}processResponse(e,r){if(e.error)return Promise.reject(new P(e.error,e.error_description,e.state));if(e.id_token)return Promise.resolve(e);if(!e.code)return Promise.resolve(null);if(e.code&&!r)return Promise.resolve(e);const c=e.state,u=new URLSearchParams;return u.append("grant_type","authorization_code"),u.append("code",e.code),u.append("client_id",this.clientID),u.append("redirect_uri",r.redirect_uri),u.append("code_verifier",r.code_verifier),this._setup().then(()=>globalThis.fetch(this._openIdConfiguration.token_endpoint,{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},credentials:"omit",body:u.toString()}).then(p=>p.json()).then(p=>p.id_token?async function(k,g,y){var l;const v=await Me(k,g,y);if(!((l=v.protectedHeader.crit)===null||l===void 0)&&l.includes("b64")&&v.protectedHeader.b64===!1)throw new re("JWTs MUST NOT use unencoded payload");const b={payload:nt(v.protectedHeader,v.payload,y),protectedHeader:v.protectedHeader};return typeof g=="function"?{...b,key:v.key}:b}(p.id_token,Te(this,Xe),{issuer:this._openIdConfiguration.issuer,audience:this.clientID,clockTolerance:300}).then(({payload:k})=>Object.assign(Object.assign({},p),{state:c,claims:k})):Object.assign(Object.assign({},p),{state:c})))}buildAuthorizeParams(e){const r=e.redirectUri||this.options.redirectUri,c=e.responseType||this.options.responseType||"code",u=e.acrValues||this.options.acrValues,p=e.scope||this.options.scope||"openid";if(!r)throw new Error("redirectUri must be defined");return{redirectUri:r,responseMode:e.responseMode||"query",responseType:c,acrValues:u,pkce:e.pkce,state:e.state,loginHint:e.loginHint,uiLocales:e.uiLocales,extraUrlParams:e.extraUrlParams,scope:p,prompt:e.prompt,nonce:e.nonce}}}De=new WeakMap,He=new WeakMap,Qe=new WeakMap,Xe=new WeakMap;const Gt=St})();se.uJ;var cr=se.bU;se.Lk;se.Ul;se.PK;se.hs;se.TU;se.q4;se.Op;se.ZP;se.nN;se.um;se.zi;se.gM;se.NT;const dr=(h,o)=>new cr({domain:h,clientID:o,store:sessionStorage,acrValues:"urn:grn:authn:no:bankid:substantial"}),ur=async h=>{const o=await h.popup.authorize({width:500,height:600,redirectUri:window.location.origin,scope:"openid ssn"});return console.log("BankID authentication result:",o),o},lr=async(h,o)=>{const s=dr(o.domain,o.clientId),n=await ur(s);if(h&&sr(h)){const i=ir(h);console.log("Stora contact details:",i)}return{session:h,claims:n.claims}},hr={creditCheckRequired:{en:"Credit check required",nb:"Kredittjekk påkrevd",nn:"Kredittjekk påkrevd",no:"Kredittjekk påkrevd",sv:"Kredittkontroll krävs",da:"Kreditcheck påkrævet",de:"Kreditprüfung erforderlich",fr:"Vérification de crédit requise",es:"Verificación de crédito requerida",it:"Verifica del credito richiesta",nl:"Kredietcontrole vereist",pl:"Wymagana weryfikacja kredytowa"},creditCheckDescription:{en:"In order to use the storage unit you must first pass a credit check. This is a security process that helps us verify your identity.",nb:"For å bruke lagringsenheten må du først gjennomføre en kredittjekk. Dette er en sikkerhetsprosess som hjelper oss med å verifisere din identitet.",nn:"For å bruke lagringsenheten må du først gjennomføre ein kredittjekk. Dette er ein sikkerheitsprosess som hjelper oss med å verifisere identiteten din.",no:"For å bruke lagringsenheten må du først gjennomføre en kredittjekk. Dette er en sikkerhetsprosess som hjelper oss med å verifisere din identitet.",sv:"För att använda lagringsenheten måste du först genomgå en kredittkontroll. Detta är en säkerhetsprocess som hjälper oss att verifiera din identitet.",da:"For at bruge lagringsenheden skal du først bestå en kreditcheck. Dette er en sikkerhedsproces, der hjælper os med at verificere din identitet.",de:"Um die Lagereinheit zu nutzen, müssen Sie zunächst eine Kreditprüfung bestehen. Dies ist ein Sicherheitsprozess, der uns hilft, Ihre Identität zu überprüfen.",fr:"Pour utiliser l'unité de stockage, vous devez d'abord passer une vérification de crédit. Il s'agit d'un processus de sécurité qui nous aide à vérifier votre identité.",es:"Para usar la unidad de almacenamiento, primero debe pasar una verificación de crédito. Este es un proceso de seguridad que nos ayuda a verificar su identidad.",it:"Per utilizzare l'unità di stoccaggio, devi prima superare una verifica del credito. Questo è un processo di sicurezza che ci aiuta a verificare la tua identità.",nl:"Om de opslageenheid te gebruiken, moet u eerst een kredietcontrole doorstaan. Dit is een beveiligingsproces dat ons helpt uw identiteit te verifiëren.",pl:"Aby korzystać z jednostki magazynowej, musisz najpierw przejść weryfikację kredytową. Jest to proces bezpieczeństwa, który pomaga nam zweryfikować Twoją tożsamość."},checkCreditButton:{en:"Check credit",nb:"Sjekk kreditt",nn:"Sjekk kreditt",no:"Sjekk kreditt",sv:"Kontrollera kredit",da:"Tjek kredit",de:"Kreditprüfung",fr:"Vérifier le crédit",es:"Verificar crédito",it:"Verifica credito",nl:"Krediet controleren",pl:"Sprawdź kredyt"},startingCreditCheck:{en:"Starting credit check...",nb:"Starter kredittjekk...",nn:"Startar kredittjekk...",no:"Starter kredittjekk...",sv:"Startar kredittkontroll...",da:"Starter kreditcheck...",de:"Kreditprüfung wird gestartet...",fr:"Démarrage de la vérification de crédit...",es:"Iniciando verificación de crédito...",it:"Avvio verifica del credito...",nl:"Kredietcontrole starten...",pl:"Rozpoczynanie weryfikacji kredytowej..."},creditCheckError:{en:"An error occurred during the credit check",nb:"En feil oppstod under kredittjekken",nn:"Ein feil oppstod under kredittjekken",no:"En feil oppstod under kredittjekken",sv:"Ett fel uppstod under kredittkontrollen",da:"Der opstod en fejl under kreditchecken",de:"Während der Kreditprüfung ist ein Fehler aufgetreten",fr:"Une erreur s'est produite lors de la vérification de crédit",es:"Ocurrió un error durante la verificación de crédito",it:"Si è verificato un errore durante la verifica del credito",nl:"Er is een fout opgetreden tijdens de kredietcontrole",pl:"Wystąpił błąd podczas weryfikacji kredytowej"},creditCheckNotApproved:{en:"Credit check was not approved",nb:"Kredittjekk ble ikke godkjent",nn:"Kredittjekk vart ikkje godkjend",no:"Kredittjekk ble ikke godkjent",sv:"Kredittkontrollen godkändes inte",da:"Kreditchecken blev ikke godkendt",de:"Kreditprüfung wurde nicht genehmigt",fr:"La vérification de crédit n'a pas été approuvée",es:"La verificación de crédito no fue aprobada",it:"La verifica del credito non è stata approvata",nl:"Kredietcontrole is niet goedgekeurd",pl:"Weryfikacja kredytowa nie została zatwierdzona"},couldNotCreateSession:{en:"Could not create credit check session",nb:"Kunne ikke opprette kredittjekk-sesjon",nn:"Kunne ikkje opprette kredittjekk-sesjon",no:"Kunne ikke opprette kredittjekk-sesjon",sv:"Kunde inte skapa kredittkontrollsession",da:"Kunne ikke oprette kreditchecksession",de:"Kreditprüfungssitzung konnte nicht erstellt werden",fr:"Impossible de créer une session de vérification de crédit",es:"No se pudo crear la sesión de verificación de crédito",it:"Impossibile creare la sessione di verifica del credito",nl:"Kon geen kredietcontrolesessie maken",pl:"Nie można utworzyć sesji weryfikacji kredytowej"}};function ve(h,o){const s=er(),n=hr[h];if(!n)return console.warn(`Translation key "${h}" not found`),h;const i=n[s];return i||n.en||h}const pr=h=>{const o=document.createElement("div");o.className="stora-credit-check-dialog";const s=ve("creditCheckRequired"),n=ve("creditCheckDescription"),i=ve("checkCreditButton"),t=ve("startingCreditCheck");o.innerHTML=`
+`;
+  class Ht {
+    constructor(e) {
+      this.template = null, this.popup = e, this.enabled = !0;
+    }
+    render(e) {
+      var r, c, u;
+      const p = document.getElementById(O), k = ((r = this.template) !== null && r !== void 0 ? r : e.uiLocales == "da") ? Lt : e.uiLocales == "se" || e.uiLocales == "sv" ? Bt : e.uiLocales == "nb" ? Dt : Nt;
+      if (!p) {
+        const g = document.createElement("div");
+        g.id = O, g.className = "criipto-auth-popup-backdrop", g.innerHTML = k, document.body.appendChild(g), (c = document.getElementById(U)) === null || c === void 0 || c.addEventListener("click", () => this.handleOpen()), (u = document.getElementById(D)) === null || u === void 0 || u.addEventListener("click", () => this.handleCancel());
+      }
+    }
+    handleOpen() {
+      this.popup.open(this.popup._latestUrl, this.popup._latestParams);
+    }
+    handleCancel() {
+      this.remove(), this.popup.close();
+    }
+    remove() {
+      const e = document.getElementById(O);
+      e && document.body.removeChild(e);
+    }
+  }
+  var zt = me(592), ot = function(a, e, r, c) {
+    return new (r || (r = Promise))(function(u, p) {
+      function k(l) {
+        try {
+          y(c.next(l));
+        } catch (v) {
+          p(v);
+        }
+      }
+      function g(l) {
+        try {
+          y(c.throw(l));
+        } catch (v) {
+          p(v);
+        }
+      }
+      function y(l) {
+        var v;
+        l.done ? u(l.value) : (v = l.value, v instanceof r ? v : new r(function(b) {
+          b(v);
+        })).then(k, g);
+      }
+      y((c = c.apply(a, [])).next());
+    });
+  };
+  class ut {
+    constructor(e) {
+      if (this.URL = e, !e.includes("{id}")) throw new Error("Expected URL to include {id} template arg.");
+    }
+    get(e) {
+      return ot(this, void 0, void 0, function* () {
+        const r = this.URL.replace("{id}", e), c = yield fetch(r);
+        if (c.ok) return yield c.json();
+        if (c.status === 404) return null;
+        const u = yield c.text();
+        throw new Error(u);
+      });
+    }
+    save(e, r) {
+      return ot(this, void 0, void 0, function* () {
+        const c = this.URL.replace("{id}", e), u = yield fetch(c, { method: "POST", body: JSON.stringify(r), headers: { "Content-Type": "application/json" } });
+        if (u.ok) return;
+        const p = yield u.text();
+        throw new Error(p);
+      });
+    }
+    delete(e) {
+      return ot(this, void 0, void 0, function* () {
+        const r = this.URL.replace("{id}", e), c = yield fetch(r, { method: "DELETE" });
+        if (c.ok) return;
+        const u = yield c.text();
+        throw new Error(u);
+      });
+    }
+  }
+  var xe = function(a, e, r, c) {
+    return new (r || (r = Promise))(function(u, p) {
+      function k(l) {
+        try {
+          y(c.next(l));
+        } catch (v) {
+          p(v);
+        }
+      }
+      function g(l) {
+        try {
+          y(c.throw(l));
+        } catch (v) {
+          p(v);
+        }
+      }
+      function y(l) {
+        var v;
+        l.done ? u(l.value) : (v = l.value, v instanceof r ? v : new r(function(b) {
+          b(v);
+        })).then(k, g);
+      }
+      y((c = c.apply(a, [])).next());
+    });
+  };
+  function lt(a) {
+    return a.type === "ACK";
+  }
+  function ht(a) {
+    return a.type === "CANCEL";
+  }
+  function pt(a) {
+    return a.type === "OAUTH2_CODE";
+  }
+  function ft(a) {
+    return a.type === "OAUTH2_ERROR";
+  }
+  function gt(a, e, r, c) {
+    return xe(this, void 0, void 0, function* () {
+      const u = new TextEncoder(), p = yield globalThis.crypto.subtle.encrypt({ name: "RSA-OAEP" }, e, u.encode(JSON.stringify(c))), k = { type: "DM", recipientClientId: r, message: je(p) };
+      a.send(JSON.stringify(k));
+    });
+  }
+  function Jt(a, e, r) {
+    return (c) => xe(this, void 0, void 0, function* () {
+      return gt(a, e, r, c);
+    });
+  }
+  function Wt(a) {
+    let e = a.toString(16);
+    return e.length == 1 ? `0${e}` : e;
+  }
+  function it() {
+    if (crypto.randomUUID === void 0) {
+      const a = new Uint8Array(16);
+      return window.crypto.getRandomValues(a), Array.from(a, Wt).join("");
+    }
+    return crypto.randomUUID().replace(/-/g, "");
+  }
+  function mt() {
+    return it();
+  }
+  function yt() {
+    return xe(this, void 0, void 0, function* () {
+      const a = { name: "RSA-OAEP", modulusLength: 2048, publicExponent: new Uint8Array([1, 0, 1]), hash: "SHA-512" }, e = yield crypto.subtle.generateKey(a, !0, ["encrypt", "decrypt"]);
+      return { algorithm: "RSA-OAEP", privateKey: e.privateKey, publicKey: e.publicKey };
+    });
+  }
+  function je(a) {
+    let e = "", r = new Uint8Array(a), c = r.byteLength;
+    for (let u = 0; u < c; u++) e += String.fromCharCode(r[u]);
+    return window.btoa(e);
+  }
+  function $e(a) {
+    const e = window.atob(a), r = new ArrayBuffer(e.length), c = new Uint8Array(r);
+    for (let u = 0, p = e.length; u < p; u++) c[u] = e.charCodeAt(u);
+    return r;
+  }
+  function wt(a) {
+    return xe(this, void 0, void 0, function* () {
+      return je(yield crypto.subtle.exportKey("spki", a.publicKey));
+    });
+  }
+  function $t(a, e) {
+    return xe(this, void 0, void 0, function* () {
+      const r = $e(a);
+      return yield crypto.subtle.importKey("spki", r, { name: e, hash: "SHA-512" }, !1, ["encrypt"]);
+    });
+  }
+  var Fe, vt, qe, Ne, Ve, ye, Le, Be, kt, bt, Pe = function(a, e, r, c) {
+    return new (r || (r = Promise))(function(u, p) {
+      function k(l) {
+        try {
+          y(c.next(l));
+        } catch (v) {
+          p(v);
+        }
+      }
+      function g(l) {
+        try {
+          y(c.throw(l));
+        } catch (v) {
+          p(v);
+        }
+      }
+      function y(l) {
+        var v;
+        l.done ? u(l.value) : (v = l.value, v instanceof r ? v : new r(function(b) {
+          b(v);
+        })).then(k, g);
+      }
+      y((c = c.apply(a, [])).next());
+    });
+  }, Ie = function(a, e, r, c, u) {
+    if (typeof e == "function" ? a !== e || !0 : !e.has(a)) throw new TypeError("Cannot write private member to an object whose class did not declare it");
+    return e.set(a, r), r;
+  }, oe = function(a, e, r, c) {
+    if (r === "a" && !c) throw new TypeError("Private accessor was defined without a getter");
+    if (typeof e == "function" ? a !== e || !c : !e.has(a)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
+    return r === "m" ? c : r === "a" ? c.call(a) : c ? c.value : e.get(a);
+  };
+  const Ft = Math.floor(12);
+  class Ye extends Error {
+    constructor() {
+      super("Promise cancelled"), Object.setPrototypeOf(this, Ye.prototype);
+    }
+  }
+  class Et extends P {
+    constructor(e, r, c) {
+      super(e, r, c);
+    }
+  }
+  class Ge extends Error {
+    constructor(e) {
+      super(e), Object.setPrototypeOf(this, Ge.prototype);
+    }
+  }
+  class qt extends Promise {
+    constructor(e) {
+      let r;
+      super((c, u) => {
+        e(c, u), r = u;
+      }), this.cancelled = !1, this.acknowledged = !1, Fe.set(this, void 0), vt.set(this, void 0), Ie(this, Fe, r);
+    }
+    cancel() {
+      this.cancelled = !0, oe(this, Fe, "f").call(this, new Ye()), this.onCancel && this.onCancel();
+    }
+    acknowledge() {
+      this.acknowledged = !0, this.onAcknowledged && this.onAcknowledged();
+    }
+  }
+  Fe = /* @__PURE__ */ new WeakMap(), vt = /* @__PURE__ */ new WeakMap();
+  class Vt {
+    constructor(e) {
+      qe.add(this), Ne.set(this, void 0), Ve.set(this, void 0), ye.set(this, void 0), Le.set(this, void 0), Be.set(this, void 0), this.criiptoAuth = e;
+    }
+    setup() {
+      return Pe(this, void 0, void 0, function* () {
+        return oe(this, Le, "f") || Ie(this, Le, Promise.resolve().then(() => Pe(this, void 0, void 0, function* () {
+          Ie(this, Be, new Image(), "f"), oe(this, Be, "f").src = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGgAAABoCAYAAAAdHLWhAAAACXBIWXMAABYlAAAWJQFJUiTwAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAEqSURBVHgB7d2rDQIBEEXRgYCkDwT9YZAICsTQBpqETxPs3eQcMQ3cPD0zpG1+5/01JG2HNIHiBIoTKE6gOIHiBIoTKE6gOIHiBIoTKE6gOIHiBIoTKE6gOIHiBIoTKE6gOIHiBIoTKE6gOIHiBIoTKE6gOIHiBIoTKE6gOIHiBIoTKE6gOIHiBIrbzUJul+c87q9Zk+NpP+frYf7JguIEihMoTqA4geIEihMoTqA4geIEihMoTqA4geIEihMoTqA4geIEihMoTqA4geIEihMozv+gOAuKEyhOoDiB4gSKEyhOoDiB4gSKEyhOoDiB4gSKEyhOoDiB4gSKEyhOoDiB4gSKEyhOoDiB4gSKEyhOoDiB4gSKEyhOoDiB4gSKEyhOoDiB4gSKEyjuA1QSDsex8ZN1AAAAAElFTkSuQmCC", Ie(this, Ne, it(), "f");
+          const e = yield this.criiptoAuth.fetchCriiptoConfiguration();
+          return Ie(this, Ve, new ut(e.csdc_session_url), "f"), Ie(this, ye, new WebSocket(`${e.csdc_wss_url}?clientId=${oe(this, Ne, "f")}`), "f"), yield new Promise((r, c) => {
+            oe(this, ye, "f").addEventListener("open", r);
+          }), e;
+        }))), yield oe(this, Le, "f");
+      });
+    }
+    authorize(e, r) {
+      const c = new qt((u, p) => Pe(this, void 0, void 0, function* () {
+        var k, g;
+        const y = oe(this, qe, "m", kt).call(this, e), l = (k = r == null ? void 0 : r.responseType) !== null && k !== void 0 ? k : "id_token";
+        let v, b = null, M = [];
+        const R = () => {
+          v && clearInterval(v), y.parentElement === e && e.removeChild(y);
+        };
+        try {
+          const te = yield this.setup();
+          if (!te.client.qr_enabled) throw new Ge("QR is not enabled for this Criipto Application. Please go to https://dashboard.criipto.com and enable it.");
+          const ce = (g = te.client.qr_intermediary_url) !== null && g !== void 0 ? g : te.qr_intermediary_url, ne = ce.replace("{id}", ""), et = te.client.qr_branding !== !1, be = yield r != null && r.pkce ? Promise.resolve(r.pkce) : l === "id_token" ? n() : Promise.resolve(void 0), ze = r == null ? void 0 : r.state, tt = yield this.criiptoAuth.buildAuthorizeUrl(this.criiptoAuth.buildAuthorizeParams(Object.assign(Object.assign({}, r), { pkce: be, redirectUri: ne, responseMode: "query", responseType: "code", prompt: "login" }))), Re = () => Pe(this, void 0, void 0, function* () {
+            var J;
+            if (c.acknowledged) return void (v && clearInterval(v));
+            if (c.cancelled) return void R();
+            const ee = yield oe(this, qe, "m", bt).call(this, { action: { authorize: tt } });
+            M = [ee].concat(M).slice(0, Ft);
+            const X = ce.replace("{id}", ee.id), $ = yield zt.toCanvas(X, { errorCorrectionLevel: "low", scale: 10, width: y.width, margin: (J = r == null ? void 0 : r.margin) !== null && J !== void 0 ? J : 4 }), H = 0.15 * y.width, ie = 0.15 * y.height, G = y.getContext("2d");
+            G.drawImage($, 0, 0), et && (G.imageSmoothingEnabled = !1, G.drawImage(oe(this, Be, "f"), (y.width - H) / 2, (y.width - ie) / 2, H, ie));
+          });
+          yield Re(), v = setInterval(() => {
+            Re();
+          }, 2500);
+          const fe = (J) => Pe(this, void 0, void 0, function* () {
+            var ee;
+            if (!c.cancelled) if (c.acknowledged) {
+              if (b) {
+                const X = yield globalThis.crypto.subtle.decrypt({ name: b.keyPair.algorithm }, b.keyPair.privateKey, $e(J.data)).catch((H) => null);
+                if (!X) return;
+                const $ = JSON.parse(atob(je(X)));
+                pt($) ? (R(), yield this.criiptoAuth.processResponse({ code: $.code, state: ze }, be && "code_verifier" in be ? { redirect_uri: ne, code_verifier: be.code_verifier } : void 0).then((H) => {
+                  u(H), oe(this, ye, "f").removeEventListener("message", fe);
+                }).catch((H) => {
+                  p(H), oe(this, ye, "f").removeEventListener("message", fe);
+                })) : ht($) ? (p(new Et("access_denied", "User cancelled login.", ze)), R()) : ft($) && (p(new P($.error, (ee = $.error_description) !== null && ee !== void 0 ? ee : void 0, ze)), oe(this, ye, "f").removeEventListener("message", fe), R());
+              }
+            } else for (const X of M) {
+              const $ = yield globalThis.crypto.subtle.decrypt({ name: X.keyPair.algorithm }, X.keyPair.privateKey, $e(J.data)).catch((H) => null);
+              $ && lt(JSON.parse(atob(je($)))) && (M = [X], b = X, c.acknowledge());
+            }
+          });
+          oe(this, ye, "f").addEventListener("message", fe), c.onCancel = () => {
+            oe(this, ye, "f").removeEventListener("message", fe), R();
+          };
+        } catch (te) {
+          R(), p(te);
+        }
+      }));
+      return c;
+    }
+  }
+  Ne = /* @__PURE__ */ new WeakMap(), Ve = /* @__PURE__ */ new WeakMap(), ye = /* @__PURE__ */ new WeakMap(), Le = /* @__PURE__ */ new WeakMap(), Be = /* @__PURE__ */ new WeakMap(), qe = /* @__PURE__ */ new WeakSet(), kt = function(a) {
+    const e = getComputedStyle(a), r = document.createElement("canvas");
+    r.setAttribute("data-criipto-id", "criiptoqrcanvas"), r.width = a.clientWidth - parseFloat(e.paddingLeft) - parseFloat(e.paddingRight), r.height = r.width;
+    const c = a.querySelector('[data-criipto-id="criiptoqrcanvas"]');
+    return c && a.removeChild(c), a.appendChild(r), r;
+  }, bt = function(a) {
+    return Pe(this, void 0, void 0, function* () {
+      const e = yield this.setup(), r = mt(), c = yield yt(), u = yield wt(c);
+      return yield oe(this, Ve, "f").save(r, Object.assign({ csdc_algo: "RSA-OAEP", csdc_initiator_id: oe(this, Ne, "f"), csdc_wss: e.csdc_wss_url, csdc_key: u }, a)), { id: r, keyPair: c };
+    });
+  };
+  class Yt {
+    constructor(e) {
+      this.criiptoAuth = e;
+    }
+    open(e) {
+      const r = document.createElement("iframe");
+      return r.style.width = "0px", r.style.height = "0px", r.style.visibility = "hidden", r.src = e, document.body.appendChild(r), r;
+    }
+    remove(e) {
+      (e == null ? void 0 : e.parentNode) === document.body && document.body.removeChild(e);
+    }
+    listen(e) {
+      return new Promise((r, c) => {
+        const u = (p) => {
+          (p.source === e.contentWindow || p.origin === `https://${this.criiptoAuth.domain}`) && p.data && (p.data.includes("code=") || p.data.includes("id_token=") || p.data.includes("error=")) && (window.removeEventListener("message", u), this.remove(e), r(E(p.data)));
+        };
+        window.addEventListener("message", u);
+      });
+    }
+    authorize(e) {
+      var r, c, u, p, k;
+      return c = this, u = void 0, k = function* () {
+        const g = e.redirectUri || this.criiptoAuth.options.redirectUri, y = (r = e.responseType) !== null && r !== void 0 ? r : "id_token", l = yield y === "id_token" ? n() : Promise.resolve(void 0), v = yield this.criiptoAuth.buildAuthorizeUrl(this.criiptoAuth.buildAuthorizeParams(Object.assign(Object.assign({}, e), { responseMode: "post_message", responseType: "code", pkce: l, prompt: "none" }))), b = e.timeout || 1e4, M = this.open(v);
+        return Promise.race([new Promise((R, te) => {
+          setTimeout(() => {
+            te("Timed out");
+          }, b);
+        }), this.listen(M).then((R) => this.criiptoAuth.processResponse(R, l && "code_verifier" in l ? { code_verifier: l.code_verifier, redirect_uri: g } : void 0).then((te) => te))]).finally(() => this.remove(M));
+      }, new ((p = void 0) || (p = Promise))(function(g, y) {
+        function l(M) {
+          try {
+            b(k.next(M));
+          } catch (R) {
+            y(R);
+          }
+        }
+        function v(M) {
+          try {
+            b(k.throw(M));
+          } catch (R) {
+            y(R);
+          }
+        }
+        function b(M) {
+          var R;
+          M.done ? g(M.value) : (R = M.value, R instanceof p ? R : new p(function(te) {
+            te(R);
+          })).then(l, v);
+        }
+        b((k = k.apply(c, u || [])).next());
+      });
+    }
+  }
+  var De, He, Qe, Xe, At = function(a, e, r, c) {
+    return new (r || (r = Promise))(function(u, p) {
+      function k(l) {
+        try {
+          y(c.next(l));
+        } catch (v) {
+          p(v);
+        }
+      }
+      function g(l) {
+        try {
+          y(c.throw(l));
+        } catch (v) {
+          p(v);
+        }
+      }
+      function y(l) {
+        var v;
+        l.done ? u(l.value) : (v = l.value, v instanceof r ? v : new r(function(b) {
+          b(v);
+        })).then(k, g);
+      }
+      y((c = c.apply(a, [])).next());
+    });
+  }, Ze = function(a, e, r, c, u) {
+    if (typeof e == "function" ? a !== e || !0 : !e.has(a)) throw new TypeError("Cannot write private member to an object whose class did not declare it");
+    return e.set(a, r), r;
+  }, Te = function(a, e, r, c) {
+    if (typeof e == "function" ? a !== e || !0 : !e.has(a)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
+    return e.get(a);
+  };
+  const _t = "3.8.0";
+  class St {
+    constructor(e) {
+      var r;
+      if (De.set(this, void 0), He.set(this, void 0), Qe.set(this, void 0), Xe.set(this, void 0), !e.domain || !e.clientID || !e.store) throw new Error("new criipto.Auth({domain, clientID, store}) required");
+      this.options = e, this.domain = e.domain, this.clientID = e.clientID, this.store = e.store, this.popup = new jt(this), this.redirect = new xt(this), this.qr = new Vt(this), this.silent = new Yt(this);
+      const c = (r = e.protocol) !== null && r !== void 0 ? r : "https";
+      this._openIdConfiguration = new dt(`${c}://${this.domain}`, this.clientID), Ze(this, Qe, new Ut(`${c}://${this.domain}`, this.clientID));
+    }
+    _setup() {
+      return Te(this, De) || Ze(this, De, this._openIdConfiguration.fetchMetadata().then((e) => (Ze(this, Xe, function(r, c) {
+        const u = new we(r, void 0);
+        return async function(p, k) {
+          return u.getKey(p, k);
+        };
+      }(new URL(e.jwks_uri)), "f"), e))), Te(this, De);
+    }
+    fetchOpenIDConfiguration() {
+      return this._setup().then(() => this._openIdConfiguration);
+    }
+    fetchCriiptoConfiguration() {
+      return Te(this, He) || Ze(this, He, Te(this, Qe).fetchMetadata()), Te(this, He);
+    }
+    logout(e) {
+      return At(this, void 0, void 0, function* () {
+        const { redirectUri: r, state: c } = e, u = yield this.fetchOpenIDConfiguration(), p = new URL(u.end_session_endpoint);
+        p.searchParams.set("post_logout_redirect_uri", r), c && p.searchParams.set("state", c), window.location.href = p.href;
+      });
+    }
+    authorize(e) {
+      return this.redirect.authorize(e);
+    }
+    checkSession(e) {
+      return At(this, void 0, void 0, function* () {
+        return this.silent.authorize(e);
+      });
+    }
+    authorizeResponsive(e) {
+      let r;
+      for (let [p, k] of Object.entries(e)) {
+        if (!o.includes(k.via)) throw new Error("Unknown match.via");
+        if (window.matchMedia(p).matches) {
+          r = k;
+          break;
+        }
+      }
+      if (r === void 0) throw new Error("No media queries matched");
+      const { via: c } = r, u = function(p, k) {
+        var g = {};
+        for (var y in p) Object.prototype.hasOwnProperty.call(p, y) && k.indexOf(y) < 0 && (g[y] = p[y]);
+        if (p != null && typeof Object.getOwnPropertySymbols == "function") {
+          var l = 0;
+          for (y = Object.getOwnPropertySymbols(p); l < y.length; l++) k.indexOf(y[l]) < 0 && Object.prototype.propertyIsEnumerable.call(p, y[l]) && (g[y[l]] = p[y[l]]);
+        }
+        return g;
+      }(r, ["via"]);
+      if (c === "redirect") return this.redirect.authorize(u);
+      if (c === "popup") return this.popup.authorize(u);
+      throw new Error("Invalid media query");
+    }
+    buildAuthorizeUrl(e) {
+      return this._setup().then(() => {
+        var r, c, u;
+        const p = this._openIdConfiguration.response_modes_supported.concat(["json", "post_message"]);
+        if (!p.includes(e.responseMode)) throw new Error(`responseMode must be one of ${p.join(",")}`);
+        if (!this._openIdConfiguration.response_types_supported.includes(e.responseType)) throw new Error(`responseType must be one of ${this._openIdConfiguration.response_types_supported.join(",")}`);
+        const k = e.acrValues ? Array.isArray(e.acrValues) ? e.acrValues : e.acrValues.includes(" ") ? e.acrValues.split(" ") : e.acrValues : void 0;
+        if (!e.redirectUri) throw new Error("redirectUri must be defined");
+        const g = new URL(this._openIdConfiguration.authorization_endpoint);
+        if (g.searchParams.append("scope", e.scope), g.searchParams.append("client_id", this.clientID), k && g.searchParams.append("acr_values", Array.isArray(k) ? k.join(" ") : k), g.searchParams.append("redirect_uri", e.redirectUri), g.searchParams.append("response_type", e.responseType), g.searchParams.append("response_mode", e.responseMode), e.pkce && (g.searchParams.append("code_challenge", e.pkce.code_challenge), g.searchParams.append("code_challenge_method", e.pkce.code_challenge_method)), e.state && g.searchParams.append("state", e.state), e.nonce && g.searchParams.append("nonce", e.nonce), e.loginHint && g.searchParams.append("login_hint", e.loginHint), e.uiLocales && g.searchParams.append("ui_locales", e.uiLocales), e.prompt && g.searchParams.append("prompt", e.prompt), e.extraUrlParams) for (let y of Object.entries(e.extraUrlParams)) y[1] && g.searchParams.append(y[0], y[1]);
+        return g.searchParams.set("criipto_sdk", `@criipto/auth-js@${_t}`), ((r = e.extraUrlParams) === null || r === void 0 ? void 0 : r.criipto_sdk) !== void 0 && (((c = e.extraUrlParams) === null || c === void 0 ? void 0 : c.criipto_sdk) === null ? g.searchParams.delete("criipto_sdk") : g.searchParams.set("criipto_sdk", (u = e.extraUrlParams) === null || u === void 0 ? void 0 : u.criipto_sdk)), g.toString();
+      });
+    }
+    processResponse(e, r) {
+      if (e.error) return Promise.reject(new P(e.error, e.error_description, e.state));
+      if (e.id_token) return Promise.resolve(e);
+      if (!e.code) return Promise.resolve(null);
+      if (e.code && !r) return Promise.resolve(e);
+      const c = e.state, u = new URLSearchParams();
+      return u.append("grant_type", "authorization_code"), u.append("code", e.code), u.append("client_id", this.clientID), u.append("redirect_uri", r.redirect_uri), u.append("code_verifier", r.code_verifier), this._setup().then(() => globalThis.fetch(this._openIdConfiguration.token_endpoint, { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, credentials: "omit", body: u.toString() }).then((p) => p.json()).then((p) => p.id_token ? async function(k, g, y) {
+        var l;
+        const v = await Me(k, g, y);
+        if (!((l = v.protectedHeader.crit) === null || l === void 0) && l.includes("b64") && v.protectedHeader.b64 === !1) throw new re("JWTs MUST NOT use unencoded payload");
+        const b = { payload: nt(v.protectedHeader, v.payload, y), protectedHeader: v.protectedHeader };
+        return typeof g == "function" ? { ...b, key: v.key } : b;
+      }(p.id_token, Te(this, Xe), { issuer: this._openIdConfiguration.issuer, audience: this.clientID, clockTolerance: 300 }).then(({ payload: k }) => Object.assign(Object.assign({}, p), { state: c, claims: k })) : Object.assign(Object.assign({}, p), { state: c })));
+    }
+    buildAuthorizeParams(e) {
+      const r = e.redirectUri || this.options.redirectUri, c = e.responseType || this.options.responseType || "code", u = e.acrValues || this.options.acrValues, p = e.scope || this.options.scope || "openid";
+      if (!r) throw new Error("redirectUri must be defined");
+      return { redirectUri: r, responseMode: e.responseMode || "query", responseType: c, acrValues: u, pkce: e.pkce, state: e.state, loginHint: e.loginHint, uiLocales: e.uiLocales, extraUrlParams: e.extraUrlParams, scope: p, prompt: e.prompt, nonce: e.nonce };
+    }
+  }
+  De = /* @__PURE__ */ new WeakMap(), He = /* @__PURE__ */ new WeakMap(), Qe = /* @__PURE__ */ new WeakMap(), Xe = /* @__PURE__ */ new WeakMap();
+  const Gt = St;
+})();
+se.uJ;
+var cr = se.bU;
+se.Lk;
+se.Ul;
+se.PK;
+se.hs;
+se.TU;
+se.q4;
+se.Op;
+se.ZP;
+se.nN;
+se.um;
+se.zi;
+se.gM;
+se.NT;
+const dr = (h, o) => new cr({
+  domain: h,
+  clientID: o,
+  store: sessionStorage,
+  acrValues: "urn:grn:authn:no:bankid:substantial"
+}), ur = async (h) => {
+  const o = await h.popup.authorize({
+    width: 500,
+    height: 600,
+    redirectUri: window.location.origin,
+    scope: "openid ssn"
+  });
+  return console.log("BankID authentication result:", o), o;
+}, lr = async (h, o) => {
+  const s = dr(
+    o.domain,
+    o.clientId
+  ), n = await ur(s);
+  if (h && sr(h)) {
+    const i = ir(h);
+    console.log("Stora contact details:", i);
+  }
+  return {
+    session: h,
+    claims: n.claims
+  };
+}, hr = {
+  creditCheckRequired: {
+    en: "Credit check required",
+    nb: "Kredittjekk påkrevd",
+    nn: "Kredittjekk påkrevd",
+    no: "Kredittjekk påkrevd",
+    sv: "Kredittkontroll krävs",
+    da: "Kreditcheck påkrævet",
+    de: "Kreditprüfung erforderlich",
+    fr: "Vérification de crédit requise",
+    es: "Verificación de crédito requerida",
+    it: "Verifica del credito richiesta",
+    nl: "Kredietcontrole vereist",
+    pl: "Wymagana weryfikacja kredytowa"
+  },
+  creditCheckDescription: {
+    en: "In order to use the storage unit you must first pass a credit check. This is a security process that helps us verify your identity.",
+    nb: "For å bruke lagringsenheten må du først gjennomføre en kredittjekk. Dette er en sikkerhetsprosess som hjelper oss med å verifisere din identitet.",
+    nn: "For å bruke lagringsenheten må du først gjennomføre ein kredittjekk. Dette er ein sikkerheitsprosess som hjelper oss med å verifisere identiteten din.",
+    no: "For å bruke lagringsenheten må du først gjennomføre en kredittjekk. Dette er en sikkerhetsprosess som hjelper oss med å verifisere din identitet.",
+    sv: "För att använda lagringsenheten måste du först genomgå en kredittkontroll. Detta är en säkerhetsprocess som hjälper oss att verifiera din identitet.",
+    da: "For at bruge lagringsenheden skal du først bestå en kreditcheck. Dette er en sikkerhedsproces, der hjælper os med at verificere din identitet.",
+    de: "Um die Lagereinheit zu nutzen, müssen Sie zunächst eine Kreditprüfung bestehen. Dies ist ein Sicherheitsprozess, der uns hilft, Ihre Identität zu überprüfen.",
+    fr: "Pour utiliser l'unité de stockage, vous devez d'abord passer une vérification de crédit. Il s'agit d'un processus de sécurité qui nous aide à vérifier votre identité.",
+    es: "Para usar la unidad de almacenamiento, primero debe pasar una verificación de crédito. Este es un proceso de seguridad que nos ayuda a verificar su identidad.",
+    it: "Per utilizzare l'unità di stoccaggio, devi prima superare una verifica del credito. Questo è un processo di sicurezza che ci aiuta a verificare la tua identità.",
+    nl: "Om de opslageenheid te gebruiken, moet u eerst een kredietcontrole doorstaan. Dit is een beveiligingsproces dat ons helpt uw identiteit te verifiëren.",
+    pl: "Aby korzystać z jednostki magazynowej, musisz najpierw przejść weryfikację kredytową. Jest to proces bezpieczeństwa, który pomaga nam zweryfikować Twoją tożsamość."
+  },
+  checkCreditButton: {
+    en: "Check credit",
+    nb: "Sjekk kreditt",
+    nn: "Sjekk kreditt",
+    no: "Sjekk kreditt",
+    sv: "Kontrollera kredit",
+    da: "Tjek kredit",
+    de: "Kreditprüfung",
+    fr: "Vérifier le crédit",
+    es: "Verificar crédito",
+    it: "Verifica credito",
+    nl: "Krediet controleren",
+    pl: "Sprawdź kredyt"
+  },
+  startingCreditCheck: {
+    en: "Starting credit check...",
+    nb: "Starter kredittjekk...",
+    nn: "Startar kredittjekk...",
+    no: "Starter kredittjekk...",
+    sv: "Startar kredittkontroll...",
+    da: "Starter kreditcheck...",
+    de: "Kreditprüfung wird gestartet...",
+    fr: "Démarrage de la vérification de crédit...",
+    es: "Iniciando verificación de crédito...",
+    it: "Avvio verifica del credito...",
+    nl: "Kredietcontrole starten...",
+    pl: "Rozpoczynanie weryfikacji kredytowej..."
+  },
+  creditCheckError: {
+    en: "An error occurred during the credit check",
+    nb: "En feil oppstod under kredittjekken",
+    nn: "Ein feil oppstod under kredittjekken",
+    no: "En feil oppstod under kredittjekken",
+    sv: "Ett fel uppstod under kredittkontrollen",
+    da: "Der opstod en fejl under kreditchecken",
+    de: "Während der Kreditprüfung ist ein Fehler aufgetreten",
+    fr: "Une erreur s'est produite lors de la vérification de crédit",
+    es: "Ocurrió un error durante la verificación de crédito",
+    it: "Si è verificato un errore durante la verifica del credito",
+    nl: "Er is een fout opgetreden tijdens de kredietcontrole",
+    pl: "Wystąpił błąd podczas weryfikacji kredytowej"
+  },
+  creditCheckNotApproved: {
+    en: "Credit check was not approved",
+    nb: "Kredittjekk ble ikke godkjent",
+    nn: "Kredittjekk vart ikkje godkjend",
+    no: "Kredittjekk ble ikke godkjent",
+    sv: "Kredittkontrollen godkändes inte",
+    da: "Kreditchecken blev ikke godkendt",
+    de: "Kreditprüfung wurde nicht genehmigt",
+    fr: "La vérification de crédit n'a pas été approuvée",
+    es: "La verificación de crédito no fue aprobada",
+    it: "La verifica del credito non è stata approvata",
+    nl: "Kredietcontrole is niet goedgekeurd",
+    pl: "Weryfikacja kredytowa nie została zatwierdzona"
+  },
+  couldNotCreateSession: {
+    en: "Could not create credit check session",
+    nb: "Kunne ikke opprette kredittjekk-sesjon",
+    nn: "Kunne ikkje opprette kredittjekk-sesjon",
+    no: "Kunne ikke opprette kredittjekk-sesjon",
+    sv: "Kunde inte skapa kredittkontrollsession",
+    da: "Kunne ikke oprette kreditchecksession",
+    de: "Kreditprüfungssitzung konnte nicht erstellt werden",
+    fr: "Impossible de créer une session de vérification de crédit",
+    es: "No se pudo crear la sesión de verificación de crédito",
+    it: "Impossibile creare la sessione di verifica del credito",
+    nl: "Kon geen kredietcontrolesessie maken",
+    pl: "Nie można utworzyć sesji weryfikacji kredytowej"
+  }
+};
+function ve(h, o) {
+  const s = er(), n = hr[h];
+  if (!n)
+    return console.warn(`Translation key "${h}" not found`), h;
+  const i = n[s];
+  return i || n.en || h;
+}
+const pr = (h) => {
+  const o = document.createElement("div");
+  o.className = "stora-credit-check-dialog";
+  const s = ve("creditCheckRequired"), n = ve("creditCheckDescription"), i = ve("checkCreditButton"), t = ve("startingCreditCheck");
+  o.innerHTML = `
         <div class="stora-credit-check-dialog__container" style="
             border: 2px solid #007bff;
             border-radius: 8px;
@@ -93,4 +2494,174 @@ Minimum version required to store current data is: `+K+`.
                 "></div>
             </div>
         </div>
-    `;const d=o.querySelector(".stora-credit-check-dialog__button"),f=o.querySelector(".stora-credit-check-dialog__loading"),m=o.querySelector(".stora-credit-check-dialog__error");return d&&d.addEventListener("click",async()=>{if(!d.disabled){d.disabled=!0,f&&(f.style.display="block"),m&&(m.style.display="none");try{const w=h.session;if(!w)throw new Error(ve("couldNotCreateSession"));const C=await lr(w,h.criiptoConfig);if(C.session){const E=await Ot(h.organizationId,C.session.subscriber_id,h.supabaseUrl,h.supabaseAnonKey);if(E&&(E.status==="approved"||E.status==="passed"||E.status==="completed"))h.onCreditCheckComplete&&h.onCreditCheckComplete(C.session);else throw new Error(ve("creditCheckNotApproved"))}else throw new Error(ve("couldNotCreateSession"))}catch(w){console.error("Credit check error:",w),m&&(m.textContent=w instanceof Error?w.message:ve("creditCheckError"),m.style.display="block"),h.onError&&h.onError(w instanceof Error?w:new Error(String(w))),d.disabled=!1,f&&(f.style.display="none")}}}),o},fr=(h,o)=>{const s=h.querySelector(".booking-complete__actions_section");s&&(s.style.display="none");const n=pr({...o,onCreditCheckComplete:i=>{n.style.display="none",s&&(s.style.display=""),o.onCreditCheckComplete&&o.onCreditCheckComplete(i)}});s&&s.parentNode?s.parentNode.insertBefore(n,s):h.appendChild(n)},gr=h=>{h.integration_type==="stora"&&(document.readyState==="loading"?document.addEventListener("DOMContentLoaded",()=>{Tt(h)}):Tt(h))},Tt=async h=>{const o=document.querySelector(".booking-complete");if(!o)return;console.log("Booking complete page detected");const s=rr(h.organization_id);s||console.warn("No email found in localStorage for credit check");try{let n=null;if(s)try{n=await or({organization_id:h.organization_id,integration_type:"stora",integration_subscriber_id:h.integration_subscriber_id,email:s},h.supabaseUrl,h.supabaseAnonKey),console.log("Credit check session initialized:",n)}catch(t){console.error("Failed to initialize credit check session:",t)}if(n){const t=await Ot(h.organization_id,n.subscriber_id,h.supabaseUrl,h.supabaseAnonKey);if(t&&(t.status==="approved"||t.status==="passed"||t.status==="completed")){console.log("Credit check already passed, showing default content");return}}o.querySelector(".booking-complete__actions_section")?fr(o,{organizationId:h.organization_id,criiptoConfig:h.criiptoConfig,supabaseUrl:h.supabaseUrl,supabaseAnonKey:h.supabaseAnonKey,session:n,onCreditCheckComplete:t=>{console.log("Credit check completed:",t)},onError:t=>{console.error("Credit check error:",t)}}):console.warn("Could not find booking-complete__actions_section")}catch(n){console.error("Error setting up booking complete:",n)}};class mr{constructor(){st(this,"config",null);st(this,"initialized",!1)}init(o){if(this.initialized){console.warn("StoraCreditCheck already initialized");return}if(!o.organization_id)throw new Error("organization_id is required");if(o.integration_type!=="stora")throw new Error('integration_type must be "stora"');if(!o.criiptoConfig||!o.criiptoConfig.domain||!o.criiptoConfig.clientId)throw new Error("criiptoConfig with domain and clientId is required");this.config=o,this.initialized=!0,nr(o),gr(o),console.log("StoraCreditCheck initialized",o)}getConfig(){return this.config}isInitialized(){return this.initialized}}const yr=new mr;typeof window<"u"&&(window.StoraCreditCheck=yr);
+    `;
+  const d = o.querySelector(
+    ".stora-credit-check-dialog__button"
+  ), f = o.querySelector(
+    ".stora-credit-check-dialog__loading"
+  ), m = o.querySelector(
+    ".stora-credit-check-dialog__error"
+  );
+  return d && d.addEventListener("click", async () => {
+    if (!d.disabled) {
+      d.disabled = !0, f && (f.style.display = "block"), m && (m.style.display = "none");
+      try {
+        const w = h.session;
+        if (!w)
+          throw new Error(
+            ve("couldNotCreateSession")
+          );
+        const C = await lr(
+          w,
+          h.criiptoConfig
+        );
+        if (C.session) {
+          const E = await Ot(
+            h.organizationId,
+            C.session.subscriber_id,
+            h.supabaseUrl,
+            h.supabaseAnonKey
+          );
+          if (E && (E.status === "approved" || E.status === "passed" || E.status === "completed"))
+            h.onCreditCheckComplete && h.onCreditCheckComplete(C.session);
+          else
+            throw new Error(
+              ve("creditCheckNotApproved")
+            );
+        } else
+          throw new Error(
+            ve("couldNotCreateSession")
+          );
+      } catch (w) {
+        console.error("Credit check error:", w), m && (m.textContent = w instanceof Error ? w.message : ve("creditCheckError"), m.style.display = "block"), h.onError && h.onError(
+          w instanceof Error ? w : new Error(String(w))
+        ), d.disabled = !1, f && (f.style.display = "none");
+      }
+    }
+  }), o;
+}, fr = (h, o) => {
+  const s = h.querySelector(
+    ".booking-complete__actions_section"
+  );
+  s && (s.style.display = "none");
+  const n = pr({
+    ...o,
+    onCreditCheckComplete: (i) => {
+      n.style.display = "none", s && (s.style.display = ""), o.onCreditCheckComplete && o.onCreditCheckComplete(i);
+    }
+  });
+  s && s.parentNode ? s.parentNode.insertBefore(n, s) : h.appendChild(n);
+}, gr = (h) => {
+  h.integration_type === "stora" && (document.readyState === "loading" ? document.addEventListener("DOMContentLoaded", () => {
+    Tt(h);
+  }) : Tt(h));
+}, Tt = async (h) => {
+  const o = document.querySelector(
+    ".booking-complete"
+  );
+  if (!o)
+    return;
+  console.log("Booking complete page detected");
+  const s = rr(h.organization_id);
+  s || console.warn(
+    "No email found in localStorage for credit check"
+  );
+  try {
+    let n = null;
+    if (s)
+      try {
+        n = await or(
+          {
+            organization_id: h.organization_id,
+            integration_type: "stora",
+            integration_subscriber_id: h.integration_subscriber_id,
+            email: s
+          },
+          h.supabaseUrl,
+          h.supabaseAnonKey
+        ), console.log("Credit check session initialized:", n);
+      } catch (t) {
+        console.error(
+          "Failed to initialize credit check session:",
+          t
+        );
+      }
+    if (n) {
+      const t = await Ot(
+        h.organization_id,
+        n.subscriber_id,
+        h.supabaseUrl,
+        h.supabaseAnonKey
+      );
+      if (t && (t.status === "approved" || t.status === "passed" || t.status === "completed")) {
+        console.log(
+          "Credit check already passed, showing default content"
+        );
+        return;
+      }
+    }
+    o.querySelector(
+      ".booking-complete__actions_section"
+    ) ? fr(o, {
+      organizationId: h.organization_id,
+      criiptoConfig: h.criiptoConfig,
+      supabaseUrl: h.supabaseUrl,
+      supabaseAnonKey: h.supabaseAnonKey,
+      session: n,
+      // Pass the created session
+      onCreditCheckComplete: (t) => {
+        console.log(
+          "Credit check completed:",
+          t
+        );
+      },
+      onError: (t) => {
+        console.error("Credit check error:", t);
+      }
+    }) : console.warn(
+      "Could not find booking-complete__actions_section"
+    );
+  } catch (n) {
+    console.error("Error setting up booking complete:", n);
+  }
+};
+class mr {
+  constructor() {
+    st(this, "config", null);
+    st(this, "initialized", !1);
+  }
+  /**
+   * Initialize the Stora credit check integration
+   */
+  init(o) {
+    if (this.initialized) {
+      console.warn("StoraCreditCheck already initialized");
+      return;
+    }
+    if (!o.organization_id)
+      throw new Error("organization_id is required");
+    if (o.integration_type !== "stora")
+      throw new Error('integration_type must be "stora"');
+    if (!o.criiptoConfig || !o.criiptoConfig.domain || !o.criiptoConfig.clientId)
+      throw new Error("criiptoConfig with domain and clientId is required");
+    this.config = o, this.initialized = !0, nr(o), gr(o), console.log("StoraCreditCheck initialized", o);
+  }
+  /**
+   * Get current configuration
+   */
+  getConfig() {
+    return this.config;
+  }
+  /**
+   * Check if initialized
+   */
+  isInitialized() {
+    return this.initialized;
+  }
+}
+const yr = new mr();
+typeof window < "u" && (window.StoraCreditCheck = yr);
+export {
+  mr as StoraCreditCheck,
+  yr as storaCreditCheck
+};
