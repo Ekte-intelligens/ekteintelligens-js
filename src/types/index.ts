@@ -30,7 +30,7 @@ export interface CheckoutCampaign {
     input_mapping: InputMapping | null;
     total_selector?: string; // Selector for cart total (id, class, or complex selector)
     average_checkout_value?: number;
-    type: "bookvisit" | "default";
+    type: "bookvisit" | "synxis" | "default";
     config: {
         bookvisit?: {
             channel_id: string;
@@ -59,6 +59,12 @@ export interface CartSessionPayload {
     url?: string; // Current page URL with query parameters
     total?: number; // Cart total value
     id?: string;
+    metadata?: {
+        sbeSessionId?: string | null;
+        shoppingCartId?: string | null;
+        sbeRc?: string | null;
+        sbeRcDecoded?: string | null;
+    };
 }
 
 export interface CartSessionResponse {
