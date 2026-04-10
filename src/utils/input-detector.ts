@@ -132,6 +132,16 @@ export class InputDetector {
             this.inputMapping.field_mappings[fieldName]
         ) {
             fieldName = this.inputMapping.field_mappings[fieldName];
+        } else if (this.inputMapping?.field_mappings) {
+            // If no mapping found for name/id, try autocomplete-data attribute
+            // This handles cases where name/id are randomized (e.g. SynXis SBE)
+            const autocompleteData = input.getAttribute("autocomplete-data");
+            if (
+                autocompleteData &&
+                this.inputMapping.field_mappings[autocompleteData]
+            ) {
+                fieldName = this.inputMapping.field_mappings[autocompleteData];
+            }
         }
 
         return fieldName;
