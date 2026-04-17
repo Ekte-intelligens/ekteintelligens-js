@@ -89,6 +89,30 @@ export declare class AbandonedCartTool {
      */
     private createBookVisitFormSection;
     /**
+     * Fetch basket data from SynXis cart API with dataLayer fallback
+     */
+    private fetchSynxisBasket;
+    /**
+     * Fetch basket data from SynXis cart REST API
+     */
+    private fetchSynxisCartApi;
+    /**
+     * Extract products and total from SynXis cart API response
+     */
+    private extractSynxisCartApiData;
+    /**
+     * Get SynXis session identifiers from cookies and URL parameters
+     */
+    private getSynxisSessionIds;
+    /**
+     * Get SynXis-related entries from window.dataLayer (fallback)
+     */
+    private getSynxisDataLayer;
+    /**
+     * Extract products and total from SynXis dataLayer entries (fallback)
+     */
+    private extractSynxisProductsFromDataLayer;
+    /**
      * Get cookie value by name
      */
     private getCookie;

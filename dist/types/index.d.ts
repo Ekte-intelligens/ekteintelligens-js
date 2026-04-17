@@ -27,7 +27,7 @@ export interface CheckoutCampaign {
     input_mapping: InputMapping | null;
     total_selector?: string;
     average_checkout_value?: number;
-    type: "bookvisit" | "default";
+    type: "bookvisit" | "synxis" | "default";
     config: {
         bookvisit?: {
             channel_id: string;
@@ -53,6 +53,12 @@ export interface CartSessionPayload {
     url?: string;
     total?: number;
     id?: string;
+    metadata?: {
+        sbeSessionId?: string | null;
+        shoppingCartId?: string | null;
+        sbeRc?: string | null;
+        sbeRcDecoded?: string | null;
+    };
 }
 export interface CartSessionResponse {
     id: string;
