@@ -98,8 +98,30 @@ export declare class AbandonedCartTool {
     private fetchSynxisCartApi;
     /**
      * Extract products and total from SynXis cart API response
+     *
+     * The /gw/v1/cart/ endpoint can return multiple pending reservations under
+     * the same shoppingCartId cookie (accumulated from prior incomplete bookings).
+     * We filter down to the reservation the user is actually checking out, matched
+     * via the sbe_rc URL param (base64 UUID = reservation.id). Fallback: the
+     * reservation with the highest itineraryNumber (most recently created).
+     *
+     * The API's Total.Amount is the list price, which doesn't reflect promo
+     * discounts that the SBE applies client-side at reservation time. We override
+     * the root `total` with the DOM-visible price (post-discount) and also expose
+     * it per-product as `actualTotal` for reference.
      */
     private extractSynxisCartApiData;
+    /**
+     * Read the cart total as rendered on the SynXis checkout page.
+     * Accounts for promo/discount adjustments applied client-side that
+     * aren't reflected in the /gw/v1/cart/ API response.
+     */
+    private getSynxisActualTotal;
+    /**
+     * Parse a locale-formatted price string like "12 980,50 kr" or "12,980.50 kr".
+     * Handles both Norwegian (space/comma) and English (comma/dot) formats.
+     */
+    private parseSynxisPrice;
     /**
      * Get SynXis session identifiers from cookies and URL parameters
      */
