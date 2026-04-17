@@ -983,6 +983,17 @@ export class AbandonedCartTool {
 
     /**
      * Extract products and total from SynXis cart API response
+     *
+     * The /gw/v1/cart/ endpoint can return multiple pending reservations under
+     * the same shoppingCartId cookie (accumulated from prior incomplete bookings).
+     * We filter down to the reservation the user is actually checking out, matched
+     * via the sbe_rc URL param (base64 UUID = reservation.id). Fallback: the
+     * reservation with the highest itineraryNumber (most recently created).
+     *
+     * The API's Total.Amount is the list price, which doesn't reflect promo
+     * discounts that the SBE applies client-side at reservation time. We override
+     * the root `total` with the DOM-visible price (post-discount) and also expose
+     * it per-product as `actualTotal` for reference.
      */
     private extractSynxisCartApiData(data: any): {
         products: any[];
@@ -991,84 +1002,168 @@ export class AbandonedCartTool {
         const products: any[] = [];
         let total = 0;
 
+        const actualTotal = this.getSynxisActualTotal();
+        const sessionIds = (this as any)._synxisSessionIds as
+            | { sbeRcDecoded?: string | null }
+            | undefined;
+
         try {
             const shoppingCarts = data?.ShoppingCart || [];
 
+            const allReservations: Array<{
+                resv: any;
+                itineraryNumber: string;
+            }> = [];
             for (const cart of shoppingCarts) {
                 const reservations =
                     cart?.UpdatedData?.itinerary?.reservations || [];
-
                 for (const resv of reservations) {
-                    const extras = resv.extrasFromShopping || {};
-                    const stay = resv.stayCriteria || {};
-                    const guests = resv.guestCriteria || {};
-                    const prices = extras.prices || {};
-
-                    const totalPrice =
-                        prices?.Total?.Price?.Total?.AmountWithTaxesFees ||
-                        prices?.Total?.Price?.Total?.Amount ||
-                        prices?.Total?.Price?.Amount ||
-                        0;
-
-                    const dailyPrices = (prices?.Daily || []).map((day: any) => ({
-                        date: day.Date,
-                        amount: day.Price?.Total?.Amount || day.Price?.Amount || 0,
-                        amountWithTax: day.Price?.Total?.AmountWithTaxesFees || 0,
-                        tax: day.Price?.Tax?.Amount || 0,
-                        fees: day.Price?.Fees?.Amount || 0,
-                        currency: day.Price?.CurrencyCode,
-                        inventory: day.AvailableInventory,
-                    }));
-
-                    const product: any = {
-                        id: resv.id,
-                        confirmationNumber: resv.confirmationNumber,
-                        itineraryNumber: resv.itineraryNumber,
-                        name: extras.displayname || "Room",
-                        roomCode: stay.roomCode,
-                        rateCode: stay.rateCode,
-                        price: totalPrice,
-                        dailyRate: extras.amount || extras.amountWithTaxesFees,
-                        currency: extras.currencyCode,
-                        dailyPrices: dailyPrices,
-                        taxes: prices?.Total?.Price?.Tax?.Amount || 0,
-                        fees: prices?.Total?.Price?.Fees?.Amount || 0,
-                        startDate: stay.startDate?.split("T")[0],
-                        endDate: stay.endDate?.split("T")[0],
-                        nights: dailyPrices.length || null,
-                        adults: guests.numAdults || 1,
-                        children: guests.numChildren || 0,
-                        hotelId: String(resv.hotelId),
-                        chainId: String(resv.chainId),
-                        bedDescription: extras.bedDescription,
-                        bedType: extras.bedType,
-                        bedQuantity: extras.bedQuantity,
-                        maxRoomSize: extras.maxRoomSize,
-                        minRoomSize: extras.minRoomSize,
-                        guestLimit: extras.guestLimit,
-                        inventory: extras.inventory,
-                        bookingPolicyCode: extras.bookingPolicyCode,
-                        cancelPolicyCode: extras.cancelPolicyCode,
-                        status: resv.status,
-                        type: "room",
-                        quantity: 1,
-                        addons: resv.addOns || [],
-                        image: extras.coverImage || extras.imageUrls?.[0]?.Path || null,
-                    };
-
-                    products.push(product);
-                    total += totalPrice;
+                    allReservations.push({
+                        resv,
+                        itineraryNumber: cart?.Itemid || "",
+                    });
                 }
+            }
+
+            let activeReservations = allReservations;
+            if (sessionIds?.sbeRcDecoded) {
+                const matched = allReservations.filter(
+                    ({ resv }) => resv.id === sessionIds.sbeRcDecoded
+                );
+                if (matched.length > 0) {
+                    activeReservations = matched;
+                }
+            }
+            if (
+                activeReservations === allReservations &&
+                allReservations.length > 1
+            ) {
+                activeReservations = [...allReservations]
+                    .sort((a, b) =>
+                        b.itineraryNumber.localeCompare(a.itineraryNumber)
+                    )
+                    .slice(0, 1);
+            }
+
+            for (const { resv } of activeReservations) {
+                const extras = resv.extrasFromShopping || {};
+                const stay = resv.stayCriteria || {};
+                const guests = resv.guestCriteria || {};
+                const prices = extras.prices || {};
+
+                const totalPrice =
+                    prices?.Total?.Price?.Total?.AmountWithTaxesFees ||
+                    prices?.Total?.Price?.Total?.Amount ||
+                    prices?.Total?.Price?.Amount ||
+                    0;
+
+                const dailyPrices = (prices?.Daily || []).map((day: any) => ({
+                    date: day.Date,
+                    amount: day.Price?.Total?.Amount || day.Price?.Amount || 0,
+                    amountWithTax: day.Price?.Total?.AmountWithTaxesFees || 0,
+                    tax: day.Price?.Tax?.Amount || 0,
+                    fees: day.Price?.Fees?.Amount || 0,
+                    currency: day.Price?.CurrencyCode,
+                    inventory: day.AvailableInventory,
+                }));
+
+                const product: any = {
+                    id: resv.id,
+                    confirmationNumber: resv.confirmationNumber,
+                    itineraryNumber: resv.itineraryNumber,
+                    name: extras.displayname || "Room",
+                    roomCode: stay.roomCode,
+                    rateCode: stay.rateCode,
+                    price: totalPrice,
+                    actualTotal: actualTotal,
+                    dailyRate: extras.amount || extras.amountWithTaxesFees,
+                    currency: extras.currencyCode,
+                    dailyPrices: dailyPrices,
+                    taxes: prices?.Total?.Price?.Tax?.Amount || 0,
+                    fees: prices?.Total?.Price?.Fees?.Amount || 0,
+                    startDate: stay.startDate?.split("T")[0],
+                    endDate: stay.endDate?.split("T")[0],
+                    nights: dailyPrices.length || null,
+                    adults: guests.numAdults || 1,
+                    children: guests.numChildren || 0,
+                    hotelId: String(resv.hotelId),
+                    chainId: String(resv.chainId),
+                    bedDescription: extras.bedDescription,
+                    bedType: extras.bedType,
+                    bedQuantity: extras.bedQuantity,
+                    maxRoomSize: extras.maxRoomSize,
+                    minRoomSize: extras.minRoomSize,
+                    guestLimit: extras.guestLimit,
+                    inventory: extras.inventory,
+                    bookingPolicyCode: extras.bookingPolicyCode,
+                    cancelPolicyCode: extras.cancelPolicyCode,
+                    status: resv.status,
+                    type: "room",
+                    quantity: 1,
+                    addons: resv.addOns || [],
+                    image: extras.coverImage || extras.imageUrls?.[0]?.Path || null,
+                };
+
+                products.push(product);
+                total += totalPrice;
             }
         } catch (error) {
             console.error("SynXis: Error extracting cart API data:", error);
         }
 
-        if (total === 0) {
+        if (actualTotal !== null && actualTotal > 0) {
+            total = actualTotal;
+        } else if (total === 0) {
             total = this.totalAverage || 0;
         }
 
         return { products, total };
+    }
+
+    /**
+     * Read the cart total as rendered on the SynXis checkout page.
+     * Accounts for promo/discount adjustments applied client-side that
+     * aren't reflected in the /gw/v1/cart/ API response.
+     */
+    private getSynxisActualTotal(): number | null {
+        if (typeof document === "undefined") {
+            return null;
+        }
+
+        const priceEl = document.querySelector(
+            ".price-summary_price span"
+        );
+        if (!priceEl?.textContent) {
+            return null;
+        }
+
+        return this.parseSynxisPrice(priceEl.textContent);
+    }
+
+    /**
+     * Parse a locale-formatted price string like "12 980,50 kr" or "12,980.50 kr".
+     * Handles both Norwegian (space/comma) and English (comma/dot) formats.
+     */
+    private parseSynxisPrice(text: string): number | null {
+        const cleaned = text.replace(/[^\d,\.-]/g, "");
+        if (!cleaned) {
+            return null;
+        }
+
+        const lastDot = cleaned.lastIndexOf(".");
+        const lastComma = cleaned.lastIndexOf(",");
+
+        let normalized: string;
+        if (lastDot === -1 && lastComma === -1) {
+            normalized = cleaned;
+        } else if (lastDot > lastComma) {
+            normalized = cleaned.replace(/,/g, "");
+        } else {
+            normalized = cleaned.replace(/\./g, "").replace(",", ".");
+        }
+
+        const result = parseFloat(normalized);
+        return isNaN(result) ? null : result;
     }
 
     /**
