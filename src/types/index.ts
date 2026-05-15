@@ -18,6 +18,7 @@ export interface InputMapping {
     form_selector?: string;
     inputs?: string[];
     field_mappings?: Record<string, string>; // Map from user field names to internal field names
+    excluded_inputs?: string[]; // Match against input.name or input.id (case-insensitive); excluded inputs are never observed or stored
 }
 
 export interface ProductMapping {

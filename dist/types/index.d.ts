@@ -17,6 +17,7 @@ export interface InputMapping {
     form_selector?: string;
     inputs?: string[];
     field_mappings?: Record<string, string>;
+    excluded_inputs?: string[];
 }
 export interface ProductMapping {
     [key: string]: any;
