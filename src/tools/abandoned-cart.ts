@@ -75,7 +75,11 @@ export class AbandonedCartTool {
 
             // Only initialize product detector and total extractor for non-bookvisit campaigns
             // For bookvisit campaigns, we'll fetch products and totals from the API
-            if (campaign.type !== "bookvisit" && campaign.type !== "synxis") {
+            if (
+                campaign.type !== "bookvisit" &&
+                campaign.type !== "synxis" &&
+                campaign.type !== "elinapms"
+            ) {
                 // Initialize product detector with the campaign's product mapping
                 this.productDetector = new ProductDetector(
                     campaign.product_mapping
@@ -192,6 +196,12 @@ export class AbandonedCartTool {
                     products = synxisData.products;
                     total = synxisData.total;
                 }
+            } else if (this.campaign?.type === "elinapms") {
+                const elinaData = await this.fetchElinapmsBasket();
+                if (elinaData) {
+                    products = elinaData.products;
+                    total = elinaData.total;
+                }
             } else {
                 // Detect products on the page using selectors
                 products = this.productDetector?.detectProducts() || [];
@@ -233,6 +243,9 @@ export class AbandonedCartTool {
                 id: effectiveSessionId,
                 ...(this.campaign?.type === "synxis" && (this as any)._synxisSessionIds
                     ? { metadata: (this as any)._synxisSessionIds }
+                    : {}),
+                ...(this.campaign?.type === "elinapms" && (this as any)._elinapmsSessionIds
+                    ? { metadata: (this as any)._elinapmsSessionIds }
                     : {}),
             };
 
@@ -1310,6 +1323,137 @@ export class AbandonedCartTool {
         }
 
         return { products, total };
+    }
+
+    /**
+     * Read basket data from an Elina PMS booking page (e.g. /Confirm/SignUpOnBooking).
+     * Elina exposes everything we need directly in the DOM — no API call required.
+     * Returns null if cart elements aren't on the page, so totalAverage is used instead.
+     */
+    private async fetchElinapmsBasket(): Promise<{
+        products: any[];
+        total: number;
+    } | null> {
+        if (!this.campaign || this.campaign.type !== "elinapms") {
+            return null;
+        }
+        if (typeof document === "undefined") {
+            return null;
+        }
+
+        try {
+            const cartItems = document.querySelectorAll(
+                ".shoppingCartItem.align-centre"
+            );
+            if (cartItems.length === 0) {
+                return null;
+            }
+
+            // Capture Elina's server-side cart key. The browser-scoped
+            // bookingShoppingCart_0 GUID is the only stable handle on this
+            // cart — sending it lets the backend correlate sessions and build
+            // a "return to /Confirm/SignUpOnBooking" CTA later.
+            const sessionIds = this.getElinapmsSessionIds();
+            if (sessionIds) {
+                (this as any)._elinapmsSessionIds = sessionIds;
+            }
+
+            const products = Array.from(cartItems).map((el) => {
+                const cart = el as HTMLElement;
+                return {
+                    id: cart.dataset.id,
+                    name: cart.dataset.tagname,
+                    price: this.parseElinapmsNumber(cart.dataset.tagprice),
+                    quantity: 1,
+                    type: "accommodation",
+                    category: cart.dataset.tagcategory,
+                    locationId: cart.dataset.accid,
+                    ratePlanId: cart.dataset.rateruleId,
+                };
+            });
+
+            const total = this.extractElinapmsTotal();
+            return { products, total };
+        } catch (error) {
+            console.error("Error extracting Elina PMS basket:", error);
+            return null;
+        }
+    }
+
+    /**
+     * Resolve the booking total from the Elina PMS booking page.
+     * Prefers the hidden #Total form input (the value posted on submit).
+     * Falls back to summing accommodation base + fees + addons, mirroring the
+     * Elina dataLayer script used for begin_checkout tracking.
+     */
+    private extractElinapmsTotal(): number {
+        const totalInput = document.getElementById("Total") as
+            | HTMLInputElement
+            | null;
+        if (totalInput && totalInput.value) {
+            const t = this.parseElinapmsNumber(totalInput.value);
+            if (t > 0) return t;
+        }
+
+        const accommodationTotal = document.getElementById("accommodationTotal");
+        if (!accommodationTotal) {
+            return this.totalAverage;
+        }
+
+        const baseEl = accommodationTotal.querySelector(".formattedCurrency");
+        const baseVal = baseEl ? this.parseElinapmsNumber(baseEl.textContent) : 0;
+
+        const feesEl = accommodationTotal.querySelector<HTMLElement>(".plusFees");
+        const feeVal = feesEl ? this.parseElinapmsNumber(feesEl.dataset.att) : 0;
+
+        let addonsVal = 0;
+        const addonsDiv = document.getElementById("addonsTotal");
+        if (addonsDiv) {
+            const addonsEl = addonsDiv.querySelector(".formattedCurrency");
+            addonsVal = addonsEl
+                ? this.parseElinapmsNumber(addonsEl.textContent)
+                : 0;
+        }
+
+        return baseVal + feeVal + addonsVal;
+    }
+
+    /**
+     * Read Elina PMS / Norgesbooking session identifiers from cookies.
+     * bookingShoppingCart_0 is a server-side cart GUID; the browser sending
+     * this cookie to /Confirm/SignUpOnBooking re-renders the original cart.
+     */
+    private getElinapmsSessionIds(): {
+        bookingShoppingCart: string | null;
+    } | null {
+        const cart = this.getCookie("bookingShoppingCart_0");
+        if (!cart) return null;
+        return { bookingShoppingCart: cart };
+    }
+
+    /**
+     * Parse a number string from the Elina PMS DOM. Handles both European
+     * ("2 840,00" or "2&nbsp;840,00") and US ("2,840.00") formats by detecting
+     * which of `.` and `,` is the rightmost separator and treating that as the
+     * decimal mark.
+     */
+    private parseElinapmsNumber(input: string | null | undefined): number {
+        if (input === null || input === undefined) return 0;
+        let s = String(input).replace(/[\s ]/g, "");
+        if (!s) return 0;
+
+        const lastComma = s.lastIndexOf(",");
+        const lastDot = s.lastIndexOf(".");
+        if (lastComma > lastDot) {
+            s = s.replace(/\./g, "").replace(",", ".");
+        } else if (lastDot > lastComma) {
+            s = s.replace(/,/g, "");
+        } else if (lastComma >= 0) {
+            s = s.replace(",", ".");
+        }
+
+        const n = parseFloat(s);
+        return isNaN(n) ? 0 : n;
     }
 
     /**

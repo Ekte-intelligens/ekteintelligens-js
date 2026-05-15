@@ -135,6 +135,32 @@ export declare class AbandonedCartTool {
      */
     private extractSynxisProductsFromDataLayer;
     /**
+     * Read basket data from an Elina PMS booking page (e.g. /Confirm/SignUpOnBooking).
+     * Elina exposes everything we need directly in the DOM — no API call required.
+     * Returns null if cart elements aren't on the page, so totalAverage is used instead.
+     */
+    private fetchElinapmsBasket;
+    /**
+     * Resolve the booking total from the Elina PMS booking page.
+     * Prefers the hidden #Total form input (the value posted on submit).
+     * Falls back to summing accommodation base + fees + addons, mirroring the
+     * Elina dataLayer script used for begin_checkout tracking.
+     */
+    private extractElinapmsTotal;
+    /**
+     * Read Elina PMS / Norgesbooking session identifiers from cookies.
+     * bookingShoppingCart_0 is a server-side cart GUID; the browser sending
+     * this cookie to /Confirm/SignUpOnBooking re-renders the original cart.
+     */
+    private getElinapmsSessionIds;
+    /**
+     * Parse a number string from the Elina PMS DOM. Handles both European
+     * ("2 840,00" or "2&nbsp;840,00") and US ("2,840.00") formats by detecting
+     * which of `.` and `,` is the rightmost separator and treating that as the
+     * decimal mark.
+     */
+    private parseElinapmsNumber;
+    /**
      * Get cookie value by name
      */
     private getCookie;

@@ -30,7 +30,7 @@ export interface CheckoutCampaign {
     input_mapping: InputMapping | null;
     total_selector?: string; // Selector for cart total (id, class, or complex selector)
     average_checkout_value?: number;
-    type: "bookvisit" | "synxis" | "default";
+    type: "bookvisit" | "synxis" | "elinapms" | "default";
     config: {
         bookvisit?: {
             channel_id: string;
@@ -64,6 +64,7 @@ export interface CartSessionPayload {
         shoppingCartId?: string | null;
         sbeRc?: string | null;
         sbeRcDecoded?: string | null;
+        bookingShoppingCart?: string | null;
     };
 }
 
