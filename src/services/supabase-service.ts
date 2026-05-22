@@ -103,6 +103,37 @@ export class SupabaseService {
         }
     }
 
+    /**
+     * Record an assistant event via the `create-event` edge function.
+     *
+     * The `funnel_subscriber` variant is used for shortlink-open tracking:
+     * the function resolves `id_short_encoded` to a funnel subscriber and
+     * writes an `opened_link` event for them.
+     */
+    async createAssistantEvent(payload: {
+        id_short_encoded: string;
+        type: "funnel_subscriber";
+    }): Promise<boolean> {
+        try {
+            const { error } = await this.client.functions.invoke(
+                "create-event",
+                {
+                    body: payload,
+                }
+            );
+
+            if (error) {
+                console.error("Error calling create-event function:", error);
+                return false;
+            }
+
+            return true;
+        } catch (error) {
+            console.error("Error calling create-event function:", error);
+            return false;
+        }
+    }
+
     async getPipelineCampaign(
         campaignId: string
     ): Promise<OrganizationPipelineCampaign | null> {

@@ -2,6 +2,7 @@ import { SDKOptions } from "./types";
 import { AbandonedCartTool } from "./tools/abandoned-cart";
 import { OrganizationPipelineTool } from "./tools/organization-pipeline";
 import { EnhancedInsightsTool } from "./tools/enhanced-insights";
+import { LinkTrackingTool } from "./tools/link-tracking";
 
 export class EkteIntelligensSDK {
     private options: SDKOptions;
@@ -18,6 +19,13 @@ export class EkteIntelligensSDK {
         }
 
         try {
+            // Shortlink-open tracking always runs. It is a no-op unless the
+            // URL carries an `?s=` funnel-subscriber parameter, so there is
+            // no feature flag for it.
+            const linkTrackingTool = new LinkTrackingTool(this.options);
+            await linkTrackingTool.initialize();
+            this.tools.set("linkTracking", linkTrackingTool);
+
             // Initialize enabled features
             if (this.options.features?.abandonedCart) {
                 const abandonedCartTool = new AbandonedCartTool(this.options);
@@ -64,6 +72,10 @@ export class EkteIntelligensSDK {
 
     public getEnhancedInsightsTool(): EnhancedInsightsTool | undefined {
         return this.tools.get("enhancedInsights");
+    }
+
+    public getLinkTrackingTool(): LinkTrackingTool | undefined {
+        return this.tools.get("linkTracking");
     }
 
     public destroy(): void {

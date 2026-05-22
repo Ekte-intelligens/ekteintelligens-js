@@ -266,6 +266,19 @@ This configuration will extract:
 -   **Total**: Booking total price (1 790 NOK)
 -   **URL**: Current page URL with query parameters
 
+### Shortlink Open Tracking
+
+Always on — no feature flag required. On every `sdk.initialize()` the SDK
+checks the page URL for an `?s=` parameter. This parameter carries the encoded
+funnel-subscriber id used in shortlinks we send out (e.g. abandoned-cart
+emails). When present, the SDK records an `opened_link` event for that
+subscriber via the `create-event` edge function.
+
+-   Fires once per browser session per distinct `?s=` value (deduped via
+    `sessionStorage`), so reloads and SPA re-renders don't double-count.
+-   It is a complete no-op when no `?s=` parameter is in the URL.
+-   Runs fire-and-forget, so it never delays SDK initialization.
+
 ## API Reference
 
 ### EkteIntelligensSDK
@@ -324,7 +337,20 @@ CREATE TABLE organizations_checkout_campaigns (
 );
 ```
 
-## Edge Function
+## Edge Functions
+
+### create-event
+
+Used by shortlink open tracking. Accepts:
+
+```typescript
+{
+    id_short_encoded: string; // Encoded funnel-subscriber id from the ?s= param
+    type: "funnel_subscriber";
+}
+```
+
+### cart-checkout-session
 
 The SDK expects a Supabase edge function named `cart-checkout-session` that accepts:
 
