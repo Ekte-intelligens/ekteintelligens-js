@@ -9,6 +9,8 @@ import {
     InputMapping,
 } from "../types";
 
+let hasInitializedAutofields = false;
+
 export class AbandonedCartTool {
     private options: SDKOptions;
     private supabaseService: SupabaseService;
@@ -106,8 +108,10 @@ export class AbandonedCartTool {
             if (
                 campaign.type === "bookvisit" &&
                 campaign.config?.bookvisit?.autofields === true &&
-                window.location.pathname === "/checkout"
+                window.location.pathname === "/checkout" &&
+                !hasInitializedAutofields
             ) {
+                hasInitializedAutofields = true;
                 this.injectBookVisitAutofields(campaign.input_mapping);
             }
 
