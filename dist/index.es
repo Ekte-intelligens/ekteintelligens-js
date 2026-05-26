@@ -6026,9 +6026,11 @@ class ki {
       );
       return this.totalAverage = r != null && r.average_checkout_value ? r.average_checkout_value : 0, r ? (this.campaign = r, this.inputDetector = new as(r.input_mapping), r.type !== "bookvisit" && r.type !== "synxis" && r.type !== "elinapms" && (this.productDetector = new ls(
         r.product_mapping
-      ), this.totalExtractor = new cs(r.total_selector)), this.inputDetector.setOnContentUpdate(
+      ), this.totalExtractor = new cs(
+        r.total_selector
+      )), this.inputDetector.setOnContentUpdate(
         this.debouncedHandleContentUpdate.bind(this)
-      ), this._sessionId && this.inputDetector.setSessionId(this._sessionId), r.type === "bookvisit" && ((s = (t = r.config) == null ? void 0 : t.bookvisit) == null ? void 0 : s.autofields) === !0 && this.injectBookVisitAutofields(r.input_mapping), this.checkAndFillPaymentPageFields(), this.inputDetector.startListening(), this.setupUrlChangeListener(), this.isInitialized = !0, !0) : (console.error("Failed to fetch checkout campaign data"), !1);
+      ), this._sessionId && this.inputDetector.setSessionId(this._sessionId), r.type === "bookvisit" && ((s = (t = r.config) == null ? void 0 : t.bookvisit) == null ? void 0 : s.autofields) === !0 && window.location.pathname === "/checkout" && this.injectBookVisitAutofields(r.input_mapping), this.checkAndFillPaymentPageFields(), this.inputDetector.startListening(), this.setupUrlChangeListener(), this.isInitialized = !0, !0) : (console.error("Failed to fetch checkout campaign data"), !1);
     } catch (r) {
       return console.error("Failed to initialize abandoned cart tool:", r), !1;
     }
@@ -6088,9 +6090,7 @@ class ki {
         id: b,
         ...((l = this.campaign) == null ? void 0 : l.type) === "synxis" && this._synxisSessionIds ? { metadata: this._synxisSessionIds } : {},
         ...((u = this.campaign) == null ? void 0 : u.type) === "elinapms" && this._elinapmsSessionIds ? { metadata: this._elinapmsSessionIds } : {}
-      }, y = await this.supabaseService.submitCartSession(
-        g
-      );
+      }, y = await this.supabaseService.submitCartSession(g);
       y && y.id ? (this._sessionId = y.id, (c = this.inputDetector) == null || c.setSessionId(y.id), this.saveSessionIdToStorage(y.id), this.previousContent = { ...e }, this.previousProducts = [...h], this.previousTotal = d, console.log("Cart session updated successfully:", y.id)) : console.error("Failed to submit cart session");
     } catch (h) {
       console.error("Error handling content update:", h);
@@ -6295,7 +6295,10 @@ class ki {
         }
       });
     } catch (i) {
-      console.error("Error extracting BookVisit products and total:", i);
+      console.error(
+        "Error extracting BookVisit products and total:",
+        i
+      );
     }
     return { products: t, total: s };
   }
@@ -6314,7 +6317,9 @@ class ki {
     }
     const s = this.getFieldsToInclude(e);
     if (s.length === 0) {
-      console.log("No relevant fields found in input_mapping for autofields");
+      console.log(
+        "No relevant fields found in input_mapping for autofields"
+      );
       return;
     }
     const r = this.createBookVisitFormSection(s);
@@ -6507,7 +6512,9 @@ class ki {
     try {
       const s = this.getSynxisDataLayer();
       if (s && s.length > 0)
-        return console.log("SynXis: Cart API unavailable, using dataLayer fallback"), this.extractSynxisProductsFromDataLayer(s);
+        return console.log(
+          "SynXis: Cart API unavailable, using dataLayer fallback"
+        ), this.extractSynxisProductsFromDataLayer(s);
     } catch (s) {
       console.error("SynXis: dataLayer fallback failed:", s);
     }
@@ -6532,7 +6539,9 @@ class ki {
         }
       );
       if (!t.ok)
-        return console.error(`SynXis cart API error: ${t.status} ${t.statusText}`), null;
+        return console.error(
+          `SynXis cart API error: ${t.status} ${t.statusText}`
+        ), null;
       const s = await t.json();
       return this.extractSynxisCartApiData(s);
     } catch (t) {
@@ -6641,9 +6650,7 @@ class ki {
   getSynxisActualTotal() {
     if (typeof document > "u")
       return null;
-    const e = document.querySelector(
-      ".price-summary_price span"
-    );
+    const e = document.querySelector(".price-summary_price span");
     return e != null && e.textContent ? this.parseSynxisPrice(e.textContent) : null;
   }
   /**
@@ -6785,7 +6792,9 @@ class ki {
    * Elina dataLayer script used for begin_checkout tracking.
    */
   extractElinapmsTotal() {
-    const e = document.getElementById("Total");
+    const e = document.getElementById(
+      "Total"
+    );
     if (e && e.value) {
       const u = this.parseElinapmsNumber(e.value);
       if (u > 0) return u;
@@ -6870,9 +6879,15 @@ class ki {
     [
       document.querySelector('input[name="firstName"]'),
       document.querySelector('input[name="lastName"]'),
-      document.querySelector('input[name="emailAddress"]'),
-      document.querySelector('input[name="phoneCountryCode"]'),
-      document.querySelector('input[name="phoneNumber"]')
+      document.querySelector(
+        'input[name="emailAddress"]'
+      ),
+      document.querySelector(
+        'input[name="phoneCountryCode"]'
+      ),
+      document.querySelector(
+        'input[name="phoneNumber"]'
+      )
     ].filter((t) => t !== null).forEach((t) => {
       const s = this.handleAutofieldBlur.bind(this);
       t.removeEventListener("blur", s), t.addEventListener("blur", s);
@@ -6936,10 +6951,16 @@ class ki {
     );
     s && (s.addEventListener("input", (r) => {
       const i = r.target;
-      i.value && this.saveToSessionStorage("autofield_phoneNumber", i.value);
+      i.value && this.saveToSessionStorage(
+        "autofield_phoneNumber",
+        i.value
+      );
     }), s.addEventListener("blur", (r) => {
       const i = r.target;
-      i.value && this.saveToSessionStorage("autofield_phoneNumber", i.value);
+      i.value && this.saveToSessionStorage(
+        "autofield_phoneNumber",
+        i.value
+      );
     })), (e || t || s) && (this.autofieldStorageListenersSetup = !0);
   }
   /**
@@ -6963,21 +6984,33 @@ class ki {
         const h = o.getElementById(
           "registrationManualEmail"
         );
-        h && !h.value ? (h.value = l, h.dispatchEvent(new Event("input", { bubbles: !0 })), h.dispatchEvent(new Event("change", { bubbles: !0 })), console.log("Filled email from sessionStorage:", l)) : h || (a = !1);
+        h && !h.value ? (h.value = l, h.dispatchEvent(
+          new Event("input", { bubbles: !0 })
+        ), h.dispatchEvent(
+          new Event("change", { bubbles: !0 })
+        ), console.log("Filled email from sessionStorage:", l)) : h || (a = !1);
       }
       const u = this.getFromSessionStorage(
         "autofield_phoneCountryCode"
-      ), c = this.getFromSessionStorage("autofield_phoneNumber");
+      ), c = this.getFromSessionStorage(
+        "autofield_phoneNumber"
+      );
       if (u || c) {
         const h = o.querySelector(
           'input[name="country-code"]'
         );
         if (h && u) {
-          h.value = u, h.dispatchEvent(new Event("change", { bubbles: !0 }));
+          h.value = u, h.dispatchEvent(
+            new Event("change", { bubbles: !0 })
+          );
           const f = o.querySelector(
             '#registrationManualPhonePrefix input[type="text"]'
           );
-          f && (f.value = u, f.dispatchEvent(new Event("input", { bubbles: !0 })), f.dispatchEvent(new Event("change", { bubbles: !0 })));
+          f && (f.value = u, f.dispatchEvent(
+            new Event("input", { bubbles: !0 })
+          ), f.dispatchEvent(
+            new Event("change", { bubbles: !0 })
+          ));
           const p = o.getElementById(
             "registrationManualPhonePrefix"
           );
@@ -7034,7 +7067,9 @@ class ki {
     try {
       const d = this.getFromSessionStorage("autofield_email"), f = this.getFromSessionStorage(
         "autofield_phoneCountryCode"
-      ), p = this.getFromSessionStorage("autofield_phoneNumber");
+      ), p = this.getFromSessionStorage(
+        "autofield_phoneNumber"
+      );
       if (!d && !f && !p)
         return;
       let b = "*";
@@ -7108,7 +7143,12 @@ class ki {
           phoneNumber: p ? "***" : null,
           targetOrigin: b
         }
-      ), this.tryIframeUrlParameters(e, d, f, p);
+      ), this.tryIframeUrlParameters(
+        e,
+        d,
+        f,
+        p
+      );
     } catch (d) {
       console.warn("Failed to send postMessage to iframe:", d);
     }
@@ -7124,20 +7164,17 @@ class ki {
         if (!o && !a)
           return;
         const l = i.searchParams.toString().length > 0;
-        (t || s || r) && console.log(
-          `${a ? "Nets Easy/Nexi" : o ? "Dibs" : "Payment"} iframe URL analysis:`,
-          {
-            currentUrl: e.src,
-            hasParams: l,
-            suggestedParams: {
-              ...t ? { email: t } : {},
-              ...s ? { phoneCountryCode: s } : {},
-              ...r ? { phoneNumber: "***" } : {}
-            },
-            note: l ? "Iframe URL has parameters - might support additional ones" : `Iframe URL has no parameters - check ${a ? "Nets Easy/Nexi" : "Dibs"} documentation for supported params`,
-            provider: a ? "Nets Easy/Nexi Group" : "Dibs"
-          }
-        );
+        (t || s || r) && console.log(`${a ? "Nets Easy/Nexi" : o ? "Dibs" : "Payment"} iframe URL analysis:`, {
+          currentUrl: e.src,
+          hasParams: l,
+          suggestedParams: {
+            ...t ? { email: t } : {},
+            ...s ? { phoneCountryCode: s } : {},
+            ...r ? { phoneNumber: "***" } : {}
+          },
+          note: l ? "Iframe URL has parameters - might support additional ones" : `Iframe URL has no parameters - check ${a ? "Nets Easy/Nexi" : "Dibs"} documentation for supported params`,
+          provider: a ? "Nets Easy/Nexi Group" : "Dibs"
+        });
       } catch {
       }
   }
@@ -7185,7 +7222,10 @@ class ki {
       try {
         sessionStorage.setItem(e, t), console.log(`Saved to sessionStorage: ${e} = ${t}`);
       } catch (s) {
-        console.warn(`Failed to save to sessionStorage (${e}):`, s);
+        console.warn(
+          `Failed to save to sessionStorage (${e}):`,
+          s
+        );
       }
   }
   /**
@@ -7196,7 +7236,10 @@ class ki {
       try {
         return sessionStorage.getItem(e);
       } catch (t) {
-        return console.warn(`Failed to get from sessionStorage (${e}):`, t), null;
+        return console.warn(
+          `Failed to get from sessionStorage (${e}):`,
+          t
+        ), null;
       }
     return null;
   }

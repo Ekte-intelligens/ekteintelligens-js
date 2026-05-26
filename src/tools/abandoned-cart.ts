@@ -34,7 +34,7 @@ export class AbandonedCartTool {
         this.options = options;
         this.supabaseService = new SupabaseService(
             options.supabaseUrl,
-            options.supabaseAnonKey
+            options.supabaseAnonKey,
         );
     }
 
@@ -55,7 +55,7 @@ export class AbandonedCartTool {
 
             // Fetch campaign data from Supabase
             const campaign = await this.supabaseService.getCheckoutCampaign(
-                this.options.checkoutCampaignId
+                this.options.checkoutCampaignId,
             );
 
             this.totalAverage = campaign?.average_checkout_value
@@ -82,16 +82,18 @@ export class AbandonedCartTool {
             ) {
                 // Initialize product detector with the campaign's product mapping
                 this.productDetector = new ProductDetector(
-                    campaign.product_mapping
+                    campaign.product_mapping,
                 );
 
                 // Initialize total extractor with the campaign's total selector
-                this.totalExtractor = new TotalExtractor(campaign.total_selector);
+                this.totalExtractor = new TotalExtractor(
+                    campaign.total_selector,
+                );
             }
 
             // Set up the content update callback with debouncing
             this.inputDetector.setOnContentUpdate(
-                this.debouncedHandleContentUpdate.bind(this)
+                this.debouncedHandleContentUpdate.bind(this),
             );
 
             // Set session ID if we have one from localStorage
@@ -103,7 +105,8 @@ export class AbandonedCartTool {
             // This must happen before startListening() so autofields are in the DOM
             if (
                 campaign.type === "bookvisit" &&
-                campaign.config?.bookvisit?.autofields === true
+                campaign.config?.bookvisit?.autofields === true &&
+                window.location.pathname === "/checkout"
             ) {
                 this.injectBookVisitAutofields(campaign.input_mapping);
             }
@@ -132,7 +135,7 @@ export class AbandonedCartTool {
      */
     private debouncedHandleContentUpdate(
         content: Record<string, any>,
-        sessionId?: string
+        sessionId?: string,
     ) {
         // Store the latest content update
         this.pendingContentUpdate = { content, sessionId };
@@ -148,7 +151,7 @@ export class AbandonedCartTool {
             if (this.pendingContentUpdate) {
                 this.handleContentUpdate(
                     this.pendingContentUpdate.content,
-                    this.pendingContentUpdate.sessionId
+                    this.pendingContentUpdate.sessionId,
                 );
                 this.pendingContentUpdate = undefined;
             }
@@ -157,7 +160,7 @@ export class AbandonedCartTool {
 
     private async handleContentUpdate(
         content: Record<string, any>,
-        sessionId?: string
+        sessionId?: string,
     ) {
         // Prevent concurrent submissions to avoid duplicate sessions
         if (this.isSubmitting) {
@@ -171,7 +174,7 @@ export class AbandonedCartTool {
                 if (this.pendingContentUpdate) {
                     this.handleContentUpdate(
                         this.pendingContentUpdate.content,
-                        this.pendingContentUpdate.sessionId
+                        this.pendingContentUpdate.sessionId,
                     );
                 }
             }, 100); // Short retry delay
@@ -207,14 +210,15 @@ export class AbandonedCartTool {
                 products = this.productDetector?.detectProducts() || [];
 
                 // Extract cart total using selector
-                total = this.totalExtractor?.extractTotal() || this.totalAverage;
+                total =
+                    this.totalExtractor?.extractTotal() || this.totalAverage;
             }
 
             // Check if content has actually changed
             const contentChanged = this.hasContentChanged(
                 content,
                 products,
-                total
+                total,
             );
 
             if (!contentChanged) {
@@ -241,17 +245,18 @@ export class AbandonedCartTool {
                 url: currentUrl,
                 total: total,
                 id: effectiveSessionId,
-                ...(this.campaign?.type === "synxis" && (this as any)._synxisSessionIds
+                ...(this.campaign?.type === "synxis" &&
+                (this as any)._synxisSessionIds
                     ? { metadata: (this as any)._synxisSessionIds }
                     : {}),
-                ...(this.campaign?.type === "elinapms" && (this as any)._elinapmsSessionIds
+                ...(this.campaign?.type === "elinapms" &&
+                (this as any)._elinapmsSessionIds
                     ? { metadata: (this as any)._elinapmsSessionIds }
                     : {}),
             };
 
-            const response = await this.supabaseService.submitCartSession(
-                payload
-            );
+            const response =
+                await this.supabaseService.submitCartSession(payload);
 
             if (response && response.id) {
                 // Store the session ID for future updates
@@ -281,7 +286,7 @@ export class AbandonedCartTool {
     private hasContentChanged(
         content: Record<string, any>,
         products: any[],
-        total: number
+        total: number,
     ): boolean {
         // If this is the first update (previousContent is empty), always consider it changed
         if (
@@ -329,7 +334,7 @@ export class AbandonedCartTool {
         if (this.pendingContentUpdate) {
             this.handleContentUpdate(
                 this.pendingContentUpdate.content,
-                this.pendingContentUpdate.sessionId
+                this.pendingContentUpdate.sessionId,
             );
             this.pendingContentUpdate = undefined;
         }
@@ -379,13 +384,13 @@ export class AbandonedCartTool {
                     this._sessionId = storedSessionId;
                     console.log(
                         "Loaded session ID from localStorage:",
-                        storedSessionId
+                        storedSessionId,
                     );
                 }
             } catch (error) {
                 console.warn(
                     "Failed to load session ID from localStorage:",
-                    error
+                    error,
                 );
             }
         }
@@ -402,7 +407,7 @@ export class AbandonedCartTool {
             } catch (error) {
                 console.warn(
                     "Failed to save session ID to localStorage:",
-                    error
+                    error,
                 );
             }
         }
@@ -419,7 +424,7 @@ export class AbandonedCartTool {
             } catch (error) {
                 console.warn(
                     "Failed to clear session ID from localStorage:",
-                    error
+                    error,
                 );
             }
         }
@@ -437,17 +442,17 @@ export class AbandonedCartTool {
         try {
             // Delete the session from the database
             const deleted = await this.supabaseService.deleteCartSession(
-                this._sessionId
+                this._sessionId,
             );
 
             if (deleted) {
                 console.log(
                     "Successfully deleted completed checkout session:",
-                    this._sessionId
+                    this._sessionId,
                 );
             } else {
                 console.warn(
-                    "Failed to delete completed checkout session from database"
+                    "Failed to delete completed checkout session from database",
                 );
             }
         } catch (error) {
@@ -495,7 +500,7 @@ export class AbandonedCartTool {
 
             if (!response.ok) {
                 console.error(
-                    `BookVisit API error: ${response.status} ${response.statusText}`
+                    `BookVisit API error: ${response.status} ${response.statusText}`,
                 );
                 return null;
             }
@@ -535,7 +540,7 @@ export class AbandonedCartTool {
             rooms.forEach((room: any) => {
                 // Find room description
                 const roomDescription = roomDescriptions.find(
-                    (desc: any) => desc.id === room.roomId
+                    (desc: any) => desc.id === room.roomId,
                 );
 
                 // Calculate room price
@@ -556,9 +561,10 @@ export class AbandonedCartTool {
                 // Add rate plan information if available
                 if (room.priceInfo && room.priceInfo.length > 0) {
                     const ratePlanId = room.priceInfo[0].ratePlanId;
-                    const ratePlanDescription = bookingData.ratePlanDescriptions?.find(
-                        (desc: any) => desc.id === ratePlanId
-                    );
+                    const ratePlanDescription =
+                        bookingData.ratePlanDescriptions?.find(
+                            (desc: any) => desc.id === ratePlanId,
+                        );
                     if (ratePlanDescription) {
                         product.ratePlan = ratePlanDescription.name;
                     }
@@ -575,7 +581,7 @@ export class AbandonedCartTool {
                     const addOnTotalPrice = addOn.totalPrice || 0;
                     if (addOnTotalPrice > 0) {
                         const addOnDescription = addOnDescriptions.find(
-                            (desc: any) => desc.id === addOn.addOnId
+                            (desc: any) => desc.id === addOn.addOnId,
                         );
 
                         products.push({
@@ -598,7 +604,7 @@ export class AbandonedCartTool {
                 const addOnTotalPrice = addOn.totalPrice || 0;
                 if (addOnTotalPrice > 0) {
                     const addOnDescription = addOnDescriptions.find(
-                        (desc: any) => desc.id === addOn.addOnId
+                        (desc: any) => desc.id === addOn.addOnId,
                     );
 
                     products.push({
@@ -613,7 +619,10 @@ export class AbandonedCartTool {
                 }
             });
         } catch (error) {
-            console.error("Error extracting BookVisit products and total:", error);
+            console.error(
+                "Error extracting BookVisit products and total:",
+                error,
+            );
         }
 
         return { products, total };
@@ -622,9 +631,7 @@ export class AbandonedCartTool {
     /**
      * Inject autofields for BookVisit campaigns
      */
-    private injectBookVisitAutofields(
-        inputMapping: InputMapping | null
-    ): void {
+    private injectBookVisitAutofields(inputMapping: InputMapping | null): void {
         if (typeof document === "undefined") {
             return;
         }
@@ -633,7 +640,7 @@ export class AbandonedCartTool {
         const container = document.getElementById("main_content_container");
         if (!container) {
             console.warn(
-                "main_content_container not found, cannot inject autofields"
+                "main_content_container not found, cannot inject autofields",
             );
             return;
         }
@@ -641,7 +648,9 @@ export class AbandonedCartTool {
         // Determine which fields to include based on input_mapping
         const fieldsToInclude = this.getFieldsToInclude(inputMapping);
         if (fieldsToInclude.length === 0) {
-            console.log("No relevant fields found in input_mapping for autofields");
+            console.log(
+                "No relevant fields found in input_mapping for autofields",
+            );
             return;
         }
 
@@ -733,7 +742,7 @@ export class AbandonedCartTool {
      */
     private hasFieldMapping(
         fieldMappings: Record<string, string>,
-        targetNames: string[]
+        targetNames: string[],
     ): boolean {
         // Check the values (system mappings) primarily, as they represent the standardized field names
         for (const value of Object.values(fieldMappings)) {
@@ -754,7 +763,7 @@ export class AbandonedCartTool {
      */
     private hasInputSelector(
         inputSelectors: string[],
-        targetNames: string[]
+        targetNames: string[],
     ): boolean {
         for (const selector of inputSelectors) {
             const selectorLower = selector.toLowerCase();
@@ -796,7 +805,7 @@ export class AbandonedCartTool {
      */
     private getLocalizedText(key: "email" | "phoneNumber"): string {
         const locale = this.getUserLocale();
-        
+
         // Translation map for email and phone number
         const translations: Record<string, Record<string, string>> = {
             email: {
@@ -834,7 +843,7 @@ export class AbandonedCartTool {
         if (localeTranslation) {
             return localeTranslation;
         }
-        
+
         // Default to English for unknown locales
         return translations[key]["en"] || key;
     }
@@ -853,7 +862,8 @@ export class AbandonedCartTool {
         const phoneLabel = this.getLocalizedText("phoneNumber");
 
         // Build the input fields HTML - all in one grid
-        let inputFieldsHtml = '<div class="bv-m-0 bv-grid bv-gap-[10px] bv-grid-cols-[minmax(0,1fr)_minmax(0,1fr)] bv-mt-[20px] bv_small:bv-grid-cols-1">';
+        let inputFieldsHtml =
+            '<div class="bv-m-0 bv-grid bv-gap-[10px] bv-grid-cols-[minmax(0,1fr)_minmax(0,1fr)] bv-mt-[20px] bv_small:bv-grid-cols-1">';
 
         if (hasFirstName) {
             inputFieldsHtml += `
@@ -946,7 +956,9 @@ export class AbandonedCartTool {
         try {
             const dataLayer = this.getSynxisDataLayer();
             if (dataLayer && dataLayer.length > 0) {
-                console.log("SynXis: Cart API unavailable, using dataLayer fallback");
+                console.log(
+                    "SynXis: Cart API unavailable, using dataLayer fallback",
+                );
                 return this.extractSynxisProductsFromDataLayer(dataLayer);
             }
         } catch (error) {
@@ -976,13 +988,15 @@ export class AbandonedCartTool {
                     credentials: "include",
                     headers: {
                         "Content-Type": "application/json",
-                        "Accept": "application/json",
+                        Accept: "application/json",
                     },
-                }
+                },
             );
 
             if (!resp.ok) {
-                console.error(`SynXis cart API error: ${resp.status} ${resp.statusText}`);
+                console.error(
+                    `SynXis cart API error: ${resp.status} ${resp.statusText}`,
+                );
                 return null;
             }
 
@@ -1041,7 +1055,7 @@ export class AbandonedCartTool {
             let activeReservations = allReservations;
             if (sessionIds?.sbeRcDecoded) {
                 const matched = allReservations.filter(
-                    ({ resv }) => resv.id === sessionIds.sbeRcDecoded
+                    ({ resv }) => resv.id === sessionIds.sbeRcDecoded,
                 );
                 if (matched.length > 0) {
                     activeReservations = matched;
@@ -1053,7 +1067,7 @@ export class AbandonedCartTool {
             ) {
                 activeReservations = [...allReservations]
                     .sort((a, b) =>
-                        b.itineraryNumber.localeCompare(a.itineraryNumber)
+                        b.itineraryNumber.localeCompare(a.itineraryNumber),
                     )
                     .slice(0, 1);
             }
@@ -1114,7 +1128,10 @@ export class AbandonedCartTool {
                     type: "room",
                     quantity: 1,
                     addons: resv.addOns || [],
-                    image: extras.coverImage || extras.imageUrls?.[0]?.Path || null,
+                    image:
+                        extras.coverImage ||
+                        extras.imageUrls?.[0]?.Path ||
+                        null,
                 };
 
                 products.push(product);
@@ -1143,9 +1160,7 @@ export class AbandonedCartTool {
             return null;
         }
 
-        const priceEl = document.querySelector(
-            ".price-summary_price span"
-        );
+        const priceEl = document.querySelector(".price-summary_price span");
         if (!priceEl?.textContent) {
             return null;
         }
@@ -1343,7 +1358,7 @@ export class AbandonedCartTool {
 
         try {
             const cartItems = document.querySelectorAll(
-                ".shoppingCartItem.align-centre"
+                ".shoppingCartItem.align-centre",
             );
             if (cartItems.length === 0) {
                 return null;
@@ -1387,24 +1402,30 @@ export class AbandonedCartTool {
      * Elina dataLayer script used for begin_checkout tracking.
      */
     private extractElinapmsTotal(): number {
-        const totalInput = document.getElementById("Total") as
-            | HTMLInputElement
-            | null;
+        const totalInput = document.getElementById(
+            "Total",
+        ) as HTMLInputElement | null;
         if (totalInput && totalInput.value) {
             const t = this.parseElinapmsNumber(totalInput.value);
             if (t > 0) return t;
         }
 
-        const accommodationTotal = document.getElementById("accommodationTotal");
+        const accommodationTotal =
+            document.getElementById("accommodationTotal");
         if (!accommodationTotal) {
             return this.totalAverage;
         }
 
         const baseEl = accommodationTotal.querySelector(".formattedCurrency");
-        const baseVal = baseEl ? this.parseElinapmsNumber(baseEl.textContent) : 0;
+        const baseVal = baseEl
+            ? this.parseElinapmsNumber(baseEl.textContent)
+            : 0;
 
-        const feesEl = accommodationTotal.querySelector<HTMLElement>(".plusFees");
-        const feeVal = feesEl ? this.parseElinapmsNumber(feesEl.dataset.att) : 0;
+        const feesEl =
+            accommodationTotal.querySelector<HTMLElement>(".plusFees");
+        const feeVal = feesEl
+            ? this.parseElinapmsNumber(feesEl.dataset.att)
+            : 0;
 
         let addonsVal = 0;
         const addonsDiv = document.getElementById("addonsTotal");
@@ -1483,19 +1504,20 @@ export class AbandonedCartTool {
 
         const trySetup = () => {
             const emailInput = document.querySelector<HTMLInputElement>(
-                'input[name="emailAddress"]'
+                'input[name="emailAddress"]',
             );
-            const phoneCountryCodeInput = document.querySelector<HTMLInputElement>(
-                'input[name="phoneCountryCode"]'
-            );
+            const phoneCountryCodeInput =
+                document.querySelector<HTMLInputElement>(
+                    'input[name="phoneCountryCode"]',
+                );
             const phoneNumberInput = document.querySelector<HTMLInputElement>(
-                'input[name="phoneNumber"]'
+                'input[name="phoneNumber"]',
             );
             const firstNameInput = document.querySelector<HTMLInputElement>(
-                'input[name="firstName"]'
+                'input[name="firstName"]',
             );
             const lastNameInput = document.querySelector<HTMLInputElement>(
-                'input[name="lastName"]'
+                'input[name="lastName"]',
             );
 
             const allFound =
@@ -1509,7 +1531,7 @@ export class AbandonedCartTool {
                 // Fields are found, set up all listeners
                 this.addDirectAutofieldListeners();
                 this.setupAutofieldStorageListeners();
-                
+
                 // Re-initialize input detector to pick up the new fields
                 if (this.inputDetector) {
                     this.inputDetector.stopListening();
@@ -1521,7 +1543,7 @@ export class AbandonedCartTool {
                 setTimeout(trySetup, retryInterval);
             } else {
                 console.warn(
-                    "Autofield inputs not found after retries, listeners may not be attached"
+                    "Autofield inputs not found after retries, listeners may not be attached",
                 );
             }
         };
@@ -1543,9 +1565,15 @@ export class AbandonedCartTool {
         const autofieldInputs = [
             document.querySelector<HTMLInputElement>('input[name="firstName"]'),
             document.querySelector<HTMLInputElement>('input[name="lastName"]'),
-            document.querySelector<HTMLInputElement>('input[name="emailAddress"]'),
-            document.querySelector<HTMLInputElement>('input[name="phoneCountryCode"]'),
-            document.querySelector<HTMLInputElement>('input[name="phoneNumber"]'),
+            document.querySelector<HTMLInputElement>(
+                'input[name="emailAddress"]',
+            ),
+            document.querySelector<HTMLInputElement>(
+                'input[name="phoneCountryCode"]',
+            ),
+            document.querySelector<HTMLInputElement>(
+                'input[name="phoneNumber"]',
+            ),
         ].filter((input): input is HTMLInputElement => input !== null);
 
         // Add blur listeners that manually trigger the content update
@@ -1580,7 +1608,7 @@ export class AbandonedCartTool {
         // Determine field name based on input name and apply field mapping
         let fieldName = input.name;
         const inputMapping = (this.inputDetector as any).inputMapping;
-        
+
         // Apply field mapping if available (same logic as InputDetector)
         if (inputMapping?.field_mappings?.[fieldName]) {
             fieldName = inputMapping.field_mappings[fieldName];
@@ -1601,12 +1629,14 @@ export class AbandonedCartTool {
         const updatedContent = { ...currentContent, [fieldName]: value };
 
         // Check if this is email or phone (using InputDetector's logic)
-        const isEmail = fieldName === "email" || 
-                       fieldName.toLowerCase().includes("email") ||
-                       /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
-        const isPhone = fieldName === "phone_number" || 
-                       fieldName.toLowerCase().includes("phone") ||
-                       /^[\+]?[0-9\s\-\(\)]{7,}$/.test(value);
+        const isEmail =
+            fieldName === "email" ||
+            fieldName.toLowerCase().includes("email") ||
+            /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+        const isPhone =
+            fieldName === "phone_number" ||
+            fieldName.toLowerCase().includes("phone") ||
+            /^[\+]?[0-9\s\-\(\)]{7,}$/.test(value);
 
         // If we have email or phone, trigger the content update callback
         if (isEmail || isPhone || this.inputDetector.hasEmailOrPhoneNumber()) {
@@ -1621,13 +1651,16 @@ export class AbandonedCartTool {
      * Set up event listeners on autofield inputs to store values in sessionStorage
      */
     private setupAutofieldStorageListeners(): void {
-        if (typeof document === "undefined" || this.autofieldStorageListenersSetup) {
+        if (
+            typeof document === "undefined" ||
+            this.autofieldStorageListenersSetup
+        ) {
             return;
         }
 
         // Email field
         const emailInput = document.querySelector<HTMLInputElement>(
-            'input[name="emailAddress"]'
+            'input[name="emailAddress"]',
         );
         if (emailInput) {
             emailInput.addEventListener("input", (e) => {
@@ -1646,7 +1679,7 @@ export class AbandonedCartTool {
 
         // Phone country code field
         const phoneCountryCodeInput = document.querySelector<HTMLInputElement>(
-            'input[name="phoneCountryCode"]'
+            'input[name="phoneCountryCode"]',
         );
         if (phoneCountryCodeInput) {
             phoneCountryCodeInput.addEventListener("input", (e) => {
@@ -1654,7 +1687,7 @@ export class AbandonedCartTool {
                 if (target.value) {
                     this.saveToSessionStorage(
                         "autofield_phoneCountryCode",
-                        target.value
+                        target.value,
                     );
                 }
             });
@@ -1663,7 +1696,7 @@ export class AbandonedCartTool {
                 if (target.value) {
                     this.saveToSessionStorage(
                         "autofield_phoneCountryCode",
-                        target.value
+                        target.value,
                     );
                 }
             });
@@ -1671,19 +1704,25 @@ export class AbandonedCartTool {
 
         // Phone number field
         const phoneNumberInput = document.querySelector<HTMLInputElement>(
-            'input[name="phoneNumber"]'
+            'input[name="phoneNumber"]',
         );
         if (phoneNumberInput) {
             phoneNumberInput.addEventListener("input", (e) => {
                 const target = e.target as HTMLInputElement;
                 if (target.value) {
-                    this.saveToSessionStorage("autofield_phoneNumber", target.value);
+                    this.saveToSessionStorage(
+                        "autofield_phoneNumber",
+                        target.value,
+                    );
                 }
             });
             phoneNumberInput.addEventListener("blur", (e) => {
                 const target = e.target as HTMLInputElement;
                 if (target.value) {
-                    this.saveToSessionStorage("autofield_phoneNumber", target.value);
+                    this.saveToSessionStorage(
+                        "autofield_phoneNumber",
+                        target.value,
+                    );
                 }
             });
         }
@@ -1734,13 +1773,17 @@ export class AbandonedCartTool {
             const email = this.getFromSessionStorage("autofield_email");
             if (email) {
                 const emailInput = doc.getElementById(
-                    "registrationManualEmail"
+                    "registrationManualEmail",
                 ) as HTMLInputElement;
                 if (emailInput && !emailInput.value) {
                     emailInput.value = email;
                     // Trigger input event to notify the form
-                    emailInput.dispatchEvent(new Event("input", { bubbles: true }));
-                    emailInput.dispatchEvent(new Event("change", { bubbles: true }));
+                    emailInput.dispatchEvent(
+                        new Event("input", { bubbles: true }),
+                    );
+                    emailInput.dispatchEvent(
+                        new Event("change", { bubbles: true }),
+                    );
                     console.log("Filled email from sessionStorage:", email);
                 } else if (!emailInput) {
                     allFieldsFound = false;
@@ -1749,48 +1792,57 @@ export class AbandonedCartTool {
 
             // Fill phone number fields
             const phoneCountryCode = this.getFromSessionStorage(
-                "autofield_phoneCountryCode"
+                "autofield_phoneCountryCode",
             );
-            const phoneNumber = this.getFromSessionStorage("autofield_phoneNumber");
+            const phoneNumber = this.getFromSessionStorage(
+                "autofield_phoneNumber",
+            );
 
             if (phoneCountryCode || phoneNumber) {
                 // Find the country code hidden input
                 const countryCodeInput = doc.querySelector<HTMLInputElement>(
-                    'input[name="country-code"]'
+                    'input[name="country-code"]',
                 );
                 if (countryCodeInput && phoneCountryCode) {
                     // Set the hidden input value
                     countryCodeInput.value = phoneCountryCode;
                     // Try to update the react-select component
-                    countryCodeInput.dispatchEvent(new Event("change", { bubbles: true }));
-                    
-                    // Also try to find and update the react-select input field
-                    const reactSelectInput = doc.querySelector<HTMLInputElement>(
-                        '#registrationManualPhonePrefix input[type="text"]'
+                    countryCodeInput.dispatchEvent(
+                        new Event("change", { bubbles: true }),
                     );
+
+                    // Also try to find and update the react-select input field
+                    const reactSelectInput =
+                        doc.querySelector<HTMLInputElement>(
+                            '#registrationManualPhonePrefix input[type="text"]',
+                        );
                     if (reactSelectInput) {
                         reactSelectInput.value = phoneCountryCode;
-                        reactSelectInput.dispatchEvent(new Event("input", { bubbles: true }));
-                        reactSelectInput.dispatchEvent(new Event("change", { bubbles: true }));
+                        reactSelectInput.dispatchEvent(
+                            new Event("input", { bubbles: true }),
+                        );
+                        reactSelectInput.dispatchEvent(
+                            new Event("change", { bubbles: true }),
+                        );
                     }
-                    
+
                     // Try to find the react-select container and update display
                     const reactSelectContainer = doc.getElementById(
-                        "registrationManualPhonePrefix"
+                        "registrationManualPhonePrefix",
                     );
                     if (reactSelectContainer) {
                         // Try to find the value display element and update it
                         const valueDisplay = reactSelectContainer.querySelector(
-                            ".css-1yh68ch-singleValue"
+                            ".css-1yh68ch-singleValue",
                         );
                         if (valueDisplay) {
                             valueDisplay.textContent = phoneCountryCode;
                         }
                     }
-                    
+
                     console.log(
                         "Filled phone country code from sessionStorage:",
-                        phoneCountryCode
+                        phoneCountryCode,
                     );
                 } else if (phoneCountryCode && !countryCodeInput) {
                     allFieldsFound = false;
@@ -1798,20 +1850,24 @@ export class AbandonedCartTool {
 
                 // Fill the phone number field
                 const phoneNumberInput = doc.getElementById(
-                    "registrationManualPhoneNumber"
+                    "registrationManualPhoneNumber",
                 ) as HTMLInputElement;
-                if (phoneNumberInput && phoneNumber && !phoneNumberInput.value) {
+                if (
+                    phoneNumberInput &&
+                    phoneNumber &&
+                    !phoneNumberInput.value
+                ) {
                     phoneNumberInput.value = phoneNumber;
                     // Trigger input event to notify the form
                     phoneNumberInput.dispatchEvent(
-                        new Event("input", { bubbles: true })
+                        new Event("input", { bubbles: true }),
                     );
                     phoneNumberInput.dispatchEvent(
-                        new Event("change", { bubbles: true })
+                        new Event("change", { bubbles: true }),
                     );
                     console.log(
                         "Filled phone number from sessionStorage:",
-                        phoneNumber
+                        phoneNumber,
                     );
                 } else if (phoneNumber && !phoneNumberInput) {
                     allFieldsFound = false;
@@ -1838,9 +1894,11 @@ export class AbandonedCartTool {
                 try {
                     // Try to access iframe content (may fail due to cross-origin restrictions)
                     const iframeDoc =
-                        iframe.contentDocument || iframe.contentWindow?.document;
+                        iframe.contentDocument ||
+                        iframe.contentWindow?.document;
                     if (iframeDoc) {
-                        const iframeDocFound = searchAndFillInDocument(iframeDoc);
+                        const iframeDocFound =
+                            searchAndFillInDocument(iframeDoc);
                         if (iframeDocFound) {
                             iframeFound = true;
                         } else {
@@ -1865,7 +1923,7 @@ export class AbandonedCartTool {
                 setTimeout(tryFillFields, retryInterval);
             } else if (retries >= maxRetries && !allFieldsFound) {
                 console.warn(
-                    "Payment page fields not found after maximum retries. Fields may be in a cross-origin iframe or not yet loaded."
+                    "Payment page fields not found after maximum retries. Fields may be in a cross-origin iframe or not yet loaded.",
                 );
             }
         };
@@ -1885,9 +1943,11 @@ export class AbandonedCartTool {
         try {
             const email = this.getFromSessionStorage("autofield_email");
             const phoneCountryCode = this.getFromSessionStorage(
-                "autofield_phoneCountryCode"
+                "autofield_phoneCountryCode",
             );
-            const phoneNumber = this.getFromSessionStorage("autofield_phoneNumber");
+            const phoneNumber = this.getFromSessionStorage(
+                "autofield_phoneNumber",
+            );
 
             // Only send if we have data to send
             if (!email && !phoneCountryCode && !phoneNumber) {
@@ -1905,16 +1965,18 @@ export class AbandonedCartTool {
             }
 
             // Check if this is a payment provider iframe
-            const isDibsIframe = iframe.src?.includes("dibspayment.eu") || 
-                                 iframe.src?.includes("dibs.") ||
-                                 iframe.name?.toLowerCase().includes("dibs");
-            
-            const isNetsEasyIframe = iframe.src?.includes("netseasy") ||
-                                    iframe.src?.includes("nets.eu") ||
-                                    iframe.src?.includes("nexigroup.com") ||
-                                    iframe.src?.includes("dibspayment.eu") || // Dibs is part of Nexi Group
-                                    iframe.name?.toLowerCase().includes("nets") ||
-                                    iframe.name?.toLowerCase().includes("easy");
+            const isDibsIframe =
+                iframe.src?.includes("dibspayment.eu") ||
+                iframe.src?.includes("dibs.") ||
+                iframe.name?.toLowerCase().includes("dibs");
+
+            const isNetsEasyIframe =
+                iframe.src?.includes("netseasy") ||
+                iframe.src?.includes("nets.eu") ||
+                iframe.src?.includes("nexigroup.com") ||
+                iframe.src?.includes("dibspayment.eu") || // Dibs is part of Nexi Group
+                iframe.name?.toLowerCase().includes("nets") ||
+                iframe.name?.toLowerCase().includes("easy");
 
             if (!iframe.contentWindow) {
                 return;
@@ -1956,7 +2018,9 @@ export class AbandonedCartTool {
                               event: "customer-data",
                               customer: {
                                   email: email || null,
-                                  phone: phoneNumber ? `${phoneCountryCode || ""}${phoneNumber}` : null,
+                                  phone: phoneNumber
+                                      ? `${phoneCountryCode || ""}${phoneNumber}`
+                                      : null,
                                   phoneCountryCode: phoneCountryCode || null,
                               },
                           },
@@ -1980,7 +2044,11 @@ export class AbandonedCartTool {
                 }
             });
 
-            const providerName = isNetsEasyIframe ? "Nets Easy/Nexi" : (isDibsIframe ? "Dibs" : "cross-origin");
+            const providerName = isNetsEasyIframe
+                ? "Nets Easy/Nexi"
+                : isDibsIframe
+                  ? "Dibs"
+                  : "cross-origin";
             console.log(
                 `Sent autofill data to ${providerName} iframe via postMessage (${messages.length} formats):`,
                 {
@@ -1989,11 +2057,16 @@ export class AbandonedCartTool {
                     phoneCountryCode,
                     phoneNumber: phoneNumber ? "***" : null,
                     targetOrigin,
-                }
+                },
             );
 
             // Also check if we can modify the iframe src with URL parameters
-            this.tryIframeUrlParameters(iframe, email, phoneCountryCode, phoneNumber);
+            this.tryIframeUrlParameters(
+                iframe,
+                email,
+                phoneCountryCode,
+                phoneNumber,
+            );
         } catch (error) {
             console.warn("Failed to send postMessage to iframe:", error);
         }
@@ -2007,7 +2080,7 @@ export class AbandonedCartTool {
         iframe: HTMLIFrameElement,
         email: string | null,
         phoneCountryCode: string | null,
-        phoneNumber: string | null
+        phoneNumber: string | null,
     ): void {
         if (!iframe.src) {
             return;
@@ -2015,12 +2088,14 @@ export class AbandonedCartTool {
 
         try {
             const url = new URL(iframe.src);
-            const isDibs = url.hostname.includes("dibspayment.eu") || 
-                          url.hostname.includes("dibs.");
-            const isNetsEasy = url.hostname.includes("netseasy") ||
-                              url.hostname.includes("nets.eu") ||
-                              url.hostname.includes("nexigroup.com") ||
-                              url.hostname.includes("dibspayment.eu"); // Dibs is part of Nexi Group
+            const isDibs =
+                url.hostname.includes("dibspayment.eu") ||
+                url.hostname.includes("dibs.");
+            const isNetsEasy =
+                url.hostname.includes("netseasy") ||
+                url.hostname.includes("nets.eu") ||
+                url.hostname.includes("nexigroup.com") ||
+                url.hostname.includes("dibspayment.eu"); // Dibs is part of Nexi Group
 
             if (!isDibs && !isNetsEasy) {
                 return;
@@ -2031,25 +2106,24 @@ export class AbandonedCartTool {
 
             // Log potential parameters for debugging
             if (email || phoneCountryCode || phoneNumber) {
-                const providerName = isNetsEasy ? "Nets Easy/Nexi" : (isDibs ? "Dibs" : "Payment");
-                console.log(
-                    `${providerName} iframe URL analysis:`,
-                    {
-                        currentUrl: iframe.src,
-                        hasParams,
-                        suggestedParams: {
-                            ...(email ? { email } : {}),
-                            ...(phoneCountryCode
-                                ? { phoneCountryCode }
-                                : {}),
-                            ...(phoneNumber ? { phoneNumber: "***" } : {}),
-                        },
-                        note: hasParams
-                            ? "Iframe URL has parameters - might support additional ones"
-                            : `Iframe URL has no parameters - check ${isNetsEasy ? "Nets Easy/Nexi" : "Dibs"} documentation for supported params`,
-                        provider: isNetsEasy ? "Nets Easy/Nexi Group" : "Dibs",
-                    }
-                );
+                const providerName = isNetsEasy
+                    ? "Nets Easy/Nexi"
+                    : isDibs
+                      ? "Dibs"
+                      : "Payment";
+                console.log(`${providerName} iframe URL analysis:`, {
+                    currentUrl: iframe.src,
+                    hasParams,
+                    suggestedParams: {
+                        ...(email ? { email } : {}),
+                        ...(phoneCountryCode ? { phoneCountryCode } : {}),
+                        ...(phoneNumber ? { phoneNumber: "***" } : {}),
+                    },
+                    note: hasParams
+                        ? "Iframe URL has parameters - might support additional ones"
+                        : `Iframe URL has no parameters - check ${isNetsEasy ? "Nets Easy/Nexi" : "Dibs"} documentation for supported params`,
+                    provider: isNetsEasy ? "Nets Easy/Nexi Group" : "Dibs",
+                });
             }
         } catch (error) {
             // URL parsing failed, ignore
@@ -2075,7 +2149,7 @@ export class AbandonedCartTool {
                 mutation.addedNodes.forEach((node) => {
                     if (node.nodeType === Node.ELEMENT_NODE) {
                         const element = node as HTMLElement;
-                        
+
                         // Check if the added node is an iframe
                         if (element.tagName === "IFRAME") {
                             const iframe = element as HTMLIFrameElement;
@@ -2086,9 +2160,10 @@ export class AbandonedCartTool {
                                 }, 500); // Give iframe content time to render
                             });
                         }
-                        
+
                         // Also check for iframes nested inside the added node
-                        const nestedIframes = element.querySelectorAll("iframe");
+                        const nestedIframes =
+                            element.querySelectorAll("iframe");
                         nestedIframes.forEach((iframe) => {
                             iframe.addEventListener("load", () => {
                                 setTimeout(() => {
@@ -2132,7 +2207,10 @@ export class AbandonedCartTool {
                 sessionStorage.setItem(key, value);
                 console.log(`Saved to sessionStorage: ${key} = ${value}`);
             } catch (error) {
-                console.warn(`Failed to save to sessionStorage (${key}):`, error);
+                console.warn(
+                    `Failed to save to sessionStorage (${key}):`,
+                    error,
+                );
             }
         }
     }
@@ -2145,7 +2223,10 @@ export class AbandonedCartTool {
             try {
                 return sessionStorage.getItem(key);
             } catch (error) {
-                console.warn(`Failed to get from sessionStorage (${key}):`, error);
+                console.warn(
+                    `Failed to get from sessionStorage (${key}):`,
+                    error,
+                );
                 return null;
             }
         }
