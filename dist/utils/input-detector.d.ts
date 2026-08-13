@@ -14,6 +14,7 @@ export declare class InputDetector {
     startListening(): void;
     stopListening(): void;
     private getTargetInputs;
+    private isInputExcluded;
     private handleInputBlur;
     private getFieldName;
     private isEmailOrPhone;

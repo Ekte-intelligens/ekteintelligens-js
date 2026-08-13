@@ -2,6 +2,7 @@ import { SDKOptions } from './types';
 import { AbandonedCartTool } from './tools/abandoned-cart';
 import { OrganizationPipelineTool } from './tools/organization-pipeline';
 import { EnhancedInsightsTool } from './tools/enhanced-insights';
+import { LinkTrackingTool } from './tools/link-tracking';
 
 export declare class EkteIntelligensSDK {
     private options;
@@ -12,6 +13,7 @@ export declare class EkteIntelligensSDK {
     getAbandonedCartTool(): AbandonedCartTool | undefined;
     getOrganizationPipelineTool(): OrganizationPipelineTool | undefined;
     getEnhancedInsightsTool(): EnhancedInsightsTool | undefined;
+    getLinkTrackingTool(): LinkTrackingTool | undefined;
     destroy(): void;
     isInitialized(): boolean;
 }

@@ -17,6 +17,7 @@ export interface InputMapping {
     form_selector?: string;
     inputs?: string[];
     field_mappings?: Record<string, string>;
+    excluded_inputs?: string[];
 }
 export interface ProductMapping {
     [key: string]: any;
@@ -27,10 +28,11 @@ export interface CheckoutCampaign {
     input_mapping: InputMapping | null;
     total_selector?: string;
     average_checkout_value?: number;
-    type: "bookvisit" | "default";
+    type: "bookvisit" | "synxis" | "elinapms" | "default";
     config: {
         bookvisit?: {
             channel_id: string;
+            autofields?: boolean;
         };
     };
 }

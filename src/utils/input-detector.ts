@@ -71,34 +71,56 @@ export class InputDetector {
     }
 
     private getTargetInputs(): HTMLInputElement[] {
+        const filterExcluded = (inputs: HTMLInputElement[]) =>
+            inputs.filter((input) => !this.isInputExcluded(input));
+
         if (!this.inputMapping) {
-            // Listen to all inputs if no input mapping
-            return Array.from(document.querySelectorAll("input"));
+            return filterExcluded(
+                Array.from(document.querySelectorAll("input"))
+            );
         }
 
         if (this.inputMapping.form_selector) {
-            // Listen to all inputs within the specified form
             const form = document.querySelector(
                 this.inputMapping.form_selector
             );
             if (form) {
-                return Array.from(form.querySelectorAll("input"));
+                return filterExcluded(
+                    Array.from(form.querySelectorAll("input"))
+                );
             }
         }
 
         if (this.inputMapping.inputs && this.inputMapping.inputs.length > 0) {
-            // Listen to specific inputs
-            return this.inputMapping.inputs
-                .map((selector) => document.querySelector(selector))
-                .filter((input): input is HTMLInputElement => input !== null);
+            return filterExcluded(
+                this.inputMapping.inputs
+                    .map((selector) => document.querySelector(selector))
+                    .filter(
+                        (input): input is HTMLInputElement => input !== null
+                    )
+            );
         }
 
-        // Fallback to all inputs
-        return Array.from(document.querySelectorAll("input"));
+        return filterExcluded(Array.from(document.querySelectorAll("input")));
+    }
+
+    private isInputExcluded(input: HTMLInputElement): boolean {
+        const excluded = this.inputMapping?.excluded_inputs;
+        if (!excluded || excluded.length === 0) return false;
+
+        const name = (input.name || "").toLowerCase();
+        const id = (input.id || "").toLowerCase();
+
+        return excluded.some((entry) => {
+            const e = entry.toLowerCase();
+            return (name !== "" && e === name) || (id !== "" && e === id);
+        });
     }
 
     private handleInputBlur(event: Event) {
         const input = event.target as HTMLInputElement;
+        if (this.isInputExcluded(input)) return;
+
         const fieldName = this.getFieldName(input);
         const value = input.value.trim();
 
@@ -132,6 +154,16 @@ export class InputDetector {
             this.inputMapping.field_mappings[fieldName]
         ) {
             fieldName = this.inputMapping.field_mappings[fieldName];
+        } else if (this.inputMapping?.field_mappings) {
+            // If no mapping found for name/id, try autocomplete-data attribute
+            // This handles cases where name/id are randomized (e.g. SynXis SBE)
+            const autocompleteData = input.getAttribute("autocomplete-data");
+            if (
+                autocompleteData &&
+                this.inputMapping.field_mappings[autocompleteData]
+            ) {
+                fieldName = this.inputMapping.field_mappings[autocompleteData];
+            }
         }
 
         return fieldName;

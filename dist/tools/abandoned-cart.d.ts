@@ -16,6 +16,7 @@ export declare class AbandonedCartTool {
     private debounceTimer?;
     private pendingContentUpdate?;
     private isSubmitting;
+    private autofieldStorageListenersSetup;
     constructor(options: SDKOptions);
     initialize(): Promise<boolean>;
     /**
@@ -59,8 +60,163 @@ export declare class AbandonedCartTool {
      */
     private extractBookVisitProductsAndTotal;
     /**
+     * Inject autofields for BookVisit campaigns
+     */
+    private injectBookVisitAutofields;
+    /**
+     * Determine which fields to include based on input_mapping
+     */
+    private getFieldsToInclude;
+    /**
+     * Check if any of the target field names exist in the field mappings
+     * The values (not keys) represent the system mappings (first_name, last_name, phone_number, email)
+     */
+    private hasFieldMapping;
+    /**
+     * Check if any of the target field names exist in the input selectors
+     */
+    private hasInputSelector;
+    /**
+     * Get the user's locale from browser settings
+     */
+    private getUserLocale;
+    /**
+     * Get localized text for email and phone number fields
+     */
+    private getLocalizedText;
+    /**
+     * Create the BookVisit form section HTML
+     */
+    private createBookVisitFormSection;
+    /**
+     * Fetch basket data from SynXis cart API with dataLayer fallback
+     */
+    private fetchSynxisBasket;
+    /**
+     * Fetch basket data from SynXis cart REST API
+     */
+    private fetchSynxisCartApi;
+    /**
+     * Extract products and total from SynXis cart API response
+     *
+     * The /gw/v1/cart/ endpoint can return multiple pending reservations under
+     * the same shoppingCartId cookie (accumulated from prior incomplete bookings).
+     * We filter down to the reservation the user is actually checking out, matched
+     * via the sbe_rc URL param (base64 UUID = reservation.id). Fallback: the
+     * reservation with the highest itineraryNumber (most recently created).
+     *
+     * The API's Total.Amount is the list price, which doesn't reflect promo
+     * discounts that the SBE applies client-side at reservation time. We override
+     * the root `total` with the DOM-visible price (post-discount) and also expose
+     * it per-product as `actualTotal` for reference.
+     */
+    private extractSynxisCartApiData;
+    /**
+     * Read the cart total as rendered on the SynXis checkout page.
+     * Accounts for promo/discount adjustments applied client-side that
+     * aren't reflected in the /gw/v1/cart/ API response.
+     */
+    private getSynxisActualTotal;
+    /**
+     * Parse a locale-formatted price string like "12 980,50 kr" or "12,980.50 kr".
+     * Handles both Norwegian (space/comma) and English (comma/dot) formats.
+     */
+    private parseSynxisPrice;
+    /**
+     * Get SynXis session identifiers from cookies and URL parameters
+     */
+    private getSynxisSessionIds;
+    /**
+     * Get SynXis-related entries from window.dataLayer (fallback)
+     */
+    private getSynxisDataLayer;
+    /**
+     * Extract products and total from SynXis dataLayer entries (fallback)
+     */
+    private extractSynxisProductsFromDataLayer;
+    /**
+     * Read basket data from an Elina PMS booking page (e.g. /Confirm/SignUpOnBooking).
+     * Elina exposes everything we need directly in the DOM — no API call required.
+     * Returns null if cart elements aren't on the page, so totalAverage is used instead.
+     */
+    private fetchElinapmsBasket;
+    /**
+     * Resolve the booking total from the Elina PMS booking page.
+     * Prefers the hidden #Total form input (the value posted on submit).
+     * Falls back to summing accommodation base + fees + addons, mirroring the
+     * Elina dataLayer script used for begin_checkout tracking.
+     */
+    private extractElinapmsTotal;
+    /**
+     * Read Elina PMS / Norgesbooking session identifiers from cookies.
+     * bookingShoppingCart_0 is a server-side cart GUID; the browser sending
+     * this cookie to /Confirm/SignUpOnBooking re-renders the original cart.
+     */
+    private getElinapmsSessionIds;
+    /**
+     * Parse a number string from the Elina PMS DOM. Handles both European
+     * ("2 840,00" or "2&nbsp;840,00") and US ("2,840.00") formats by detecting
+     * which of `.` and `,` is the rightmost separator and treating that as the
+     * decimal mark.
+     */
+    private parseElinapmsNumber;
+    /**
      * Get cookie value by name
      */
     private getCookie;
+    /**
+     * Set up autofield listeners with retry logic
+     * This ensures both InputDetector listeners and sessionStorage listeners are attached
+     */
+    private setupAutofieldListenersWithRetry;
+    /**
+     * Add direct listeners to autofields to ensure they're detected by InputDetector
+     * This is necessary because InputDetector might use specific selectors that don't match autofields
+     */
+    private addDirectAutofieldListeners;
+    /**
+     * Handle blur event on autofield inputs
+     * Manually triggers the content update callback to ensure autofields are detected
+     */
+    private handleAutofieldBlur;
+    /**
+     * Set up event listeners on autofield inputs to store values in sessionStorage
+     */
+    private setupAutofieldStorageListeners;
+    /**
+     * Check if we're on the payment page and fill in fields from sessionStorage
+     */
+    private checkAndFillPaymentPageFields;
+    /**
+     * Fill in payment page fields from sessionStorage
+     * Handles both main document and iframe scenarios
+     */
+    private fillPaymentPageFields;
+    /**
+     * Try to send data to cross-origin iframe using postMessage
+     * Attempts multiple message formats in case the iframe uses different conventions
+     */
+    private tryPostMessageToIframe;
+    /**
+     * Try to pass data via URL parameters if the iframe src can be modified
+     * This only works if the iframe hasn't loaded yet or can be reloaded
+     */
+    private tryIframeUrlParameters;
+    /**
+     * Set up a MutationObserver to watch for dynamically added iframes
+     */
+    private setupIframeWatcher;
+    /**
+     * Save value to sessionStorage
+     */
+    private saveToSessionStorage;
+    /**
+     * Get value from sessionStorage
+     */
+    private getFromSessionStorage;
+    /**
+     * Set up listener for URL changes (for SPA navigation)
+     */
+    private setupUrlChangeListener;
 }
 //# sourceMappingURL=abandoned-cart.d.ts.map

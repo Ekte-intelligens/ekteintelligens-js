@@ -3,6 +3,7 @@ import { AbandonedCartTool } from "./tools/abandoned-cart";
 import { OrganizationPipelineTool } from "./tools/organization-pipeline";
 import { EnhancedInsightsTool } from "./tools/enhanced-insights";
 import { ensureAnalyticsPayload } from "./utils/analytics-collector";
+import { LinkTrackingTool } from "./tools/link-tracking";
 
 export class EkteIntelligensSDK {
     private options: SDKOptions;
@@ -24,6 +25,12 @@ export class EkteIntelligensSDK {
             // enabled — cart sessions attach it, and same-origin forms that
             // read `assistantAnalyticsPayload` depend on it being set.
             ensureAnalyticsPayload();
+            // Shortlink-open tracking always runs. It is a no-op unless the
+            // URL carries an `?s=` funnel-subscriber parameter, so there is
+            // no feature flag for it.
+            const linkTrackingTool = new LinkTrackingTool(this.options);
+            await linkTrackingTool.initialize();
+            this.tools.set("linkTracking", linkTrackingTool);
 
             // Initialize enabled features
             if (this.options.features?.abandonedCart) {
@@ -34,18 +41,18 @@ export class EkteIntelligensSDK {
 
             if (this.options.features?.organizationPipeline) {
                 const organizationPipelineTool = new OrganizationPipelineTool(
-                    this.options
+                    this.options,
                 );
                 await organizationPipelineTool.initialize();
                 this.tools.set(
                     "organizationPipeline",
-                    organizationPipelineTool
+                    organizationPipelineTool,
                 );
             }
 
             if (this.options.features?.enhancedInsights) {
                 const enhancedInsightsTool = new EnhancedInsightsTool(
-                    this.options
+                    this.options,
                 );
                 await enhancedInsightsTool.initialize();
                 this.tools.set("enhancedInsights", enhancedInsightsTool);
@@ -71,6 +78,10 @@ export class EkteIntelligensSDK {
 
     public getEnhancedInsightsTool(): EnhancedInsightsTool | undefined {
         return this.tools.get("enhancedInsights");
+    }
+
+    public getLinkTrackingTool(): LinkTrackingTool | undefined {
+        return this.tools.get("linkTracking");
     }
 
     public destroy(): void {

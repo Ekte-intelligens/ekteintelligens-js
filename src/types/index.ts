@@ -18,6 +18,7 @@ export interface InputMapping {
     form_selector?: string;
     inputs?: string[];
     field_mappings?: Record<string, string>; // Map from user field names to internal field names
+    excluded_inputs?: string[]; // Match against input.name or input.id (case-insensitive); excluded inputs are never observed or stored
 }
 
 export interface ProductMapping {
@@ -30,12 +31,13 @@ export interface CheckoutCampaign {
     input_mapping: InputMapping | null;
     total_selector?: string; // Selector for cart total (id, class, or complex selector)
     average_checkout_value?: number;
-    type: "bookvisit" | "default";
+    type: "bookvisit" | "synxis" | "elinapms" | "default";
     config: {
         bookvisit?: {
             channel_id: string;
-        }
-    }
+            autofields?: boolean;
+        };
+    };
 }
 
 export interface Content {
@@ -59,6 +61,13 @@ export interface CartSessionPayload {
     total?: number; // Cart total value
     id?: string;
     analytics?: string; // JSON string: first-touch UTM/referrer payload + enhanced_insights
+    metadata?: {
+        sbeSessionId?: string | null;
+        shoppingCartId?: string | null;
+        sbeRc?: string | null;
+        sbeRcDecoded?: string | null;
+        bookingShoppingCart?: string | null;
+    };
 }
 
 export interface CartSessionResponse {
