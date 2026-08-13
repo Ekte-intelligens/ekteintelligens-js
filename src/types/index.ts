@@ -12,6 +12,27 @@ export interface SDKOptions {
     config?: {
         completedCheckout?: boolean;
     };
+    /**
+     * Parent domain for the cross-subdomain `ei_analytics` cookie, e.g.
+     * ".site.com". When omitted, the widest domain the browser accepts a
+     * cookie on is probed automatically.
+     */
+    cookieDomain?: string;
+    /**
+     * When true, analytics is held in memory and nothing is persisted
+     * (sessionStorage/cookie) or attached to uploads until consent is granted
+     * via sdk.setConsent(true) or an auto-detected CMP (Cookiebot, OneTrust,
+     * TCF). Defaults to false: persist immediately.
+     */
+    requireConsent?: boolean;
+    /**
+     * When true, enhanced-insights page history is also shared across
+     * subdomains: a compact per-origin summary (scalars + dwell-capped
+     * time_per_page, never raw visits) is kept in the `ei_insights` cookie,
+     * and uploads merge the other origins' summaries into this origin's
+     * history. Defaults to false: insights stay per-origin, as before.
+     */
+    shareInsightsAcrossSubdomains?: boolean;
 }
 
 export interface InputMapping {

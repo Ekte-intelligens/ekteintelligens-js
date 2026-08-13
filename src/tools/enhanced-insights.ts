@@ -1,4 +1,5 @@
 import { SDKOptions } from "../types";
+import { updateInsightsSummaryCookie } from "../utils/analytics-collector";
 
 interface PageVisit {
     page: string;
@@ -214,6 +215,10 @@ export class EnhancedInsightsTool {
                 error
             );
         }
+        // Mirror a compact summary into the cross-subdomain ei_insights
+        // cookie; no-op unless shareInsightsAcrossSubdomains is enabled and
+        // consent allows persistence.
+        updateInsightsSummaryCookie();
     }
 
     public getData(): EnhancedInsightsData {
