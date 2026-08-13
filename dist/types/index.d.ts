@@ -55,6 +55,13 @@ export interface CartSessionPayload {
     total?: number;
     id?: string;
     analytics?: string;
+    metadata?: {
+        sbeSessionId?: string | null;
+        shoppingCartId?: string | null;
+        sbeRc?: string | null;
+        sbeRcDecoded?: string | null;
+        bookingShoppingCart?: string | null;
+    };
 }
 export interface CartSessionResponse {
     id: string;
