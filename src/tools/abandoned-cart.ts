@@ -3,6 +3,7 @@ import { ProductDetector } from "../utils/product-detector";
 import { TotalExtractor } from "../utils/total-extractor";
 import { SupabaseService } from "../services/supabase-service";
 import { SDKOptions, CartSessionPayload, CheckoutCampaign } from "../types";
+import { collectAnalytics } from "../utils/analytics-collector";
 
 export class AbandonedCartTool {
     private options: SDKOptions;
@@ -195,6 +196,11 @@ export class AbandonedCartTool {
             // This ensures we update existing sessions instead of creating duplicates
             const effectiveSessionId = this._sessionId || sessionId;
 
+            // Re-collected on every upload so the enhanced_insights snapshot
+            // tracks the visit as it unfolds; the edge function only writes
+            // the column when a value is present.
+            const analytics = collectAnalytics();
+
             const payload: CartSessionPayload = {
                 organization_id: this.options.organizationId,
                 checkout_campaign_id: this.options.checkoutCampaignId,
@@ -203,6 +209,7 @@ export class AbandonedCartTool {
                 url: currentUrl,
                 total: total,
                 id: effectiveSessionId,
+                ...(analytics ? { analytics } : {}),
             };
 
             const response = await this.supabaseService.submitCartSession(

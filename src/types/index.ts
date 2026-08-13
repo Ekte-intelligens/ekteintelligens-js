@@ -58,6 +58,7 @@ export interface CartSessionPayload {
     url?: string; // Current page URL with query parameters
     total?: number; // Cart total value
     id?: string;
+    analytics?: string; // JSON string: first-touch UTM/referrer payload + enhanced_insights
 }
 
 export interface CartSessionResponse {

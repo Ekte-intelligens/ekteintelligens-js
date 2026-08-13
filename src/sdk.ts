@@ -2,6 +2,7 @@ import { SDKOptions } from "./types";
 import { AbandonedCartTool } from "./tools/abandoned-cart";
 import { OrganizationPipelineTool } from "./tools/organization-pipeline";
 import { EnhancedInsightsTool } from "./tools/enhanced-insights";
+import { ensureAnalyticsPayload } from "./utils/analytics-collector";
 
 export class EkteIntelligensSDK {
     private options: SDKOptions;
@@ -18,6 +19,12 @@ export class EkteIntelligensSDK {
         }
 
         try {
+            // Capture first-touch attribution (UTM params, referrer, landing
+            // page) into sessionStorage regardless of which features are
+            // enabled — cart sessions attach it, and same-origin forms that
+            // read `assistantAnalyticsPayload` depend on it being set.
+            ensureAnalyticsPayload();
+
             // Initialize enabled features
             if (this.options.features?.abandonedCart) {
                 const abandonedCartTool = new AbandonedCartTool(this.options);

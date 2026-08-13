@@ -52,6 +52,7 @@ export interface CartSessionPayload {
     url?: string;
     total?: number;
     id?: string;
+    analytics?: string;
 }
 export interface CartSessionResponse {
     id: string;
