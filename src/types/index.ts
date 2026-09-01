@@ -30,7 +30,9 @@ export interface SDKOptions {
      * subdomains: a compact per-origin summary (scalars + dwell-capped
      * time_per_page, never raw visits) is kept in the `ei_insights` cookie,
      * and uploads merge the other origins' summaries into this origin's
-     * history. Defaults to false: insights stay per-origin, as before.
+     * history. Defaults to TRUE — a visitor who browses site.com and then
+     * converts on booking.site.com should arrive with the history they
+     * actually have. Set explicitly to false to keep insights per-origin.
      */
     shareInsightsAcrossSubdomains?: boolean;
 }
