@@ -36,8 +36,9 @@ export interface AnalyticsCollectorOptions {
      * When true, a compact per-origin summary of the enhanced-insights page
      * history (no raw visits) is also shared across subdomains via the
      * `ei_insights` cookie, and uploads merge the other origins' summaries
-     * into this origin's history. Defaults to false: insights stay
-     * per-origin, exactly as before.
+     * into this origin's history. Defaults to TRUE: a visitor who browses
+     * site.com and converts on booking.site.com should arrive with the
+     * history they actually have. Set explicitly to false to opt out.
      */
     shareInsightsAcrossSubdomains?: boolean;
     /**
@@ -63,6 +64,13 @@ export declare function updateInsightsSummaryCookie(): void;
  * not (yet) been granted.
  */
 export declare function isAnalyticsConsentGranted(): boolean;
+/**
+ * Whether analytics consent was explicitly refused on this device — by this
+ * page or by an earlier one on another subdomain. Distinct from "not granted
+ * yet": absence of the marker means no answer, which leaves the persist-by-
+ * default behaviour untouched for customers who never wire up consent at all.
+ */
+export declare function isAnalyticsConsentDenied(): boolean;
 /**
  * Subscribe to consent changes — used by the SDK to start/stop
  * consent-dependent tools (e.g. enhanced-insights page-visit recording) when
