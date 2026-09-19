@@ -1,5 +1,7 @@
 import { TotalExtractor } from "../src/utils/total-extractor";
 
+// extractTotal() rounds to the nearest whole number (since 2025-11-25), so the
+// expectations below are the rounded amounts.
 describe("TotalExtractor", () => {
     beforeEach(() => {
         document.body.innerHTML = `
@@ -20,25 +22,25 @@ describe("TotalExtractor", () => {
     it("should extract total using ID selector", () => {
         const extractor = new TotalExtractor("#cart-total");
         const total = extractor.extractTotal();
-        expect(total).toBe(299.99);
+        expect(total).toBe(300);
     });
 
     it("should extract total using class selector", () => {
         const extractor = new TotalExtractor(".cart-total");
         const total = extractor.extractTotal();
-        expect(total).toBe(149.5);
+        expect(total).toBe(150);
     });
 
     it("should extract total using complex selector", () => {
         const extractor = new TotalExtractor(".checkout-summary .total-amount");
         const total = extractor.extractTotal();
-        expect(total).toBe(89.99);
+        expect(total).toBe(90);
     });
 
     it("should extract total using data attribute selector", () => {
         const extractor = new TotalExtractor("[data-cart-total]");
         const total = extractor.extractTotal();
-        expect(total).toBe(199.99);
+        expect(total).toBe(200);
     });
 
     it("should extract total using nested selector", () => {
@@ -46,7 +48,7 @@ describe("TotalExtractor", () => {
             ".cart-container .summary .total-value"
         );
         const total = extractor.extractTotal();
-        expect(total).toBe(399.99);
+        expect(total).toBe(400);
     });
 
     it("should return 0 when no selector is provided", () => {
@@ -82,9 +84,9 @@ describe("TotalExtractor", () => {
             <div id="simple">123.45</div>
         `;
 
-        expect(new TotalExtractor("#usd").extractTotal()).toBe(1234.56);
-        expect(new TotalExtractor("#eur").extractTotal()).toBe(999.99);
-        expect(new TotalExtractor("#simple").extractTotal()).toBe(123.45);
+        expect(new TotalExtractor("#usd").extractTotal()).toBe(1235);
+        expect(new TotalExtractor("#eur").extractTotal()).toBe(1000);
+        expect(new TotalExtractor("#simple").extractTotal()).toBe(123);
     });
 
     it("should check if total selector is available", () => {
@@ -123,6 +125,6 @@ describe("TotalExtractor", () => {
         const total = extractor.extractTotal();
 
         // Should successfully extract the total despite the over-escaped selector
-        expect(total).toBe(299.99);
+        expect(total).toBe(300);
     });
 });
