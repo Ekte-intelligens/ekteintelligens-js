@@ -1,13 +1,18 @@
-var $s = Object.defineProperty;
-var Rs = (i, e, t) => e in i ? $s(i, e, { enumerable: !0, configurable: !0, writable: !0, value: t }) : i[e] = t;
-var y = (i, e, t) => Rs(i, typeof e != "symbol" ? e + "" : e, t);
-class Ls {
+var Us = Object.defineProperty;
+var Ns = (i, e, t) => e in i ? Us(i, e, { enumerable: !0, configurable: !0, writable: !0, value: t }) : i[e] = t;
+var v = (i, e, t) => Ns(i, typeof e != "symbol" ? e + "" : e, t);
+const X = class X {
   constructor(e) {
-    y(this, "inputMapping");
-    y(this, "content", {});
-    y(this, "sessionId");
-    y(this, "hasEmailOrPhone", !1);
-    y(this, "onContentUpdate");
+    v(this, "inputMapping");
+    v(this, "content", {});
+    v(this, "sessionId");
+    v(this, "hasEmailOrPhone", !1);
+    v(this, "onContentUpdate");
+    // One stable reference: `.bind(this)` returns a new function on every
+    // call, so removeEventListener(this.handleInputBlur.bind(this)) never
+    // removed anything and a stop/start cycle stacked duplicate listeners.
+    // Adding the same reference twice is a no-op, so restarts are safe too.
+    v(this, "boundHandleInputBlur", (e) => this.handleInputBlur(e));
     this.inputMapping = this.cleanInputMapping(e);
   }
   cleanInputMapping(e) {
@@ -30,16 +35,32 @@ class Ls {
   }
   startListening() {
     this.getTargetInputs().forEach((t) => {
-      t.addEventListener("blur", this.handleInputBlur.bind(this));
+      t.addEventListener("blur", this.boundHandleInputBlur);
     });
   }
   stopListening() {
     this.getTargetInputs().forEach((t) => {
-      t.removeEventListener("blur", this.handleInputBlur.bind(this));
+      t.removeEventListener("blur", this.boundHandleInputBlur);
     });
   }
+  /**
+   * Credentials, payment-card and national-id inputs are never observed or
+   * stored, whatever the campaign's input mapping says. Detected by input
+   * type, the autocomplete hint (cc-*, *-password, one-time-code) and
+   * name/id.
+   */
+  isSensitiveInput(e) {
+    const t = (e.getAttribute("type") || e.type || "").toLowerCase();
+    if (X.IGNORED_INPUT_TYPES.has(t)) return !0;
+    const s = (e.getAttribute("autocomplete") || "").toLowerCase();
+    return /(^|\s)(cc-[a-z-]+|current-password|new-password|one-time-code)(\s|$)/.test(
+      s
+    ) ? !0 : X.SENSITIVE_NAME.test(e.name || "") || X.SENSITIVE_NAME.test(e.id || "");
+  }
   getTargetInputs() {
-    const e = (t) => t.filter((s) => !this.isInputExcluded(s));
+    const e = (t) => t.filter(
+      (s) => !this.isInputExcluded(s) && !this.isSensitiveInput(s)
+    );
     if (!this.inputMapping)
       return e(
         Array.from(document.querySelectorAll("input"))
@@ -71,8 +92,13 @@ class Ls {
   }
   handleInputBlur(e) {
     const t = e.target;
-    if (this.isInputExcluded(t)) return;
-    const s = this.getFieldName(t), r = t.value.trim();
+    if (this.isInputExcluded(t) || this.isSensitiveInput(t)) return;
+    const s = this.getFieldName(t);
+    if ((t.type === "checkbox" || t.type === "radio") && !t.checked) {
+      t.type === "checkbox" && s in this.content && (delete this.content[s], this.hasEmailOrPhone && this.onContentUpdate && this.onContentUpdate(this.content, this.sessionId));
+      return;
+    }
+    const r = t.value.trim();
     r && (this.content[s] = r, this.isEmailOrPhone(s, r) && (this.hasEmailOrPhone = !0), this.hasEmailOrPhone && this.onContentUpdate && this.onContentUpdate(this.content, this.sessionId));
   }
   getFieldName(e) {
@@ -102,10 +128,27 @@ class Ls {
   hasEmailOrPhoneNumber() {
     return this.hasEmailOrPhone;
   }
-}
-class Ds {
+};
+// Input types that never hold contact details worth recovering a cart
+// with. `password` is the one that matters: checkouts with a login or
+// create-account form had the password uploaded as session content.
+v(X, "IGNORED_INPUT_TYPES", /* @__PURE__ */ new Set([
+  "password",
+  "hidden",
+  "file",
+  "submit",
+  "button",
+  "reset",
+  "image"
+])), // name/id fragments of credential, payment-card and national-id fields.
+// Short fragments need boundaries so ordinary fields are not dropped:
+// "businessName" contains "ssn", "accNumber" contains "ccnumber",
+// "cardNotes" starts like "cardNo".
+v(X, "SENSITIVE_NAME", /passw|passord|pwd|cvc|cvv|card[-_ ]?(number|(num|no)([^a-z]|$))|security[-_ ]?code|kontonummer|account[-_ ]?number|personnummer|f[oø]dselsnummer|(^|[^a-z])(ssn|iban)([^a-z]|$)|(^|[^a-z])cc[-_]?(number|num|csc|exp)/i);
+let Ge = X;
+class Fs {
   constructor(e) {
-    y(this, "productMapping");
+    v(this, "productMapping");
     this.productMapping = this.cleanProductMapping(e);
   }
   cleanProductMapping(e) {
@@ -313,9 +356,9 @@ class Ds {
     return Array.from(t);
   }
 }
-class Us {
+class Bs {
   constructor(e) {
-    y(this, "totalSelector");
+    v(this, "totalSelector");
     this.totalSelector = e ? this.cleanSelector(e) : void 0;
   }
   cleanSelector(e) {
@@ -369,35 +412,35 @@ class Us {
     return !!this.totalSelector;
   }
 }
-const Ns = (i) => {
+const Ms = (i) => {
   let e;
-  return i ? e = i : typeof fetch > "u" ? e = (...t) => Promise.resolve().then(() => he).then(({ default: s }) => s(...t)) : e = fetch, (...t) => e(...t);
+  return i ? e = i : typeof fetch > "u" ? e = (...t) => Promise.resolve().then(() => de).then(({ default: s }) => s(...t)) : e = fetch, (...t) => e(...t);
 };
-class lt extends Error {
+class dt extends Error {
   constructor(e, t = "FunctionsError", s) {
     super(e), this.name = t, this.context = s;
   }
 }
-class Fs extends lt {
+class qs extends dt {
   constructor(e) {
     super("Failed to send a request to the Edge Function", "FunctionsFetchError", e);
   }
 }
-class Ot extends lt {
+class Lt extends dt {
   constructor(e) {
     super("Relay Error invoking the Edge Function", "FunctionsRelayError", e);
   }
 }
-class jt extends lt {
+class Dt extends dt {
   constructor(e) {
     super("Edge Function returned a non-2xx status code", "FunctionsHttpError", e);
   }
 }
-var Ke;
+var Qe;
 (function(i) {
   i.Any = "any", i.ApNortheast1 = "ap-northeast-1", i.ApNortheast2 = "ap-northeast-2", i.ApSouth1 = "ap-south-1", i.ApSoutheast1 = "ap-southeast-1", i.ApSoutheast2 = "ap-southeast-2", i.CaCentral1 = "ca-central-1", i.EuCentral1 = "eu-central-1", i.EuWest1 = "eu-west-1", i.EuWest2 = "eu-west-2", i.EuWest3 = "eu-west-3", i.SaEast1 = "sa-east-1", i.UsEast1 = "us-east-1", i.UsWest1 = "us-west-1", i.UsWest2 = "us-west-2";
-})(Ke || (Ke = {}));
-var Bs = function(i, e, t, s) {
+})(Qe || (Qe = {}));
+var zs = function(i, e, t, s) {
   function r(n) {
     return n instanceof t ? n : new t(function(o) {
       o(n);
@@ -424,9 +467,9 @@ var Bs = function(i, e, t, s) {
     u((s = s.apply(i, e || [])).next());
   });
 };
-class Ms {
-  constructor(e, { headers: t = {}, customFetch: s, region: r = Ke.Any } = {}) {
-    this.url = e, this.headers = t, this.region = r, this.fetch = Ns(s);
+class Hs {
+  constructor(e, { headers: t = {}, customFetch: s, region: r = Qe.Any } = {}) {
+    this.url = e, this.headers = t, this.region = r, this.fetch = Ms(s);
   }
   /**
    * Updates the authorization header
@@ -442,7 +485,7 @@ class Ms {
    */
   invoke(e, t = {}) {
     var s;
-    return Bs(this, void 0, void 0, function* () {
+    return zs(this, void 0, void 0, function* () {
       try {
         const { headers: r, method: n, body: o } = t;
         let a = {}, { region: l } = t;
@@ -459,27 +502,27 @@ class Ms {
           // 3. default Content-Type header
           headers: Object.assign(Object.assign(Object.assign({}, a), this.headers), r),
           body: c
-        }).catch((v) => {
-          throw new Fs(v);
+        }).catch((y) => {
+          throw new qs(y);
         }), d = h.headers.get("x-relay-error");
         if (d && d === "true")
-          throw new Ot(h);
+          throw new Lt(h);
         if (!h.ok)
-          throw new jt(h);
+          throw new Dt(h);
         let f = ((s = h.headers.get("Content-Type")) !== null && s !== void 0 ? s : "text/plain").split(";")[0].trim(), p;
         return f === "application/json" ? p = yield h.json() : f === "application/octet-stream" ? p = yield h.blob() : f === "text/event-stream" ? p = h : f === "multipart/form-data" ? p = yield h.formData() : p = yield h.text(), { data: p, error: null, response: h };
       } catch (r) {
         return {
           data: null,
           error: r,
-          response: r instanceof jt || r instanceof Ot ? r.context : void 0
+          response: r instanceof Dt || r instanceof Lt ? r.context : void 0
         };
       }
     });
   }
 }
 var L = typeof globalThis < "u" ? globalThis : typeof window < "u" ? window : typeof global < "u" ? global : typeof self < "u" ? self : {};
-function qs(i) {
+function Vs(i) {
   if (i.__esModule) return i;
   var e = i.default;
   if (typeof e == "function") {
@@ -498,7 +541,7 @@ function qs(i) {
     });
   }), t;
 }
-var R = {}, ct = {}, Oe = {}, Se = {}, je = {}, $e = {}, zs = function() {
+var R = {}, ft = {}, $e = {}, ke = {}, Re = {}, Le = {}, Ws = function() {
   if (typeof self < "u")
     return self;
   if (typeof window < "u")
@@ -506,31 +549,31 @@ var R = {}, ct = {}, Oe = {}, Se = {}, je = {}, $e = {}, zs = function() {
   if (typeof global < "u")
     return global;
   throw new Error("unable to locate global object");
-}, ue = zs();
-const Vs = ue.fetch, Yt = ue.fetch.bind(ue), Zt = ue.Headers, Hs = ue.Request, Ws = ue.Response, he = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+}, he = Ws();
+const Ks = he.fetch, ss = he.fetch.bind(he), rs = he.Headers, Js = he.Request, Gs = he.Response, de = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null,
-  Headers: Zt,
-  Request: Hs,
-  Response: Ws,
-  default: Yt,
-  fetch: Vs
-}, Symbol.toStringTag, { value: "Module" })), Ks = /* @__PURE__ */ qs(he);
-var Re = {};
-Object.defineProperty(Re, "__esModule", { value: !0 });
-let Js = class extends Error {
+  Headers: rs,
+  Request: Js,
+  Response: Gs,
+  default: ss,
+  fetch: Ks
+}, Symbol.toStringTag, { value: "Module" })), Qs = /* @__PURE__ */ Vs(de);
+var De = {};
+Object.defineProperty(De, "__esModule", { value: !0 });
+let Xs = class extends Error {
   constructor(e) {
     super(e.message), this.name = "PostgrestError", this.details = e.details, this.hint = e.hint, this.code = e.code;
   }
 };
-Re.default = Js;
-var es = L && L.__importDefault || function(i) {
+De.default = Xs;
+var ns = L && L.__importDefault || function(i) {
   return i && i.__esModule ? i : { default: i };
 };
-Object.defineProperty($e, "__esModule", { value: !0 });
-const Gs = es(Ks), Qs = es(Re);
-let Xs = class {
+Object.defineProperty(Le, "__esModule", { value: !0 });
+const Ys = ns(Qs), Zs = ns(De);
+let er = class {
   constructor(e) {
-    this.shouldThrowOnError = !1, this.method = e.method, this.url = e.url, this.headers = e.headers, this.schema = e.schema, this.body = e.body, this.shouldThrowOnError = e.shouldThrowOnError, this.signal = e.signal, this.isMaybeSingle = e.isMaybeSingle, e.fetch ? this.fetch = e.fetch : typeof fetch > "u" ? this.fetch = Gs.default : this.fetch = fetch;
+    this.shouldThrowOnError = !1, this.method = e.method, this.url = e.url, this.headers = e.headers, this.schema = e.schema, this.body = e.body, this.shouldThrowOnError = e.shouldThrowOnError, this.signal = e.signal, this.isMaybeSingle = e.isMaybeSingle, e.fetch ? this.fetch = e.fetch : typeof fetch > "u" ? this.fetch = Ys.default : this.fetch = fetch;
   }
   /**
    * If there's an error with the query, throwOnError will reject the promise by
@@ -560,11 +603,11 @@ let Xs = class {
       let u = null, c = null, h = null, d = n.status, f = n.statusText;
       if (n.ok) {
         if (this.method !== "HEAD") {
-          const _ = await n.text();
-          _ === "" || (this.headers.Accept === "text/csv" || this.headers.Accept && this.headers.Accept.includes("application/vnd.pgrst.plan+text") ? c = _ : c = JSON.parse(_));
+          const w = await n.text();
+          w === "" || (this.headers.Accept === "text/csv" || this.headers.Accept && this.headers.Accept.includes("application/vnd.pgrst.plan+text") ? c = w : c = JSON.parse(w));
         }
-        const v = (o = this.headers.Prefer) === null || o === void 0 ? void 0 : o.match(/count=(exact|planned|estimated)/), m = (a = n.headers.get("content-range")) === null || a === void 0 ? void 0 : a.split("/");
-        v && m && m.length > 1 && (h = parseInt(m[1])), this.isMaybeSingle && this.method === "GET" && Array.isArray(c) && (c.length > 1 ? (u = {
+        const y = (o = this.headers.Prefer) === null || o === void 0 ? void 0 : o.match(/count=(exact|planned|estimated)/), g = (a = n.headers.get("content-range")) === null || a === void 0 ? void 0 : a.split("/");
+        y && g && g.length > 1 && (h = parseInt(g[1])), this.isMaybeSingle && this.method === "GET" && Array.isArray(c) && (c.length > 1 ? (u = {
           // https://github.com/PostgREST/postgrest/blob/a867d79c42419af16c18c3fb019eba8df992626f/src/PostgREST/Error.hs#L553
           code: "PGRST116",
           details: `Results contain ${c.length} rows, application/vnd.pgrst.object+json requires 1 row`,
@@ -572,16 +615,16 @@ let Xs = class {
           message: "JSON object requested, multiple (or no) rows returned"
         }, c = null, h = null, d = 406, f = "Not Acceptable") : c.length === 1 ? c = c[0] : c = null);
       } else {
-        const v = await n.text();
+        const y = await n.text();
         try {
-          u = JSON.parse(v), Array.isArray(u) && n.status === 404 && (c = [], u = null, d = 200, f = "OK");
+          u = JSON.parse(y), Array.isArray(u) && n.status === 404 && (c = [], u = null, d = 200, f = "OK");
         } catch {
-          n.status === 404 && v === "" ? (d = 204, f = "No Content") : u = {
-            message: v
+          n.status === 404 && y === "" ? (d = 204, f = "No Content") : u = {
+            message: y
           };
         }
         if (u && this.isMaybeSingle && (!((l = u == null ? void 0 : u.details) === null || l === void 0) && l.includes("0 rows")) && (u = null, d = 200, f = "OK"), u && this.shouldThrowOnError)
-          throw new Qs.default(u);
+          throw new Zs.default(u);
       }
       return {
         error: u,
@@ -642,13 +685,13 @@ let Xs = class {
     return this;
   }
 };
-$e.default = Xs;
-var Ys = L && L.__importDefault || function(i) {
+Le.default = er;
+var tr = L && L.__importDefault || function(i) {
   return i && i.__esModule ? i : { default: i };
 };
-Object.defineProperty(je, "__esModule", { value: !0 });
-const Zs = Ys($e);
-let er = class extends Zs.default {
+Object.defineProperty(Re, "__esModule", { value: !0 });
+const sr = tr(Le);
+let rr = class extends sr.default {
   /**
    * Perform a SELECT on the query result.
    *
@@ -811,13 +854,13 @@ let er = class extends Zs.default {
     return this;
   }
 };
-je.default = er;
-var tr = L && L.__importDefault || function(i) {
+Re.default = rr;
+var nr = L && L.__importDefault || function(i) {
   return i && i.__esModule ? i : { default: i };
 };
-Object.defineProperty(Se, "__esModule", { value: !0 });
-const sr = tr(je);
-let rr = class extends sr.default {
+Object.defineProperty(ke, "__esModule", { value: !0 });
+const ir = nr(Re);
+let or = class extends ir.default {
   /**
    * Match only rows where `column` is equal to `value`.
    *
@@ -1116,13 +1159,13 @@ let rr = class extends sr.default {
     return this.url.searchParams.append(e, `${t}.${s}`), this;
   }
 };
-Se.default = rr;
-var nr = L && L.__importDefault || function(i) {
+ke.default = or;
+var ar = L && L.__importDefault || function(i) {
   return i && i.__esModule ? i : { default: i };
 };
-Object.defineProperty(Oe, "__esModule", { value: !0 });
-const fe = nr(Se);
-let ir = class {
+Object.defineProperty($e, "__esModule", { value: !0 });
+const pe = ar(ke);
+let lr = class {
   constructor(e, { headers: t = {}, schema: s, fetch: r }) {
     this.url = e, this.headers = t, this.schema = s, this.fetch = r;
   }
@@ -1151,7 +1194,7 @@ let ir = class {
     const r = t ? "HEAD" : "GET";
     let n = !1;
     const o = (e ?? "*").split("").map((a) => /\s/.test(a) && !n ? "" : (a === '"' && (n = !n), a)).join("");
-    return this.url.searchParams.set("select", o), s && (this.headers.Prefer = `count=${s}`), new fe.default({
+    return this.url.searchParams.set("select", o), s && (this.headers.Prefer = `count=${s}`), new pe.default({
       method: r,
       url: this.url,
       headers: this.headers,
@@ -1195,7 +1238,7 @@ let ir = class {
         this.url.searchParams.set("columns", a.join(","));
       }
     }
-    return new fe.default({
+    return new pe.default({
       method: r,
       url: this.url,
       headers: this.headers,
@@ -1252,7 +1295,7 @@ let ir = class {
         this.url.searchParams.set("columns", u.join(","));
       }
     }
-    return new fe.default({
+    return new pe.default({
       method: o,
       url: this.url,
       headers: this.headers,
@@ -1285,7 +1328,7 @@ let ir = class {
    */
   update(e, { count: t } = {}) {
     const s = "PATCH", r = [];
-    return this.headers.Prefer && r.push(this.headers.Prefer), t && r.push(`count=${t}`), this.headers.Prefer = r.join(","), new fe.default({
+    return this.headers.Prefer && r.push(this.headers.Prefer), t && r.push(`count=${t}`), this.headers.Prefer = r.join(","), new pe.default({
       method: s,
       url: this.url,
       headers: this.headers,
@@ -1316,7 +1359,7 @@ let ir = class {
    */
   delete({ count: e } = {}) {
     const t = "DELETE", s = [];
-    return e && s.push(`count=${e}`), this.headers.Prefer && s.unshift(this.headers.Prefer), this.headers.Prefer = s.join(","), new fe.default({
+    return e && s.push(`count=${e}`), this.headers.Prefer && s.unshift(this.headers.Prefer), this.headers.Prefer = s.join(","), new pe.default({
       method: t,
       url: this.url,
       headers: this.headers,
@@ -1326,21 +1369,21 @@ let ir = class {
     });
   }
 };
-Oe.default = ir;
-var Le = {}, De = {};
-Object.defineProperty(De, "__esModule", { value: !0 });
-De.version = void 0;
-De.version = "0.0.0-automated";
-Object.defineProperty(Le, "__esModule", { value: !0 });
-Le.DEFAULT_HEADERS = void 0;
-const or = De;
-Le.DEFAULT_HEADERS = { "X-Client-Info": `postgrest-js/${or.version}` };
-var ts = L && L.__importDefault || function(i) {
+$e.default = lr;
+var Ue = {}, Ne = {};
+Object.defineProperty(Ne, "__esModule", { value: !0 });
+Ne.version = void 0;
+Ne.version = "0.0.0-automated";
+Object.defineProperty(Ue, "__esModule", { value: !0 });
+Ue.DEFAULT_HEADERS = void 0;
+const cr = Ne;
+Ue.DEFAULT_HEADERS = { "X-Client-Info": `postgrest-js/${cr.version}` };
+var is = L && L.__importDefault || function(i) {
   return i && i.__esModule ? i : { default: i };
 };
-Object.defineProperty(ct, "__esModule", { value: !0 });
-const ar = ts(Oe), lr = ts(Se), cr = Le;
-let ur = class ss {
+Object.defineProperty(ft, "__esModule", { value: !0 });
+const ur = is($e), hr = is(ke), dr = Ue;
+let fr = class os {
   // TODO: Add back shouldThrowOnError once we figure out the typings
   /**
    * Creates a PostgREST client.
@@ -1352,7 +1395,7 @@ let ur = class ss {
    * @param options.fetch - Custom fetch
    */
   constructor(e, { headers: t = {}, schema: s, fetch: r } = {}) {
-    this.url = e, this.headers = Object.assign(Object.assign({}, cr.DEFAULT_HEADERS), t), this.schemaName = s, this.fetch = r;
+    this.url = e, this.headers = Object.assign(Object.assign({}, dr.DEFAULT_HEADERS), t), this.schemaName = s, this.fetch = r;
   }
   /**
    * Perform a query on a table or a view.
@@ -1361,7 +1404,7 @@ let ur = class ss {
    */
   from(e) {
     const t = new URL(`${this.url}/${e}`);
-    return new ar.default(t, {
+    return new ur.default(t, {
       headers: Object.assign({}, this.headers),
       schema: this.schemaName,
       fetch: this.fetch
@@ -1375,7 +1418,7 @@ let ur = class ss {
    * @param schema - The schema to query
    */
   schema(e) {
-    return new ss(this.url, {
+    return new os(this.url, {
       headers: this.headers,
       schema: e,
       fetch: this.fetch
@@ -1412,7 +1455,7 @@ let ur = class ss {
       a.searchParams.append(c, h);
     })) : (o = "POST", l = t);
     const u = Object.assign({}, this.headers);
-    return n && (u.Prefer = `count=${n}`), new lr.default({
+    return n && (u.Prefer = `count=${n}`), new hr.default({
       method: o,
       url: a,
       headers: u,
@@ -1423,41 +1466,41 @@ let ur = class ss {
     });
   }
 };
-ct.default = ur;
-var de = L && L.__importDefault || function(i) {
+ft.default = fr;
+var fe = L && L.__importDefault || function(i) {
   return i && i.__esModule ? i : { default: i };
 };
 Object.defineProperty(R, "__esModule", { value: !0 });
 R.PostgrestError = R.PostgrestBuilder = R.PostgrestTransformBuilder = R.PostgrestFilterBuilder = R.PostgrestQueryBuilder = R.PostgrestClient = void 0;
-const rs = de(ct);
-R.PostgrestClient = rs.default;
-const ns = de(Oe);
-R.PostgrestQueryBuilder = ns.default;
-const is = de(Se);
-R.PostgrestFilterBuilder = is.default;
-const os = de(je);
-R.PostgrestTransformBuilder = os.default;
-const as = de($e);
-R.PostgrestBuilder = as.default;
-const ls = de(Re);
-R.PostgrestError = ls.default;
-var hr = R.default = {
-  PostgrestClient: rs.default,
-  PostgrestQueryBuilder: ns.default,
-  PostgrestFilterBuilder: is.default,
-  PostgrestTransformBuilder: os.default,
-  PostgrestBuilder: as.default,
-  PostgrestError: ls.default
+const as = fe(ft);
+R.PostgrestClient = as.default;
+const ls = fe($e);
+R.PostgrestQueryBuilder = ls.default;
+const cs = fe(ke);
+R.PostgrestFilterBuilder = cs.default;
+const us = fe(Re);
+R.PostgrestTransformBuilder = us.default;
+const hs = fe(Le);
+R.PostgrestBuilder = hs.default;
+const ds = fe(De);
+R.PostgrestError = ds.default;
+var pr = R.default = {
+  PostgrestClient: as.default,
+  PostgrestQueryBuilder: ls.default,
+  PostgrestFilterBuilder: cs.default,
+  PostgrestTransformBuilder: us.default,
+  PostgrestBuilder: hs.default,
+  PostgrestError: ds.default
 };
 const {
-  PostgrestClient: dr,
-  PostgrestQueryBuilder: $i,
-  PostgrestFilterBuilder: Ri,
-  PostgrestTransformBuilder: Li,
-  PostgrestBuilder: Di,
-  PostgrestError: Ui
-} = hr;
-function fr() {
+  PostgrestClient: gr,
+  PostgrestQueryBuilder: Li,
+  PostgrestFilterBuilder: Di,
+  PostgrestTransformBuilder: Ui,
+  PostgrestBuilder: Ni,
+  PostgrestError: Fi
+} = pr;
+function mr() {
   if (typeof WebSocket < "u")
     return WebSocket;
   if (typeof global.WebSocket < "u")
@@ -1468,11 +1511,11 @@ function fr() {
     return self.WebSocket;
   throw new Error("`WebSocket` is not supported in this environment");
 }
-const pr = fr(), gr = "2.11.15", mr = `realtime-js/${gr}`, vr = "1.0.0", cs = 1e4, yr = 1e3;
-var ge;
+const vr = mr(), yr = "2.11.15", br = `realtime-js/${yr}`, _r = "1.0.0", fs = 1e4, wr = 1e3;
+var me;
 (function(i) {
   i[i.connecting = 0] = "connecting", i[i.open = 1] = "open", i[i.closing = 2] = "closing", i[i.closed = 3] = "closed";
-})(ge || (ge = {}));
+})(me || (me = {}));
 var j;
 (function(i) {
   i.closed = "closed", i.errored = "errored", i.joined = "joined", i.joining = "joining", i.leaving = "leaving";
@@ -1481,15 +1524,15 @@ var U;
 (function(i) {
   i.close = "phx_close", i.error = "phx_error", i.join = "phx_join", i.reply = "phx_reply", i.leave = "phx_leave", i.access_token = "access_token";
 })(U || (U = {}));
-var Je;
+var Xe;
 (function(i) {
   i.websocket = "websocket";
-})(Je || (Je = {}));
+})(Xe || (Xe = {}));
 var Q;
 (function(i) {
   i.Connecting = "connecting", i.Open = "open", i.Closing = "closing", i.Closed = "closed";
 })(Q || (Q = {}));
-class br {
+class Sr {
   constructor() {
     this.HEADER_LENGTH = 1;
   }
@@ -1511,7 +1554,7 @@ class br {
     return { ref: null, topic: a, event: l, payload: u };
   }
 }
-class us {
+class ps {
   constructor(e, t) {
     this.callback = e, this.timerCalc = t, this.timer = void 0, this.tries = 0, this.callback = e, this.timerCalc = t;
   }
@@ -1529,21 +1572,21 @@ var E;
 (function(i) {
   i.abstime = "abstime", i.bool = "bool", i.date = "date", i.daterange = "daterange", i.float4 = "float4", i.float8 = "float8", i.int2 = "int2", i.int4 = "int4", i.int4range = "int4range", i.int8 = "int8", i.int8range = "int8range", i.json = "json", i.jsonb = "jsonb", i.money = "money", i.numeric = "numeric", i.oid = "oid", i.reltime = "reltime", i.text = "text", i.time = "time", i.timestamp = "timestamp", i.timestamptz = "timestamptz", i.timetz = "timetz", i.tsrange = "tsrange", i.tstzrange = "tstzrange";
 })(E || (E = {}));
-const $t = (i, e, t = {}) => {
+const Ut = (i, e, t = {}) => {
   var s;
   const r = (s = t.skipTypes) !== null && s !== void 0 ? s : [];
-  return Object.keys(e).reduce((n, o) => (n[o] = _r(o, i, e, r), n), {});
-}, _r = (i, e, t, s) => {
+  return Object.keys(e).reduce((n, o) => (n[o] = kr(o, i, e, r), n), {});
+}, kr = (i, e, t, s) => {
   const r = e.find((a) => a.name === i), n = r == null ? void 0 : r.type, o = t[i];
-  return n && !s.includes(n) ? hs(n, o) : Ge(o);
-}, hs = (i, e) => {
+  return n && !s.includes(n) ? gs(n, o) : Ye(o);
+}, gs = (i, e) => {
   if (i.charAt(0) === "_") {
     const t = i.slice(1, i.length);
-    return Er(e, t);
+    return Tr(e, t);
   }
   switch (i) {
     case E.bool:
-      return wr(e);
+      return Er(e);
     case E.float4:
     case E.float8:
     case E.int2:
@@ -1551,12 +1594,12 @@ const $t = (i, e, t = {}) => {
     case E.int8:
     case E.numeric:
     case E.oid:
-      return Sr(e);
+      return Cr(e);
     case E.json:
     case E.jsonb:
-      return kr(e);
+      return Ir(e);
     case E.timestamp:
-      return Cr(e);
+      return xr(e);
     case E.abstime:
     case E.date:
     case E.daterange:
@@ -1570,11 +1613,11 @@ const $t = (i, e, t = {}) => {
     case E.timetz:
     case E.tsrange:
     case E.tstzrange:
-      return Ge(e);
+      return Ye(e);
     default:
-      return Ge(e);
+      return Ye(e);
   }
-}, Ge = (i) => i, wr = (i) => {
+}, Ye = (i) => i, Er = (i) => {
   switch (i) {
     case "t":
       return !0;
@@ -1583,14 +1626,14 @@ const $t = (i, e, t = {}) => {
     default:
       return i;
   }
-}, Sr = (i) => {
+}, Cr = (i) => {
   if (typeof i == "string") {
     const e = parseFloat(i);
     if (!Number.isNaN(e))
       return e;
   }
   return i;
-}, kr = (i) => {
+}, Ir = (i) => {
   if (typeof i == "string")
     try {
       return JSON.parse(i);
@@ -1598,7 +1641,7 @@ const $t = (i, e, t = {}) => {
       return console.log(`JSON parse error: ${e}`), i;
     }
   return i;
-}, Er = (i, e) => {
+}, Tr = (i, e) => {
   if (typeof i != "string")
     return i;
   const t = i.length - 1, s = i[t];
@@ -1610,14 +1653,14 @@ const $t = (i, e, t = {}) => {
     } catch {
       n = o ? o.split(",") : [];
     }
-    return n.map((a) => hs(e, a));
+    return n.map((a) => gs(e, a));
   }
   return i;
-}, Cr = (i) => typeof i == "string" ? i.replace(" ", "T") : i, ds = (i) => {
+}, xr = (i) => typeof i == "string" ? i.replace(" ", "T") : i, ms = (i) => {
   let e = i;
   return e = e.replace(/^ws/i, "http"), e = e.replace(/(\/socket\/websocket|\/socket|\/websocket)\/?$/i, ""), e.replace(/\/+$/, "");
 };
-class Be {
+class qe {
   /**
    * Initializes the Push
    *
@@ -1626,7 +1669,7 @@ class Be {
    * @param payload The payload, for example `{user_id: 123}`
    * @param timeout The push timeout in milliseconds
    */
-  constructor(e, t, s = {}, r = cs) {
+  constructor(e, t, s = {}, r = fs) {
     this.channel = e, this.event = t, this.payload = s, this.timeout = r, this.sent = !1, this.timeoutTimer = void 0, this.ref = "", this.receivedResp = null, this.recHooks = [], this.refEvent = null;
   }
   resend(e) {
@@ -1678,11 +1721,11 @@ class Be {
     return this.receivedResp && this.receivedResp.status === e;
   }
 }
-var Rt;
+var Nt;
 (function(i) {
   i.SYNC = "sync", i.JOIN = "join", i.LEAVE = "leave";
-})(Rt || (Rt = {}));
-class me {
+})(Nt || (Nt = {}));
+class ve {
   /**
    * Initializes the Presence.
    *
@@ -1705,12 +1748,12 @@ class me {
     };
     this.channel._on(s.state, {}, (r) => {
       const { onJoin: n, onLeave: o, onSync: a } = this.caller;
-      this.joinRef = this.channel._joinRef(), this.state = me.syncState(this.state, r, n, o), this.pendingDiffs.forEach((l) => {
-        this.state = me.syncDiff(this.state, l, n, o);
+      this.joinRef = this.channel._joinRef(), this.state = ve.syncState(this.state, r, n, o), this.pendingDiffs.forEach((l) => {
+        this.state = ve.syncDiff(this.state, l, n, o);
       }), this.pendingDiffs = [], a();
     }), this.channel._on(s.diff, {}, (r) => {
       const { onJoin: n, onLeave: o, onSync: a } = this.caller;
-      this.inPendingSyncState() ? this.pendingDiffs.push(r) : (this.state = me.syncDiff(this.state, r, n, o), a());
+      this.inPendingSyncState() ? this.pendingDiffs.push(r) : (this.state = ve.syncDiff(this.state, r, n, o), a());
     }), this.onJoin((r, n, o) => {
       this.channel._trigger("presence", {
         event: "join",
@@ -1746,8 +1789,8 @@ class me {
     }), this.map(o, (u, c) => {
       const h = n[u];
       if (h) {
-        const d = c.map((m) => m.presence_ref), f = h.map((m) => m.presence_ref), p = c.filter((m) => f.indexOf(m.presence_ref) < 0), v = h.filter((m) => d.indexOf(m.presence_ref) < 0);
-        p.length > 0 && (a[u] = p), v.length > 0 && (l[u] = v);
+        const d = c.map((g) => g.presence_ref), f = h.map((g) => g.presence_ref), p = c.filter((g) => f.indexOf(g.presence_ref) < 0), y = h.filter((g) => d.indexOf(g.presence_ref) < 0);
+        p.length > 0 && (a[u] = p), y.length > 0 && (l[u] = y);
       } else
         a[u] = c;
     }), this.syncDiff(n, { joins: a, leaves: l }, s, r);
@@ -1839,25 +1882,25 @@ class me {
     return !this.joinRef || this.joinRef !== this.channel._joinRef();
   }
 }
-var Lt;
+var Ft;
 (function(i) {
   i.ALL = "*", i.INSERT = "INSERT", i.UPDATE = "UPDATE", i.DELETE = "DELETE";
-})(Lt || (Lt = {}));
-var Dt;
+})(Ft || (Ft = {}));
+var Bt;
 (function(i) {
   i.BROADCAST = "broadcast", i.PRESENCE = "presence", i.POSTGRES_CHANGES = "postgres_changes", i.SYSTEM = "system";
-})(Dt || (Dt = {}));
+})(Bt || (Bt = {}));
 var B;
 (function(i) {
   i.SUBSCRIBED = "SUBSCRIBED", i.TIMED_OUT = "TIMED_OUT", i.CLOSED = "CLOSED", i.CHANNEL_ERROR = "CHANNEL_ERROR";
 })(B || (B = {}));
-class ut {
+class pt {
   constructor(e, t = { config: {} }, s) {
     this.topic = e, this.params = t, this.socket = s, this.bindings = {}, this.state = j.closed, this.joinedOnce = !1, this.pushBuffer = [], this.subTopic = e.replace(/^realtime:/i, ""), this.params.config = Object.assign({
       broadcast: { ack: !1, self: !1 },
       presence: { key: "" },
       private: !1
-    }, t.config), this.timeout = this.socket.timeout, this.joinPush = new Be(this, U.join, this.params, this.timeout), this.rejoinTimer = new us(() => this._rejoinUntilConnected(), this.socket.reconnectAfterMs), this.joinPush.receive("ok", () => {
+    }, t.config), this.timeout = this.socket.timeout, this.joinPush = new qe(this, U.join, this.params, this.timeout), this.rejoinTimer = new ps(() => this._rejoinUntilConnected(), this.socket.reconnectAfterMs), this.joinPush.receive("ok", () => {
       this.state = j.joined, this.rejoinTimer.reset(), this.pushBuffer.forEach((r) => r.send()), this.pushBuffer = [];
     }), this._onClose(() => {
       this.rejoinTimer.reset(), this.socket.log("channel", `close ${this.topic} ${this._joinRef()}`), this.state = j.closed, this.socket._remove(this);
@@ -1867,7 +1910,7 @@ class ut {
       this._isJoining() && (this.socket.log("channel", `timeout ${this.topic}`, this.joinPush.timeout), this.state = j.errored, this.rejoinTimer.scheduleTimeout());
     }), this._on(U.reply, {}, (r, n) => {
       this._trigger(this._replyEventName(n), r);
-    }), this.presence = new me(this), this.broadcastEndpointURL = ds(this.socket.endPoint) + "/api/broadcast", this.private = this.params.config.private || !1;
+    }), this.presence = new ve(this), this.broadcastEndpointURL = ms(this.socket.endPoint) + "/api/broadcast", this.private = this.params.config.private || !1;
   }
   /** Subscribe registers your client with the server */
   subscribe(e, t = this.timeout) {
@@ -1888,10 +1931,10 @@ class ut {
           return;
         } else {
           const d = this.bindings.postgres_changes, f = (h = d == null ? void 0 : d.length) !== null && h !== void 0 ? h : 0, p = [];
-          for (let v = 0; v < f; v++) {
-            const m = d[v], { filter: { event: _, schema: S, table: g, filter: k } } = m, x = c && c[v];
-            if (x && x.event === _ && x.schema === S && x.table === g && x.filter === k)
-              p.push(Object.assign(Object.assign({}, m), { id: x.id }));
+          for (let y = 0; y < f; y++) {
+            const g = d[y], { filter: { event: w, schema: k, table: m, filter: b } } = g, x = c && c[y];
+            if (x && x.event === w && x.schema === k && x.table === m && x.filter === b)
+              p.push(Object.assign(Object.assign({}, g), { id: x.id }));
             else {
               this.unsubscribe(), this.state = j.errored, e == null || e(B.CHANNEL_ERROR, new Error("mismatch between server and client bindings for postgres changes"));
               return;
@@ -1990,7 +2033,7 @@ class ut {
     this.joinPush.destroy();
     let s = null;
     return new Promise((r) => {
-      s = new Be(this, U.leave, {}, e), s.receive("ok", () => {
+      s = new qe(this, U.leave, {}, e), s.receive("ok", () => {
         t(), r("ok");
       }).receive("timeout", () => {
         t(), r("timed out");
@@ -2018,7 +2061,7 @@ class ut {
   _push(e, t, s = this.timeout) {
     if (!this.joinedOnce)
       throw `tried to push '${e}' to '${this.topic}' before joining. Use channel.subscribe() before pushing events`;
-    let r = new Be(this, e, t, s);
+    let r = new qe(this, e, t, s);
     return this._canPush() ? r.send() : (r.startTimeout(), this.pushBuffer.push(r)), r;
   }
   /**
@@ -2050,31 +2093,31 @@ class ut {
     if (t && !d)
       throw "channel onMessage callbacks must return the payload, modified or unmodified";
     ["insert", "update", "delete"].includes(o) ? (r = this.bindings.postgres_changes) === null || r === void 0 || r.filter((f) => {
-      var p, v, m;
-      return ((p = f.filter) === null || p === void 0 ? void 0 : p.event) === "*" || ((m = (v = f.filter) === null || v === void 0 ? void 0 : v.event) === null || m === void 0 ? void 0 : m.toLocaleLowerCase()) === o;
+      var p, y, g;
+      return ((p = f.filter) === null || p === void 0 ? void 0 : p.event) === "*" || ((g = (y = f.filter) === null || y === void 0 ? void 0 : y.event) === null || g === void 0 ? void 0 : g.toLocaleLowerCase()) === o;
     }).map((f) => f.callback(d, s)) : (n = this.bindings[o]) === null || n === void 0 || n.filter((f) => {
-      var p, v, m, _, S, g;
+      var p, y, g, w, k, m;
       if (["broadcast", "presence", "postgres_changes"].includes(o))
         if ("id" in f) {
-          const k = f.id, x = (p = f.filter) === null || p === void 0 ? void 0 : p.event;
-          return k && ((v = t.ids) === null || v === void 0 ? void 0 : v.includes(k)) && (x === "*" || (x == null ? void 0 : x.toLocaleLowerCase()) === ((m = t.data) === null || m === void 0 ? void 0 : m.type.toLocaleLowerCase()));
+          const b = f.id, x = (p = f.filter) === null || p === void 0 ? void 0 : p.event;
+          return b && ((y = t.ids) === null || y === void 0 ? void 0 : y.includes(b)) && (x === "*" || (x == null ? void 0 : x.toLocaleLowerCase()) === ((g = t.data) === null || g === void 0 ? void 0 : g.type.toLocaleLowerCase()));
         } else {
-          const k = (S = (_ = f == null ? void 0 : f.filter) === null || _ === void 0 ? void 0 : _.event) === null || S === void 0 ? void 0 : S.toLocaleLowerCase();
-          return k === "*" || k === ((g = t == null ? void 0 : t.event) === null || g === void 0 ? void 0 : g.toLocaleLowerCase());
+          const b = (k = (w = f == null ? void 0 : f.filter) === null || w === void 0 ? void 0 : w.event) === null || k === void 0 ? void 0 : k.toLocaleLowerCase();
+          return b === "*" || b === ((m = t == null ? void 0 : t.event) === null || m === void 0 ? void 0 : m.toLocaleLowerCase());
         }
       else
         return f.type.toLocaleLowerCase() === o;
     }).map((f) => {
       if (typeof d == "object" && "ids" in d) {
-        const p = d.data, { schema: v, table: m, commit_timestamp: _, type: S, errors: g } = p;
+        const p = d.data, { schema: y, table: g, commit_timestamp: w, type: k, errors: m } = p;
         d = Object.assign(Object.assign({}, {
-          schema: v,
-          table: m,
-          commit_timestamp: _,
-          eventType: S,
+          schema: y,
+          table: g,
+          commit_timestamp: w,
+          eventType: k,
           new: {},
           old: {},
-          errors: g
+          errors: m
         }), this._getPayloadRecords(p));
       }
       f.callback(d, s);
@@ -2114,7 +2157,7 @@ class ut {
     const s = e.toLocaleLowerCase();
     return this.bindings[s] = this.bindings[s].filter((r) => {
       var n;
-      return !(((n = r.type) === null || n === void 0 ? void 0 : n.toLocaleLowerCase()) === s && ut.isEqual(r.filter, t));
+      return !(((n = r.type) === null || n === void 0 ? void 0 : n.toLocaleLowerCase()) === s && pt.isEqual(r.filter, t));
     }), this;
   }
   /** @internal */
@@ -2164,17 +2207,17 @@ class ut {
       new: {},
       old: {}
     };
-    return (e.type === "INSERT" || e.type === "UPDATE") && (t.new = $t(e.columns, e.record)), (e.type === "UPDATE" || e.type === "DELETE") && (t.old = $t(e.columns, e.old_record)), t;
+    return (e.type === "INSERT" || e.type === "UPDATE") && (t.new = Ut(e.columns, e.record)), (e.type === "UPDATE" || e.type === "DELETE") && (t.old = Ut(e.columns, e.old_record)), t;
   }
 }
-const Ut = () => {
-}, Ir = `
+const Mt = () => {
+}, Pr = `
   addEventListener("message", (e) => {
     if (e.data.event === "start") {
       setInterval(() => postMessage({ event: "keepAlive" }), e.data.interval);
     }
   });`;
-class Tr {
+class Ar {
   /**
    * Initializes the Socket.
    *
@@ -2195,17 +2238,17 @@ class Tr {
    */
   constructor(e, t) {
     var s;
-    this.accessTokenValue = null, this.apiKey = null, this.channels = new Array(), this.endPoint = "", this.httpEndpoint = "", this.headers = {}, this.params = {}, this.timeout = cs, this.heartbeatIntervalMs = 25e3, this.heartbeatTimer = void 0, this.pendingHeartbeatRef = null, this.heartbeatCallback = Ut, this.ref = 0, this.logger = Ut, this.conn = null, this.sendBuffer = [], this.serializer = new br(), this.stateChangeCallbacks = {
+    this.accessTokenValue = null, this.apiKey = null, this.channels = new Array(), this.endPoint = "", this.httpEndpoint = "", this.headers = {}, this.params = {}, this.timeout = fs, this.heartbeatIntervalMs = 25e3, this.heartbeatTimer = void 0, this.pendingHeartbeatRef = null, this.heartbeatCallback = Mt, this.ref = 0, this.logger = Mt, this.conn = null, this.sendBuffer = [], this.serializer = new Sr(), this.stateChangeCallbacks = {
       open: [],
       close: [],
       error: [],
       message: []
     }, this.accessToken = null, this._resolveFetch = (n) => {
       let o;
-      return n ? o = n : typeof fetch > "u" ? o = (...a) => Promise.resolve().then(() => he).then(({ default: l }) => l(...a)) : o = fetch, (...a) => o(...a);
-    }, this.endPoint = `${e}/${Je.websocket}`, this.httpEndpoint = ds(e), t != null && t.transport ? this.transport = t.transport : this.transport = null, t != null && t.params && (this.params = t.params), t != null && t.timeout && (this.timeout = t.timeout), t != null && t.logger && (this.logger = t.logger), (t != null && t.logLevel || t != null && t.log_level) && (this.logLevel = t.logLevel || t.log_level, this.params = Object.assign(Object.assign({}, this.params), { log_level: this.logLevel })), t != null && t.heartbeatIntervalMs && (this.heartbeatIntervalMs = t.heartbeatIntervalMs);
+      return n ? o = n : typeof fetch > "u" ? o = (...a) => Promise.resolve().then(() => de).then(({ default: l }) => l(...a)) : o = fetch, (...a) => o(...a);
+    }, this.endPoint = `${e}/${Xe.websocket}`, this.httpEndpoint = ms(e), t != null && t.transport ? this.transport = t.transport : this.transport = null, t != null && t.params && (this.params = t.params), t != null && t.timeout && (this.timeout = t.timeout), t != null && t.logger && (this.logger = t.logger), (t != null && t.logLevel || t != null && t.log_level) && (this.logLevel = t.logLevel || t.log_level, this.params = Object.assign(Object.assign({}, this.params), { log_level: this.logLevel })), t != null && t.heartbeatIntervalMs && (this.heartbeatIntervalMs = t.heartbeatIntervalMs);
     const r = (s = t == null ? void 0 : t.params) === null || s === void 0 ? void 0 : s.apikey;
-    if (r && (this.accessTokenValue = r, this.apiKey = r), this.reconnectAfterMs = t != null && t.reconnectAfterMs ? t.reconnectAfterMs : (n) => [1e3, 2e3, 5e3, 1e4][n - 1] || 1e4, this.encode = t != null && t.encode ? t.encode : (n, o) => o(JSON.stringify(n)), this.decode = t != null && t.decode ? t.decode : this.serializer.decode.bind(this.serializer), this.reconnectTimer = new us(async () => {
+    if (r && (this.accessTokenValue = r, this.apiKey = r), this.reconnectAfterMs = t != null && t.reconnectAfterMs ? t.reconnectAfterMs : (n) => [1e3, 2e3, 5e3, 1e4][n - 1] || 1e4, this.encode = t != null && t.encode ? t.encode : (n, o) => o(JSON.stringify(n)), this.decode = t != null && t.decode ? t.decode : this.serializer.decode.bind(this.serializer), this.reconnectTimer = new ps(async () => {
       this.disconnect(), this.connect();
     }, this.reconnectAfterMs), this.fetch = this._resolveFetch(t == null ? void 0 : t.fetch), t != null && t.worker) {
       if (typeof window < "u" && !window.Worker)
@@ -2219,7 +2262,7 @@ class Tr {
    */
   connect() {
     if (!this.conn) {
-      if (this.transport || (this.transport = pr), !this.transport)
+      if (this.transport || (this.transport = vr), !this.transport)
         throw new Error("No transport provided");
       this.conn = new this.transport(this.endpointURL()), this.setupConnection();
     }
@@ -2229,7 +2272,7 @@ class Tr {
    * @returns string The URL of the websocket.
    */
   endpointURL() {
-    return this._appendParams(this.endPoint, Object.assign({}, this.params, { vsn: vr }));
+    return this._appendParams(this.endPoint, Object.assign({}, this.params, { vsn: _r }));
   }
   /**
    * Disconnects the socket.
@@ -2275,11 +2318,11 @@ class Tr {
    */
   connectionState() {
     switch (this.conn && this.conn.readyState) {
-      case ge.connecting:
+      case me.connecting:
         return Q.Connecting;
-      case ge.open:
+      case me.open:
         return Q.Open;
-      case ge.closing:
+      case me.closing:
         return Q.Closing;
       default:
         return Q.Closed;
@@ -2296,7 +2339,7 @@ class Tr {
     if (r)
       return r;
     {
-      const n = new ut(`realtime:${e}`, t, this);
+      const n = new pt(`realtime:${e}`, t, this);
       return this.channels.push(n), n;
     }
   }
@@ -2328,7 +2371,7 @@ class Tr {
     this.accessTokenValue != t && (this.accessTokenValue = t, this.channels.forEach((s) => {
       const r = {
         access_token: t,
-        version: mr
+        version: br
       };
       t && s.updateJoinPayload(r), s.joinedOnce && s._isJoined() && s._push(U.access_token, {
         access_token: t
@@ -2345,7 +2388,7 @@ class Tr {
       return;
     }
     if (this.pendingHeartbeatRef) {
-      this.pendingHeartbeatRef = null, this.log("transport", "heartbeat timeout. Attempting to re-establish connection"), this.heartbeatCallback("timeout"), (e = this.conn) === null || e === void 0 || e.close(yr, "hearbeat timeout");
+      this.pendingHeartbeatRef = null, this.log("transport", "heartbeat timeout. Attempting to re-establish connection"), this.heartbeatCallback("timeout"), (e = this.conn) === null || e === void 0 || e.close(wr, "hearbeat timeout");
       return;
     }
     this.pendingHeartbeatRef = this._makeRef(), this.push({
@@ -2452,13 +2495,13 @@ class Tr {
     if (e)
       t = e;
     else {
-      const s = new Blob([Ir], { type: "application/javascript" });
+      const s = new Blob([Pr], { type: "application/javascript" });
       t = URL.createObjectURL(s);
     }
     return t;
   }
 }
-class ht extends Error {
+class gt extends Error {
   constructor(e) {
     super(e), this.__isStorageError = !0, this.name = "StorageError";
   }
@@ -2466,7 +2509,7 @@ class ht extends Error {
 function A(i) {
   return typeof i == "object" && i !== null && "__isStorageError" in i;
 }
-class xr extends ht {
+class Or extends gt {
   constructor(e, t, s) {
     super(e), this.name = "StorageApiError", this.status = t, this.statusCode = s;
   }
@@ -2479,12 +2522,12 @@ class xr extends ht {
     };
   }
 }
-class Qe extends ht {
+class Ze extends gt {
   constructor(e, t) {
     super(e), this.name = "StorageUnknownError", this.originalError = t;
   }
 }
-var Pr = function(i, e, t, s) {
+var jr = function(i, e, t, s) {
   function r(n) {
     return n instanceof t ? n : new t(function(o) {
       o(n);
@@ -2511,28 +2554,28 @@ var Pr = function(i, e, t, s) {
     u((s = s.apply(i, e || [])).next());
   });
 };
-const fs = (i) => {
+const vs = (i) => {
   let e;
-  return i ? e = i : typeof fetch > "u" ? e = (...t) => Promise.resolve().then(() => he).then(({ default: s }) => s(...t)) : e = fetch, (...t) => e(...t);
-}, Ar = () => Pr(void 0, void 0, void 0, function* () {
-  return typeof Response > "u" ? (yield Promise.resolve().then(() => he)).Response : Response;
-}), Xe = (i) => {
+  return i ? e = i : typeof fetch > "u" ? e = (...t) => Promise.resolve().then(() => de).then(({ default: s }) => s(...t)) : e = fetch, (...t) => e(...t);
+}, $r = () => jr(void 0, void 0, void 0, function* () {
+  return typeof Response > "u" ? (yield Promise.resolve().then(() => de)).Response : Response;
+}), et = (i) => {
   if (Array.isArray(i))
-    return i.map((t) => Xe(t));
+    return i.map((t) => et(t));
   if (typeof i == "function" || i !== Object(i))
     return i;
   const e = {};
   return Object.entries(i).forEach(([t, s]) => {
     const r = t.replace(/([-_][a-z])/gi, (n) => n.toUpperCase().replace(/[-_]/g, ""));
-    e[r] = Xe(s);
+    e[r] = et(s);
   }), e;
-}, Or = (i) => {
+}, Rr = (i) => {
   if (typeof i != "object" || i === null)
     return !1;
   const e = Object.getPrototypeOf(i);
   return (e === null || e === Object.prototype || Object.getPrototypeOf(e) === null) && !(Symbol.toStringTag in i) && !(Symbol.iterator in i);
 };
-var Z = function(i, e, t, s) {
+var ee = function(i, e, t, s) {
   function r(n) {
     return n instanceof t ? n : new t(function(o) {
       o(n);
@@ -2559,52 +2602,52 @@ var Z = function(i, e, t, s) {
     u((s = s.apply(i, e || [])).next());
   });
 };
-const Me = (i) => i.msg || i.message || i.error_description || i.error || JSON.stringify(i), jr = (i, e, t) => Z(void 0, void 0, void 0, function* () {
-  const s = yield Ar();
+const ze = (i) => i.msg || i.message || i.error_description || i.error || JSON.stringify(i), Lr = (i, e, t) => ee(void 0, void 0, void 0, function* () {
+  const s = yield $r();
   i instanceof s && !(t != null && t.noResolveJson) ? i.json().then((r) => {
     const n = i.status || 500, o = (r == null ? void 0 : r.statusCode) || n + "";
-    e(new xr(Me(r), n, o));
+    e(new Or(ze(r), n, o));
   }).catch((r) => {
-    e(new Qe(Me(r), r));
-  }) : e(new Qe(Me(i), i));
-}), $r = (i, e, t, s) => {
+    e(new Ze(ze(r), r));
+  }) : e(new Ze(ze(i), i));
+}), Dr = (i, e, t, s) => {
   const r = { method: i, headers: (e == null ? void 0 : e.headers) || {} };
-  return i === "GET" || !s ? r : (Or(s) ? (r.headers = Object.assign({ "Content-Type": "application/json" }, e == null ? void 0 : e.headers), r.body = JSON.stringify(s)) : r.body = s, Object.assign(Object.assign({}, r), t));
+  return i === "GET" || !s ? r : (Rr(s) ? (r.headers = Object.assign({ "Content-Type": "application/json" }, e == null ? void 0 : e.headers), r.body = JSON.stringify(s)) : r.body = s, Object.assign(Object.assign({}, r), t));
 };
-function ke(i, e, t, s, r, n) {
-  return Z(this, void 0, void 0, function* () {
+function Ee(i, e, t, s, r, n) {
+  return ee(this, void 0, void 0, function* () {
     return new Promise((o, a) => {
-      i(t, $r(e, s, r, n)).then((l) => {
+      i(t, Dr(e, s, r, n)).then((l) => {
         if (!l.ok)
           throw l;
         return s != null && s.noResolveJson ? l : l.json();
-      }).then((l) => o(l)).catch((l) => jr(l, a, s));
+      }).then((l) => o(l)).catch((l) => Lr(l, a, s));
     });
   });
 }
-function xe(i, e, t, s) {
-  return Z(this, void 0, void 0, function* () {
-    return ke(i, "GET", e, t, s);
+function Pe(i, e, t, s) {
+  return ee(this, void 0, void 0, function* () {
+    return Ee(i, "GET", e, t, s);
   });
 }
 function M(i, e, t, s, r) {
-  return Z(this, void 0, void 0, function* () {
-    return ke(i, "POST", e, s, r, t);
+  return ee(this, void 0, void 0, function* () {
+    return Ee(i, "POST", e, s, r, t);
   });
 }
-function Ye(i, e, t, s, r) {
-  return Z(this, void 0, void 0, function* () {
-    return ke(i, "PUT", e, s, r, t);
+function tt(i, e, t, s, r) {
+  return ee(this, void 0, void 0, function* () {
+    return Ee(i, "PUT", e, s, r, t);
   });
 }
-function Rr(i, e, t, s) {
-  return Z(this, void 0, void 0, function* () {
-    return ke(i, "HEAD", e, Object.assign(Object.assign({}, t), { noResolveJson: !0 }), s);
+function Ur(i, e, t, s) {
+  return ee(this, void 0, void 0, function* () {
+    return Ee(i, "HEAD", e, Object.assign(Object.assign({}, t), { noResolveJson: !0 }), s);
   });
 }
-function ps(i, e, t, s, r) {
-  return Z(this, void 0, void 0, function* () {
-    return ke(i, "DELETE", e, s, r, t);
+function ys(i, e, t, s, r) {
+  return ee(this, void 0, void 0, function* () {
+    return Ee(i, "DELETE", e, s, r, t);
   });
 }
 var $ = function(i, e, t, s) {
@@ -2634,21 +2677,21 @@ var $ = function(i, e, t, s) {
     u((s = s.apply(i, e || [])).next());
   });
 };
-const Lr = {
+const Nr = {
   limit: 100,
   offset: 0,
   sortBy: {
     column: "name",
     order: "asc"
   }
-}, Nt = {
+}, qt = {
   cacheControl: "3600",
   contentType: "text/plain;charset=UTF-8",
   upsert: !1
 };
-class Dr {
+class Fr {
   constructor(e, t = {}, s, r) {
-    this.url = e, this.headers = t, this.bucketId = s, this.fetch = fs(r);
+    this.url = e, this.headers = t, this.bucketId = s, this.fetch = vs(r);
   }
   /**
    * Uploads a file to an existing bucket or replaces an existing file at the specified path with a new one.
@@ -2661,11 +2704,11 @@ class Dr {
     return $(this, void 0, void 0, function* () {
       try {
         let n;
-        const o = Object.assign(Object.assign({}, Nt), r);
+        const o = Object.assign(Object.assign({}, qt), r);
         let a = Object.assign(Object.assign({}, this.headers), e === "POST" && { "x-upsert": String(o.upsert) });
         const l = o.metadata;
         typeof Blob < "u" && s instanceof Blob ? (n = new FormData(), n.append("cacheControl", o.cacheControl), l && n.append("metadata", this.encodeMetadata(l)), n.append("", s)) : typeof FormData < "u" && s instanceof FormData ? (n = s, n.append("cacheControl", o.cacheControl), l && n.append("metadata", this.encodeMetadata(l))) : (n = s, a["cache-control"] = `max-age=${o.cacheControl}`, a["content-type"] = o.contentType, l && (a["x-metadata"] = this.toBase64(this.encodeMetadata(l)))), r != null && r.headers && (a = Object.assign(Object.assign({}, a), r.headers));
-        const u = this._removeEmptyFolders(t), c = this._getFinalPath(u), h = yield (e == "PUT" ? Ye : M)(this.fetch, `${this.url}/object/${c}`, n, Object.assign({ headers: a }, o != null && o.duplex ? { duplex: o.duplex } : {}));
+        const u = this._removeEmptyFolders(t), c = this._getFinalPath(u), h = yield (e == "PUT" ? tt : M)(this.fetch, `${this.url}/object/${c}`, n, Object.assign({ headers: a }, o != null && o.duplex ? { duplex: o.duplex } : {}));
         return {
           data: { path: u, id: h.Id, fullPath: h.Key },
           error: null
@@ -2700,9 +2743,9 @@ class Dr {
       a.searchParams.set("token", t);
       try {
         let l;
-        const u = Object.assign({ upsert: Nt.upsert }, r), c = Object.assign(Object.assign({}, this.headers), { "x-upsert": String(u.upsert) });
+        const u = Object.assign({ upsert: qt.upsert }, r), c = Object.assign(Object.assign({}, this.headers), { "x-upsert": String(u.upsert) });
         typeof Blob < "u" && s instanceof Blob ? (l = new FormData(), l.append("cacheControl", u.cacheControl), l.append("", s)) : typeof FormData < "u" && s instanceof FormData ? (l = s, l.append("cacheControl", u.cacheControl)) : (l = s, c["cache-control"] = `max-age=${u.cacheControl}`, c["content-type"] = u.contentType);
-        const h = yield Ye(this.fetch, a.toString(), l, { headers: c });
+        const h = yield tt(this.fetch, a.toString(), l, { headers: c });
         return {
           data: { path: n, fullPath: h.Key },
           error: null
@@ -2729,7 +2772,7 @@ class Dr {
         t != null && t.upsert && (r["x-upsert"] = "true");
         const n = yield M(this.fetch, `${this.url}/object/upload/sign/${s}`, {}, { headers: r }), o = new URL(this.url + n.url), a = o.searchParams.get("token");
         if (!a)
-          throw new ht("No token returned by API");
+          throw new gt("No token returned by API");
         return { data: { signedUrl: o.toString(), path: e, token: a }, error: null };
       } catch (s) {
         if (A(s))
@@ -2849,7 +2892,7 @@ class Dr {
       const r = typeof (t == null ? void 0 : t.transform) < "u" ? "render/image/authenticated" : "object", n = this.transformOptsToQueryString((t == null ? void 0 : t.transform) || {}), o = n ? `?${n}` : "";
       try {
         const a = this._getFinalPath(e);
-        return { data: yield (yield xe(this.fetch, `${this.url}/${r}/${a}${o}`, {
+        return { data: yield (yield Pe(this.fetch, `${this.url}/${r}/${a}${o}`, {
           headers: this.headers,
           noResolveJson: !0
         })).blob(), error: null };
@@ -2868,10 +2911,10 @@ class Dr {
     return $(this, void 0, void 0, function* () {
       const t = this._getFinalPath(e);
       try {
-        const s = yield xe(this.fetch, `${this.url}/object/info/${t}`, {
+        const s = yield Pe(this.fetch, `${this.url}/object/info/${t}`, {
           headers: this.headers
         });
-        return { data: Xe(s), error: null };
+        return { data: et(s), error: null };
       } catch (s) {
         if (A(s))
           return { data: null, error: s };
@@ -2887,11 +2930,11 @@ class Dr {
     return $(this, void 0, void 0, function* () {
       const t = this._getFinalPath(e);
       try {
-        return yield Rr(this.fetch, `${this.url}/object/${t}`, {
+        return yield Ur(this.fetch, `${this.url}/object/${t}`, {
           headers: this.headers
         }), { data: !0, error: null };
       } catch (s) {
-        if (A(s) && s instanceof Qe) {
+        if (A(s) && s instanceof Ze) {
           const r = s.originalError;
           if ([400, 404].includes(r == null ? void 0 : r.status))
             return { data: !1, error: s };
@@ -2926,7 +2969,7 @@ class Dr {
   remove(e) {
     return $(this, void 0, void 0, function* () {
       try {
-        return { data: yield ps(this.fetch, `${this.url}/object/${this.bucketId}`, { prefixes: e }, { headers: this.headers }), error: null };
+        return { data: yield ys(this.fetch, `${this.url}/object/${this.bucketId}`, { prefixes: e }, { headers: this.headers }), error: null };
       } catch (t) {
         if (A(t))
           return { data: null, error: t };
@@ -3001,7 +3044,7 @@ class Dr {
   list(e, t, s) {
     return $(this, void 0, void 0, function* () {
       try {
-        const r = Object.assign(Object.assign(Object.assign({}, Lr), t), { prefix: e || "" });
+        const r = Object.assign(Object.assign(Object.assign({}, Nr), t), { prefix: e || "" });
         return { data: yield M(this.fetch, `${this.url}/object/list/${this.bucketId}`, r, { headers: this.headers }, s), error: null };
       } catch (r) {
         if (A(r))
@@ -3027,8 +3070,8 @@ class Dr {
     return e.width && t.push(`width=${e.width}`), e.height && t.push(`height=${e.height}`), e.resize && t.push(`resize=${e.resize}`), e.format && t.push(`format=${e.format}`), e.quality && t.push(`quality=${e.quality}`), t.join("&");
   }
 }
-const Ur = "2.10.4", Nr = { "X-Client-Info": `storage-js/${Ur}` };
-var se = function(i, e, t, s) {
+const Br = "2.10.4", Mr = { "X-Client-Info": `storage-js/${Br}` };
+var re = function(i, e, t, s) {
   function r(n) {
     return n instanceof t ? n : new t(function(o) {
       o(n);
@@ -3055,18 +3098,18 @@ var se = function(i, e, t, s) {
     u((s = s.apply(i, e || [])).next());
   });
 };
-class Fr {
+class qr {
   constructor(e, t = {}, s, r) {
     const n = new URL(e);
-    r != null && r.useNewHostname && /supabase\.(co|in|red)$/.test(n.hostname) && !n.hostname.includes("storage.supabase.") && (n.hostname = n.hostname.replace("supabase.", "storage.supabase.")), this.url = n.href, this.headers = Object.assign(Object.assign({}, Nr), t), this.fetch = fs(s);
+    r != null && r.useNewHostname && /supabase\.(co|in|red)$/.test(n.hostname) && !n.hostname.includes("storage.supabase.") && (n.hostname = n.hostname.replace("supabase.", "storage.supabase.")), this.url = n.href, this.headers = Object.assign(Object.assign({}, Mr), t), this.fetch = vs(s);
   }
   /**
    * Retrieves the details of all Storage buckets within an existing project.
    */
   listBuckets() {
-    return se(this, void 0, void 0, function* () {
+    return re(this, void 0, void 0, function* () {
       try {
-        return { data: yield xe(this.fetch, `${this.url}/bucket`, { headers: this.headers }), error: null };
+        return { data: yield Pe(this.fetch, `${this.url}/bucket`, { headers: this.headers }), error: null };
       } catch (e) {
         if (A(e))
           return { data: null, error: e };
@@ -3080,9 +3123,9 @@ class Fr {
    * @param id The unique identifier of the bucket you would like to retrieve.
    */
   getBucket(e) {
-    return se(this, void 0, void 0, function* () {
+    return re(this, void 0, void 0, function* () {
       try {
-        return { data: yield xe(this.fetch, `${this.url}/bucket/${e}`, { headers: this.headers }), error: null };
+        return { data: yield Pe(this.fetch, `${this.url}/bucket/${e}`, { headers: this.headers }), error: null };
       } catch (t) {
         if (A(t))
           return { data: null, error: t };
@@ -3108,7 +3151,7 @@ class Fr {
   createBucket(e, t = {
     public: !1
   }) {
-    return se(this, void 0, void 0, function* () {
+    return re(this, void 0, void 0, function* () {
       try {
         return { data: yield M(this.fetch, `${this.url}/bucket`, {
           id: e,
@@ -3138,9 +3181,9 @@ class Fr {
    * Each mime type specified can be a wildcard, e.g. image/*, or a specific mime type, e.g. image/png.
    */
   updateBucket(e, t) {
-    return se(this, void 0, void 0, function* () {
+    return re(this, void 0, void 0, function* () {
       try {
-        return { data: yield Ye(this.fetch, `${this.url}/bucket/${e}`, {
+        return { data: yield tt(this.fetch, `${this.url}/bucket/${e}`, {
           id: e,
           name: e,
           public: t.public,
@@ -3160,7 +3203,7 @@ class Fr {
    * @param id The unique identifier of the bucket you would like to empty.
    */
   emptyBucket(e) {
-    return se(this, void 0, void 0, function* () {
+    return re(this, void 0, void 0, function* () {
       try {
         return { data: yield M(this.fetch, `${this.url}/bucket/${e}/empty`, {}, { headers: this.headers }), error: null };
       } catch (t) {
@@ -3177,9 +3220,9 @@ class Fr {
    * @param id The unique identifier of the bucket you would like to delete.
    */
   deleteBucket(e) {
-    return se(this, void 0, void 0, function* () {
+    return re(this, void 0, void 0, function* () {
       try {
-        return { data: yield ps(this.fetch, `${this.url}/bucket/${e}`, {}, { headers: this.headers }), error: null };
+        return { data: yield ys(this.fetch, `${this.url}/bucket/${e}`, {}, { headers: this.headers }), error: null };
       } catch (t) {
         if (A(t))
           return { data: null, error: t };
@@ -3188,7 +3231,7 @@ class Fr {
     });
   }
 }
-class Br extends Fr {
+class zr extends qr {
   constructor(e, t = {}, s, r) {
     super(e, t, s, r);
   }
@@ -3198,23 +3241,23 @@ class Br extends Fr {
    * @param id The bucket id to operate on.
    */
   from(e) {
-    return new Dr(this.url, this.headers, e, this.fetch);
+    return new Fr(this.url, this.headers, e, this.fetch);
   }
 }
-const Mr = "2.53.0";
-let pe = "";
-typeof Deno < "u" ? pe = "deno" : typeof document < "u" ? pe = "web" : typeof navigator < "u" && navigator.product === "ReactNative" ? pe = "react-native" : pe = "node";
-const qr = { "X-Client-Info": `supabase-js-${pe}/${Mr}` }, zr = {
-  headers: qr
-}, Vr = {
+const Hr = "2.53.0";
+let ge = "";
+typeof Deno < "u" ? ge = "deno" : typeof document < "u" ? ge = "web" : typeof navigator < "u" && navigator.product === "ReactNative" ? ge = "react-native" : ge = "node";
+const Vr = { "X-Client-Info": `supabase-js-${ge}/${Hr}` }, Wr = {
+  headers: Vr
+}, Kr = {
   schema: "public"
-}, Hr = {
+}, Jr = {
   autoRefreshToken: !0,
   persistSession: !0,
   detectSessionInUrl: !0,
   flowType: "implicit"
-}, Wr = {};
-var Kr = function(i, e, t, s) {
+}, Gr = {};
+var Qr = function(i, e, t, s) {
   function r(n) {
     return n instanceof t ? n : new t(function(o) {
       o(n);
@@ -3241,19 +3284,19 @@ var Kr = function(i, e, t, s) {
     u((s = s.apply(i, e || [])).next());
   });
 };
-const Jr = (i) => {
+const Xr = (i) => {
   let e;
-  return i ? e = i : typeof fetch > "u" ? e = Yt : e = fetch, (...t) => e(...t);
-}, Gr = () => typeof Headers > "u" ? Zt : Headers, Qr = (i, e, t) => {
-  const s = Jr(t), r = Gr();
-  return (n, o) => Kr(void 0, void 0, void 0, function* () {
+  return i ? e = i : typeof fetch > "u" ? e = ss : e = fetch, (...t) => e(...t);
+}, Yr = () => typeof Headers > "u" ? rs : Headers, Zr = (i, e, t) => {
+  const s = Xr(t), r = Yr();
+  return (n, o) => Qr(void 0, void 0, void 0, function* () {
     var a;
     const l = (a = yield e()) !== null && a !== void 0 ? a : i;
     let u = new r(o == null ? void 0 : o.headers);
     return u.has("apikey") || u.set("apikey", i), u.has("Authorization") || u.set("Authorization", `Bearer ${l}`), s(n, Object.assign(Object.assign({}, o), { headers: u }));
   });
 };
-var Xr = function(i, e, t, s) {
+var en = function(i, e, t, s) {
   function r(n) {
     return n instanceof t ? n : new t(function(o) {
       o(n);
@@ -3280,10 +3323,10 @@ var Xr = function(i, e, t, s) {
     u((s = s.apply(i, e || [])).next());
   });
 };
-function Yr(i) {
+function tn(i) {
   return i.endsWith("/") ? i : i + "/";
 }
-function Zr(i, e) {
+function sn(i, e) {
   var t, s;
   const { db: r, auth: n, realtime: o, global: a } = i, { db: l, auth: u, realtime: c, global: h } = e, d = {
     db: Object.assign(Object.assign({}, l), r),
@@ -3291,63 +3334,63 @@ function Zr(i, e) {
     realtime: Object.assign(Object.assign({}, c), o),
     storage: {},
     global: Object.assign(Object.assign(Object.assign({}, h), a), { headers: Object.assign(Object.assign({}, (t = h == null ? void 0 : h.headers) !== null && t !== void 0 ? t : {}), (s = a == null ? void 0 : a.headers) !== null && s !== void 0 ? s : {}) }),
-    accessToken: () => Xr(this, void 0, void 0, function* () {
+    accessToken: () => en(this, void 0, void 0, function* () {
       return "";
     })
   };
   return i.accessToken ? d.accessToken = i.accessToken : delete d.accessToken, d;
 }
-const gs = "2.71.1", ae = 30 * 1e3, Ze = 3, qe = Ze * ae, en = "http://localhost:9999", tn = "supabase.auth.token", sn = { "X-Client-Info": `gotrue-js/${gs}` }, et = "X-Supabase-Api-Version", ms = {
+const bs = "2.71.1", le = 30 * 1e3, st = 3, He = st * le, rn = "http://localhost:9999", nn = "supabase.auth.token", on = { "X-Client-Info": `gotrue-js/${bs}` }, rt = "X-Supabase-Api-Version", _s = {
   "2024-01-01": {
     timestamp: Date.parse("2024-01-01T00:00:00.0Z"),
     name: "2024-01-01"
   }
-}, rn = /^([a-z0-9_-]{4})*($|[a-z0-9_-]{3}$|[a-z0-9_-]{2}$)$/i, nn = 10 * 60 * 1e3;
-class dt extends Error {
+}, an = /^([a-z0-9_-]{4})*($|[a-z0-9_-]{3}$|[a-z0-9_-]{2}$)$/i, ln = 10 * 60 * 1e3;
+class mt extends Error {
   constructor(e, t, s) {
     super(e), this.__isAuthError = !0, this.name = "AuthError", this.status = t, this.code = s;
   }
 }
-function b(i) {
+function _(i) {
   return typeof i == "object" && i !== null && "__isAuthError" in i;
 }
-class on extends dt {
+class cn extends mt {
   constructor(e, t, s) {
     super(e, t, s), this.name = "AuthApiError", this.status = t, this.code = s;
   }
 }
-function an(i) {
-  return b(i) && i.name === "AuthApiError";
+function un(i) {
+  return _(i) && i.name === "AuthApiError";
 }
-class vs extends dt {
+class ws extends mt {
   constructor(e, t) {
     super(e), this.name = "AuthUnknownError", this.originalError = t;
   }
 }
-class W extends dt {
+class W extends mt {
   constructor(e, t, s, r) {
     super(e, s, r), this.name = t, this.status = s;
   }
 }
-class V extends W {
+class H extends W {
   constructor() {
     super("Auth session missing!", "AuthSessionMissingError", 400, void 0);
   }
 }
-function ln(i) {
-  return b(i) && i.name === "AuthSessionMissingError";
+function hn(i) {
+  return _(i) && i.name === "AuthSessionMissingError";
 }
-class Ce extends W {
+class Ie extends W {
   constructor() {
     super("Auth session or user missing", "AuthInvalidTokenResponseError", 500, void 0);
   }
 }
-class Ie extends W {
+class Te extends W {
   constructor(e) {
     super(e, "AuthInvalidCredentialsError", 400, void 0);
   }
 }
-class Te extends W {
+class xe extends W {
   constructor(e, t = null) {
     super(e, "AuthImplicitGrantRedirectError", 500, void 0), this.details = null, this.details = t;
   }
@@ -3360,10 +3403,10 @@ class Te extends W {
     };
   }
 }
-function cn(i) {
-  return b(i) && i.name === "AuthImplicitGrantRedirectError";
+function dn(i) {
+  return _(i) && i.name === "AuthImplicitGrantRedirectError";
 }
-class Ft extends W {
+class zt extends W {
   constructor(e, t = null) {
     super(e, "AuthPKCEGrantCodeExchangeError", 500, void 0), this.details = null, this.details = t;
   }
@@ -3376,49 +3419,49 @@ class Ft extends W {
     };
   }
 }
-class tt extends W {
+class nt extends W {
   constructor(e, t) {
     super(e, "AuthRetryableFetchError", t, void 0);
   }
 }
-function ze(i) {
-  return b(i) && i.name === "AuthRetryableFetchError";
+function Ve(i) {
+  return _(i) && i.name === "AuthRetryableFetchError";
 }
-class Bt extends W {
+class Ht extends W {
   constructor(e, t, s) {
     super(e, "AuthWeakPasswordError", t, "weak_password"), this.reasons = s;
   }
 }
-class st extends W {
+class it extends W {
   constructor(e) {
     super(e, "AuthInvalidJwtError", 400, "invalid_jwt");
   }
 }
-const Pe = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_".split(""), Mt = ` 	
-\r=`.split(""), un = (() => {
+const Ae = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_".split(""), Vt = ` 	
+\r=`.split(""), fn = (() => {
   const i = new Array(128);
   for (let e = 0; e < i.length; e += 1)
     i[e] = -1;
-  for (let e = 0; e < Mt.length; e += 1)
-    i[Mt[e].charCodeAt(0)] = -2;
-  for (let e = 0; e < Pe.length; e += 1)
-    i[Pe[e].charCodeAt(0)] = e;
+  for (let e = 0; e < Vt.length; e += 1)
+    i[Vt[e].charCodeAt(0)] = -2;
+  for (let e = 0; e < Ae.length; e += 1)
+    i[Ae[e].charCodeAt(0)] = e;
   return i;
 })();
-function qt(i, e, t) {
+function Wt(i, e, t) {
   if (i !== null)
     for (e.queue = e.queue << 8 | i, e.queuedBits += 8; e.queuedBits >= 6; ) {
       const s = e.queue >> e.queuedBits - 6 & 63;
-      t(Pe[s]), e.queuedBits -= 6;
+      t(Ae[s]), e.queuedBits -= 6;
     }
   else if (e.queuedBits > 0)
     for (e.queue = e.queue << 6 - e.queuedBits, e.queuedBits = 6; e.queuedBits >= 6; ) {
       const s = e.queue >> e.queuedBits - 6 & 63;
-      t(Pe[s]), e.queuedBits -= 6;
+      t(Ae[s]), e.queuedBits -= 6;
     }
 }
-function ys(i, e, t) {
-  const s = un[i];
+function Ss(i, e, t) {
+  const s = fn[i];
   if (s > -1)
     for (e.queue = e.queue << 6 | s, e.queuedBits += 6; e.queuedBits >= 8; )
       t(e.queue >> e.queuedBits - 8 & 255), e.queuedBits -= 8;
@@ -3428,20 +3471,20 @@ function ys(i, e, t) {
     throw new Error(`Invalid Base64-URL character "${String.fromCharCode(i)}"`);
   }
 }
-function zt(i) {
+function Kt(i) {
   const e = [], t = (o) => {
     e.push(String.fromCodePoint(o));
   }, s = {
     utf8seq: 0,
     codepoint: 0
   }, r = { queue: 0, queuedBits: 0 }, n = (o) => {
-    fn(o, s, t);
+    mn(o, s, t);
   };
   for (let o = 0; o < i.length; o += 1)
-    ys(i.charCodeAt(o), r, n);
+    Ss(i.charCodeAt(o), r, n);
   return e.join("");
 }
-function hn(i, e) {
+function pn(i, e) {
   if (i <= 127) {
     e(i);
     return;
@@ -3457,17 +3500,17 @@ function hn(i, e) {
   }
   throw new Error(`Unrecognized Unicode codepoint: ${i.toString(16)}`);
 }
-function dn(i, e) {
+function gn(i, e) {
   for (let t = 0; t < i.length; t += 1) {
     let s = i.charCodeAt(t);
     if (s > 55295 && s <= 56319) {
       const r = (s - 55296) * 1024 & 65535;
       s = (i.charCodeAt(t + 1) - 56320 & 65535 | r) + 65536, t += 1;
     }
-    hn(s, e);
+    pn(s, e);
   }
 }
-function fn(i, e, t) {
+function mn(i, e, t) {
   if (e.utf8seq === 0) {
     if (i <= 127) {
       t(i);
@@ -3493,28 +3536,28 @@ function fn(i, e, t) {
     e.codepoint = e.codepoint << 6 | i & 63, e.utf8seq -= 1, e.utf8seq === 0 && t(e.codepoint);
   }
 }
-function pn(i) {
+function vn(i) {
   const e = [], t = { queue: 0, queuedBits: 0 }, s = (r) => {
     e.push(r);
   };
   for (let r = 0; r < i.length; r += 1)
-    ys(i.charCodeAt(r), t, s);
+    Ss(i.charCodeAt(r), t, s);
   return new Uint8Array(e);
 }
-function gn(i) {
+function yn(i) {
   const e = [];
-  return dn(i, (t) => e.push(t)), new Uint8Array(e);
+  return gn(i, (t) => e.push(t)), new Uint8Array(e);
 }
-function mn(i) {
+function bn(i) {
   const e = [], t = { queue: 0, queuedBits: 0 }, s = (r) => {
     e.push(r);
   };
-  return i.forEach((r) => qt(r, t, s)), qt(null, t, s), e.join("");
+  return i.forEach((r) => Wt(r, t, s)), Wt(null, t, s), e.join("");
 }
-function vn(i) {
+function _n(i) {
   return Math.round(Date.now() / 1e3) + i;
 }
-function yn() {
+function wn() {
   return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function(i) {
     const e = Math.random() * 16 | 0;
     return (i == "x" ? e : e & 3 | 8).toString(16);
@@ -3523,7 +3566,7 @@ function yn() {
 const D = () => typeof window < "u" && typeof document < "u", K = {
   tested: !1,
   writable: !1
-}, bs = () => {
+}, ks = () => {
   if (!D())
     return !1;
   try {
@@ -3542,7 +3585,7 @@ const D = () => typeof window < "u" && typeof document < "u", K = {
   }
   return K.writable;
 };
-function bn(i) {
+function Sn(i) {
   const e = {}, t = new URL(i);
   if (t.hash && t.hash[0] === "#")
     try {
@@ -3555,10 +3598,10 @@ function bn(i) {
     e[r] = s;
   }), e;
 }
-const _s = (i) => {
+const Es = (i) => {
   let e;
-  return i ? e = i : typeof fetch > "u" ? e = (...t) => Promise.resolve().then(() => he).then(({ default: s }) => s(...t)) : e = fetch, (...t) => e(...t);
-}, _n = (i) => typeof i == "object" && i !== null && "status" in i && "ok" in i && "json" in i && typeof i.json == "function", le = async (i, e, t) => {
+  return i ? e = i : typeof fetch > "u" ? e = (...t) => Promise.resolve().then(() => de).then(({ default: s }) => s(...t)) : e = fetch, (...t) => e(...t);
+}, kn = (i) => typeof i == "object" && i !== null && "status" in i && "ok" in i && "json" in i && typeof i.json == "function", ce = async (i, e, t) => {
   await i.setItem(e, JSON.stringify(t));
 }, J = async (i, e) => {
   const t = await i.getItem(e);
@@ -3572,38 +3615,38 @@ const _s = (i) => {
 }, z = async (i, e) => {
   await i.removeItem(e);
 };
-class Ue {
+class Fe {
   constructor() {
-    this.promise = new Ue.promiseConstructor((e, t) => {
+    this.promise = new Fe.promiseConstructor((e, t) => {
       this.resolve = e, this.reject = t;
     });
   }
 }
-Ue.promiseConstructor = Promise;
-function Ve(i) {
+Fe.promiseConstructor = Promise;
+function We(i) {
   const e = i.split(".");
   if (e.length !== 3)
-    throw new st("Invalid JWT structure");
+    throw new it("Invalid JWT structure");
   for (let s = 0; s < e.length; s++)
-    if (!rn.test(e[s]))
-      throw new st("JWT not in base64url format");
+    if (!an.test(e[s]))
+      throw new it("JWT not in base64url format");
   return {
     // using base64url lib
-    header: JSON.parse(zt(e[0])),
-    payload: JSON.parse(zt(e[1])),
-    signature: pn(e[2]),
+    header: JSON.parse(Kt(e[0])),
+    payload: JSON.parse(Kt(e[1])),
+    signature: vn(e[2]),
     raw: {
       header: e[0],
       payload: e[1]
     }
   };
 }
-async function wn(i) {
+async function En(i) {
   return await new Promise((e) => {
     setTimeout(() => e(null), i);
   });
 }
-function Sn(i, e) {
+function Cn(i, e) {
   return new Promise((s, r) => {
     (async () => {
       for (let n = 0; n < 1 / 0; n++)
@@ -3622,10 +3665,10 @@ function Sn(i, e) {
     })();
   });
 }
-function kn(i) {
+function In(i) {
   return ("0" + i.toString(16)).substr(-2);
 }
-function En() {
+function Tn() {
   const e = new Uint32Array(56);
   if (typeof crypto > "u") {
     const t = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~", s = t.length;
@@ -3634,29 +3677,29 @@ function En() {
       r += t.charAt(Math.floor(Math.random() * s));
     return r;
   }
-  return crypto.getRandomValues(e), Array.from(e, kn).join("");
+  return crypto.getRandomValues(e), Array.from(e, In).join("");
 }
-async function Cn(i) {
+async function xn(i) {
   const t = new TextEncoder().encode(i), s = await crypto.subtle.digest("SHA-256", t), r = new Uint8Array(s);
   return Array.from(r).map((n) => String.fromCharCode(n)).join("");
 }
-async function In(i) {
+async function Pn(i) {
   if (!(typeof crypto < "u" && typeof crypto.subtle < "u" && typeof TextEncoder < "u"))
     return console.warn("WebCrypto API is not supported. Code challenge method will default to use plain instead of sha256."), i;
-  const t = await Cn(i);
+  const t = await xn(i);
   return btoa(t).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 }
-async function re(i, e, t = !1) {
-  const s = En();
+async function ne(i, e, t = !1) {
+  const s = Tn();
   let r = s;
-  t && (r += "/PASSWORD_RECOVERY"), await le(i, `${e}-code-verifier`, r);
-  const n = await In(s);
+  t && (r += "/PASSWORD_RECOVERY"), await ce(i, `${e}-code-verifier`, r);
+  const n = await Pn(s);
   return [n, s === n ? "plain" : "s256"];
 }
-const Tn = /^2[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|1[0-9]|2[0-9]|3[0-1])$/i;
-function xn(i) {
-  const e = i.headers.get(et);
-  if (!e || !e.match(Tn))
+const An = /^2[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|1[0-9]|2[0-9]|3[0-1])$/i;
+function On(i) {
+  const e = i.headers.get(rt);
+  if (!e || !e.match(An))
     return null;
   try {
     return /* @__PURE__ */ new Date(`${e}T00:00:00.0Z`);
@@ -3664,14 +3707,14 @@ function xn(i) {
     return null;
   }
 }
-function Pn(i) {
+function jn(i) {
   if (!i)
     throw new Error("Missing exp claim");
   const e = Math.floor(Date.now() / 1e3);
   if (i <= e)
     throw new Error("JWT has expired");
 }
-function An(i) {
+function $n(i) {
   switch (i) {
     case "RS256":
       return {
@@ -3688,12 +3731,12 @@ function An(i) {
       throw new Error("Invalid alg claim");
   }
 }
-const On = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
-function ne(i) {
-  if (!On.test(i))
+const Rn = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+function ie(i) {
+  if (!Rn.test(i))
     throw new Error("@supabase/auth-js: Expected parameter to be UUID but is not");
 }
-function He() {
+function Ke() {
   const i = {};
   return new Proxy(i, {
     get: (e, t) => {
@@ -3714,10 +3757,10 @@ function He() {
     }
   });
 }
-function Vt(i) {
+function Jt(i) {
   return JSON.parse(JSON.stringify(i));
 }
-var jn = function(i, e) {
+var Ln = function(i, e) {
   var t = {};
   for (var s in i) Object.prototype.hasOwnProperty.call(i, s) && e.indexOf(s) < 0 && (t[s] = i[s]);
   if (i != null && typeof Object.getOwnPropertySymbols == "function")
@@ -3725,82 +3768,82 @@ var jn = function(i, e) {
       e.indexOf(s[r]) < 0 && Object.prototype.propertyIsEnumerable.call(i, s[r]) && (t[s[r]] = i[s[r]]);
   return t;
 };
-const G = (i) => i.msg || i.message || i.error_description || i.error || JSON.stringify(i), $n = [502, 503, 504];
-async function Ht(i) {
+const G = (i) => i.msg || i.message || i.error_description || i.error || JSON.stringify(i), Dn = [502, 503, 504];
+async function Gt(i) {
   var e;
-  if (!_n(i))
-    throw new tt(G(i), 0);
-  if ($n.includes(i.status))
-    throw new tt(G(i), i.status);
+  if (!kn(i))
+    throw new nt(G(i), 0);
+  if (Dn.includes(i.status))
+    throw new nt(G(i), i.status);
   let t;
   try {
     t = await i.json();
   } catch (n) {
-    throw new vs(G(n), n);
+    throw new ws(G(n), n);
   }
   let s;
-  const r = xn(i);
-  if (r && r.getTime() >= ms["2024-01-01"].timestamp && typeof t == "object" && t && typeof t.code == "string" ? s = t.code : typeof t == "object" && t && typeof t.error_code == "string" && (s = t.error_code), s) {
+  const r = On(i);
+  if (r && r.getTime() >= _s["2024-01-01"].timestamp && typeof t == "object" && t && typeof t.code == "string" ? s = t.code : typeof t == "object" && t && typeof t.error_code == "string" && (s = t.error_code), s) {
     if (s === "weak_password")
-      throw new Bt(G(t), i.status, ((e = t.weak_password) === null || e === void 0 ? void 0 : e.reasons) || []);
+      throw new Ht(G(t), i.status, ((e = t.weak_password) === null || e === void 0 ? void 0 : e.reasons) || []);
     if (s === "session_not_found")
-      throw new V();
+      throw new H();
   } else if (typeof t == "object" && t && typeof t.weak_password == "object" && t.weak_password && Array.isArray(t.weak_password.reasons) && t.weak_password.reasons.length && t.weak_password.reasons.reduce((n, o) => n && typeof o == "string", !0))
-    throw new Bt(G(t), i.status, t.weak_password.reasons);
-  throw new on(G(t), i.status || 500, s);
+    throw new Ht(G(t), i.status, t.weak_password.reasons);
+  throw new cn(G(t), i.status || 500, s);
 }
-const Rn = (i, e, t, s) => {
+const Un = (i, e, t, s) => {
   const r = { method: i, headers: (e == null ? void 0 : e.headers) || {} };
   return i === "GET" ? r : (r.headers = Object.assign({ "Content-Type": "application/json;charset=UTF-8" }, e == null ? void 0 : e.headers), r.body = JSON.stringify(s), Object.assign(Object.assign({}, r), t));
 };
-async function w(i, e, t, s) {
+async function S(i, e, t, s) {
   var r;
   const n = Object.assign({}, s == null ? void 0 : s.headers);
-  n[et] || (n[et] = ms["2024-01-01"].name), s != null && s.jwt && (n.Authorization = `Bearer ${s.jwt}`);
+  n[rt] || (n[rt] = _s["2024-01-01"].name), s != null && s.jwt && (n.Authorization = `Bearer ${s.jwt}`);
   const o = (r = s == null ? void 0 : s.query) !== null && r !== void 0 ? r : {};
   s != null && s.redirectTo && (o.redirect_to = s.redirectTo);
-  const a = Object.keys(o).length ? "?" + new URLSearchParams(o).toString() : "", l = await Ln(i, e, t + a, {
+  const a = Object.keys(o).length ? "?" + new URLSearchParams(o).toString() : "", l = await Nn(i, e, t + a, {
     headers: n,
     noResolveJson: s == null ? void 0 : s.noResolveJson
   }, {}, s == null ? void 0 : s.body);
   return s != null && s.xform ? s == null ? void 0 : s.xform(l) : { data: Object.assign({}, l), error: null };
 }
-async function Ln(i, e, t, s, r, n) {
-  const o = Rn(e, s, r, n);
+async function Nn(i, e, t, s, r, n) {
+  const o = Un(e, s, r, n);
   let a;
   try {
     a = await i(t, Object.assign({}, o));
   } catch (l) {
-    throw console.error(l), new tt(G(l), 0);
+    throw console.error(l), new nt(G(l), 0);
   }
-  if (a.ok || await Ht(a), s != null && s.noResolveJson)
+  if (a.ok || await Gt(a), s != null && s.noResolveJson)
     return a;
   try {
     return await a.json();
   } catch (l) {
-    await Ht(l);
+    await Gt(l);
   }
 }
 function N(i) {
   var e;
   let t = null;
-  Fn(i) && (t = Object.assign({}, i), i.expires_at || (t.expires_at = vn(i.expires_in)));
+  qn(i) && (t = Object.assign({}, i), i.expires_at || (t.expires_at = _n(i.expires_in)));
   const s = (e = i.user) !== null && e !== void 0 ? e : i;
   return { data: { session: t, user: s }, error: null };
 }
-function Wt(i) {
+function Qt(i) {
   const e = N(i);
   return !e.error && i.weak_password && typeof i.weak_password == "object" && Array.isArray(i.weak_password.reasons) && i.weak_password.reasons.length && i.weak_password.message && typeof i.weak_password.message == "string" && i.weak_password.reasons.reduce((t, s) => t && typeof s == "string", !0) && (e.data.weak_password = i.weak_password), e;
 }
-function H(i) {
+function V(i) {
   var e;
   return { data: { user: (e = i.user) !== null && e !== void 0 ? e : i }, error: null };
 }
-function Dn(i) {
+function Fn(i) {
   return { data: i, error: null };
 }
-function Un(i) {
-  const { action_link: e, email_otp: t, hashed_token: s, redirect_to: r, verification_type: n } = i, o = jn(i, ["action_link", "email_otp", "hashed_token", "redirect_to", "verification_type"]), a = {
+function Bn(i) {
+  const { action_link: e, email_otp: t, hashed_token: s, redirect_to: r, verification_type: n } = i, o = Ln(i, ["action_link", "email_otp", "hashed_token", "redirect_to", "verification_type"]), a = {
     action_link: e,
     email_otp: t,
     hashed_token: s,
@@ -3815,14 +3858,14 @@ function Un(i) {
     error: null
   };
 }
-function Nn(i) {
+function Mn(i) {
   return i;
 }
-function Fn(i) {
+function qn(i) {
   return i.access_token && i.refresh_token && i.expires_in;
 }
-const We = ["global", "local", "others"];
-var Bn = function(i, e) {
+const Je = ["global", "local", "others"];
+var zn = function(i, e) {
   var t = {};
   for (var s in i) Object.prototype.hasOwnProperty.call(i, s) && e.indexOf(s) < 0 && (t[s] = i[s]);
   if (i != null && typeof Object.getOwnPropertySymbols == "function")
@@ -3830,9 +3873,9 @@ var Bn = function(i, e) {
       e.indexOf(s[r]) < 0 && Object.prototype.propertyIsEnumerable.call(i, s[r]) && (t[s[r]] = i[s[r]]);
   return t;
 };
-class Mn {
+class Hn {
   constructor({ url: e = "", headers: t = {}, fetch: s }) {
-    this.url = e, this.headers = t, this.fetch = _s(s), this.mfa = {
+    this.url = e, this.headers = t, this.fetch = Es(s), this.mfa = {
       listFactors: this._listFactors.bind(this),
       deleteFactor: this._deleteFactor.bind(this)
     };
@@ -3842,17 +3885,17 @@ class Mn {
    * @param jwt A valid, logged-in JWT.
    * @param scope The logout sope.
    */
-  async signOut(e, t = We[0]) {
-    if (We.indexOf(t) < 0)
-      throw new Error(`@supabase/auth-js: Parameter scope must be one of ${We.join(", ")}`);
+  async signOut(e, t = Je[0]) {
+    if (Je.indexOf(t) < 0)
+      throw new Error(`@supabase/auth-js: Parameter scope must be one of ${Je.join(", ")}`);
     try {
-      return await w(this.fetch, "POST", `${this.url}/logout?scope=${t}`, {
+      return await S(this.fetch, "POST", `${this.url}/logout?scope=${t}`, {
         headers: this.headers,
         jwt: e,
         noResolveJson: !0
       }), { data: null, error: null };
     } catch (s) {
-      if (b(s))
+      if (_(s))
         return { data: null, error: s };
       throw s;
     }
@@ -3864,14 +3907,14 @@ class Mn {
    */
   async inviteUserByEmail(e, t = {}) {
     try {
-      return await w(this.fetch, "POST", `${this.url}/invite`, {
+      return await S(this.fetch, "POST", `${this.url}/invite`, {
         body: { email: e, data: t.data },
         headers: this.headers,
         redirectTo: t.redirectTo,
-        xform: H
+        xform: V
       });
     } catch (s) {
-      if (b(s))
+      if (_(s))
         return { data: { user: null }, error: s };
       throw s;
     }
@@ -3885,15 +3928,15 @@ class Mn {
    */
   async generateLink(e) {
     try {
-      const { options: t } = e, s = Bn(e, ["options"]), r = Object.assign(Object.assign({}, s), t);
-      return "newEmail" in s && (r.new_email = s == null ? void 0 : s.newEmail, delete r.newEmail), await w(this.fetch, "POST", `${this.url}/admin/generate_link`, {
+      const { options: t } = e, s = zn(e, ["options"]), r = Object.assign(Object.assign({}, s), t);
+      return "newEmail" in s && (r.new_email = s == null ? void 0 : s.newEmail, delete r.newEmail), await S(this.fetch, "POST", `${this.url}/admin/generate_link`, {
         body: r,
         headers: this.headers,
-        xform: Un,
+        xform: Bn,
         redirectTo: t == null ? void 0 : t.redirectTo
       });
     } catch (t) {
-      if (b(t))
+      if (_(t))
         return {
           data: {
             properties: null,
@@ -3911,13 +3954,13 @@ class Mn {
    */
   async createUser(e) {
     try {
-      return await w(this.fetch, "POST", `${this.url}/admin/users`, {
+      return await S(this.fetch, "POST", `${this.url}/admin/users`, {
         body: e,
         headers: this.headers,
-        xform: H
+        xform: V
       });
     } catch (t) {
-      if (b(t))
+      if (_(t))
         return { data: { user: null }, error: t };
       throw t;
     }
@@ -3931,24 +3974,24 @@ class Mn {
   async listUsers(e) {
     var t, s, r, n, o, a, l;
     try {
-      const u = { nextPage: null, lastPage: 0, total: 0 }, c = await w(this.fetch, "GET", `${this.url}/admin/users`, {
+      const u = { nextPage: null, lastPage: 0, total: 0 }, c = await S(this.fetch, "GET", `${this.url}/admin/users`, {
         headers: this.headers,
         noResolveJson: !0,
         query: {
           page: (s = (t = e == null ? void 0 : e.page) === null || t === void 0 ? void 0 : t.toString()) !== null && s !== void 0 ? s : "",
           per_page: (n = (r = e == null ? void 0 : e.perPage) === null || r === void 0 ? void 0 : r.toString()) !== null && n !== void 0 ? n : ""
         },
-        xform: Nn
+        xform: Mn
       });
       if (c.error)
         throw c.error;
       const h = await c.json(), d = (o = c.headers.get("x-total-count")) !== null && o !== void 0 ? o : 0, f = (l = (a = c.headers.get("link")) === null || a === void 0 ? void 0 : a.split(",")) !== null && l !== void 0 ? l : [];
       return f.length > 0 && (f.forEach((p) => {
-        const v = parseInt(p.split(";")[0].split("=")[1].substring(0, 1)), m = JSON.parse(p.split(";")[1].split("=")[1]);
-        u[`${m}Page`] = v;
+        const y = parseInt(p.split(";")[0].split("=")[1].substring(0, 1)), g = JSON.parse(p.split(";")[1].split("=")[1]);
+        u[`${g}Page`] = y;
       }), u.total = parseInt(d)), { data: Object.assign(Object.assign({}, h), u), error: null };
     } catch (u) {
-      if (b(u))
+      if (_(u))
         return { data: { users: [] }, error: u };
       throw u;
     }
@@ -3961,14 +4004,14 @@ class Mn {
    * This function should only be called on a server. Never expose your `service_role` key in the browser.
    */
   async getUserById(e) {
-    ne(e);
+    ie(e);
     try {
-      return await w(this.fetch, "GET", `${this.url}/admin/users/${e}`, {
+      return await S(this.fetch, "GET", `${this.url}/admin/users/${e}`, {
         headers: this.headers,
-        xform: H
+        xform: V
       });
     } catch (t) {
-      if (b(t))
+      if (_(t))
         return { data: { user: null }, error: t };
       throw t;
     }
@@ -3981,15 +4024,15 @@ class Mn {
    * This function should only be called on a server. Never expose your `service_role` key in the browser.
    */
   async updateUserById(e, t) {
-    ne(e);
+    ie(e);
     try {
-      return await w(this.fetch, "PUT", `${this.url}/admin/users/${e}`, {
+      return await S(this.fetch, "PUT", `${this.url}/admin/users/${e}`, {
         body: t,
         headers: this.headers,
-        xform: H
+        xform: V
       });
     } catch (s) {
-      if (b(s))
+      if (_(s))
         return { data: { user: null }, error: s };
       throw s;
     }
@@ -4004,49 +4047,49 @@ class Mn {
    * This function should only be called on a server. Never expose your `service_role` key in the browser.
    */
   async deleteUser(e, t = !1) {
-    ne(e);
+    ie(e);
     try {
-      return await w(this.fetch, "DELETE", `${this.url}/admin/users/${e}`, {
+      return await S(this.fetch, "DELETE", `${this.url}/admin/users/${e}`, {
         headers: this.headers,
         body: {
           should_soft_delete: t
         },
-        xform: H
+        xform: V
       });
     } catch (s) {
-      if (b(s))
+      if (_(s))
         return { data: { user: null }, error: s };
       throw s;
     }
   }
   async _listFactors(e) {
-    ne(e.userId);
+    ie(e.userId);
     try {
-      const { data: t, error: s } = await w(this.fetch, "GET", `${this.url}/admin/users/${e.userId}/factors`, {
+      const { data: t, error: s } = await S(this.fetch, "GET", `${this.url}/admin/users/${e.userId}/factors`, {
         headers: this.headers,
         xform: (r) => ({ data: { factors: r }, error: null })
       });
       return { data: t, error: s };
     } catch (t) {
-      if (b(t))
+      if (_(t))
         return { data: null, error: t };
       throw t;
     }
   }
   async _deleteFactor(e) {
-    ne(e.userId), ne(e.id);
+    ie(e.userId), ie(e.id);
     try {
-      return { data: await w(this.fetch, "DELETE", `${this.url}/admin/users/${e.userId}/factors/${e.id}`, {
+      return { data: await S(this.fetch, "DELETE", `${this.url}/admin/users/${e.userId}/factors/${e.id}`, {
         headers: this.headers
       }), error: null };
     } catch (t) {
-      if (b(t))
+      if (_(t))
         return { data: null, error: t };
       throw t;
     }
   }
 }
-function Kt(i = {}) {
+function Xt(i = {}) {
   return {
     getItem: (e) => i[e] || null,
     setItem: (e, t) => {
@@ -4057,7 +4100,7 @@ function Kt(i = {}) {
     }
   };
 }
-function qn() {
+function Vn() {
   if (typeof globalThis != "object")
     try {
       Object.defineProperty(Object.prototype, "__magic__", {
@@ -4070,24 +4113,24 @@ function qn() {
       typeof self < "u" && (self.globalThis = self);
     }
 }
-const ie = {
+const oe = {
   /**
    * @experimental
    */
-  debug: !!(globalThis && bs() && globalThis.localStorage && globalThis.localStorage.getItem("supabase.gotrue-js.locks.debug") === "true")
+  debug: !!(globalThis && ks() && globalThis.localStorage && globalThis.localStorage.getItem("supabase.gotrue-js.locks.debug") === "true")
 };
-class ws extends Error {
+class Cs extends Error {
   constructor(e) {
     super(e), this.isAcquireTimeout = !0;
   }
 }
-class zn extends ws {
+class Wn extends Cs {
 }
-async function Vn(i, e, t) {
-  ie.debug && console.log("@supabase/gotrue-js: navigatorLock: acquire lock", i, e);
+async function Kn(i, e, t) {
+  oe.debug && console.log("@supabase/gotrue-js: navigatorLock: acquire lock", i, e);
   const s = new globalThis.AbortController();
   return e > 0 && setTimeout(() => {
-    s.abort(), ie.debug && console.log("@supabase/gotrue-js: navigatorLock acquire timed out", i);
+    s.abort(), oe.debug && console.log("@supabase/gotrue-js: navigatorLock acquire timed out", i);
   }, e), await Promise.resolve().then(() => globalThis.navigator.locks.request(i, e === 0 ? {
     mode: "exclusive",
     ifAvailable: !0
@@ -4096,16 +4139,16 @@ async function Vn(i, e, t) {
     signal: s.signal
   }, async (r) => {
     if (r) {
-      ie.debug && console.log("@supabase/gotrue-js: navigatorLock: acquired", i, r.name);
+      oe.debug && console.log("@supabase/gotrue-js: navigatorLock: acquired", i, r.name);
       try {
         return await t();
       } finally {
-        ie.debug && console.log("@supabase/gotrue-js: navigatorLock: released", i, r.name);
+        oe.debug && console.log("@supabase/gotrue-js: navigatorLock: released", i, r.name);
       }
     } else {
       if (e === 0)
-        throw ie.debug && console.log("@supabase/gotrue-js: navigatorLock: not immediately available", i), new zn(`Acquiring an exclusive Navigator LockManager lock "${i}" immediately failed`);
-      if (ie.debug)
+        throw oe.debug && console.log("@supabase/gotrue-js: navigatorLock: not immediately available", i), new Wn(`Acquiring an exclusive Navigator LockManager lock "${i}" immediately failed`);
+      if (oe.debug)
         try {
           const n = await globalThis.navigator.locks.query();
           console.log("@supabase/gotrue-js: Navigator LockManager state", JSON.stringify(n, null, "  "));
@@ -4116,35 +4159,35 @@ async function Vn(i, e, t) {
     }
   }));
 }
-qn();
-const Hn = {
-  url: en,
-  storageKey: tn,
+Vn();
+const Jn = {
+  url: rn,
+  storageKey: nn,
   autoRefreshToken: !0,
   persistSession: !0,
   detectSessionInUrl: !0,
-  headers: sn,
+  headers: on,
   flowType: "implicit",
   debug: !1,
   hasCustomAuthorizationHeader: !1
 };
-async function Jt(i, e, t) {
+async function Yt(i, e, t) {
   return await t();
 }
-const oe = {};
-class _e {
+const ae = {};
+class we {
   /**
    * Create a new client for use in the browser.
    */
   constructor(e) {
     var t, s;
-    this.userStorage = null, this.memoryStorage = null, this.stateChangeEmitters = /* @__PURE__ */ new Map(), this.autoRefreshTicker = null, this.visibilityChangedCallback = null, this.refreshingDeferred = null, this.initializePromise = null, this.detectSessionInUrl = !0, this.hasCustomAuthorizationHeader = !1, this.suppressGetSessionWarning = !1, this.lockAcquired = !1, this.pendingInLock = [], this.broadcastChannel = null, this.logger = console.log, this.instanceID = _e.nextInstanceID, _e.nextInstanceID += 1, this.instanceID > 0 && D() && console.warn("Multiple GoTrueClient instances detected in the same browser context. It is not an error, but this should be avoided as it may produce undefined behavior when used concurrently under the same storage key.");
-    const r = Object.assign(Object.assign({}, Hn), e);
-    if (this.logDebugMessages = !!r.debug, typeof r.debug == "function" && (this.logger = r.debug), this.persistSession = r.persistSession, this.storageKey = r.storageKey, this.autoRefreshToken = r.autoRefreshToken, this.admin = new Mn({
+    this.userStorage = null, this.memoryStorage = null, this.stateChangeEmitters = /* @__PURE__ */ new Map(), this.autoRefreshTicker = null, this.visibilityChangedCallback = null, this.refreshingDeferred = null, this.initializePromise = null, this.detectSessionInUrl = !0, this.hasCustomAuthorizationHeader = !1, this.suppressGetSessionWarning = !1, this.lockAcquired = !1, this.pendingInLock = [], this.broadcastChannel = null, this.logger = console.log, this.instanceID = we.nextInstanceID, we.nextInstanceID += 1, this.instanceID > 0 && D() && console.warn("Multiple GoTrueClient instances detected in the same browser context. It is not an error, but this should be avoided as it may produce undefined behavior when used concurrently under the same storage key.");
+    const r = Object.assign(Object.assign({}, Jn), e);
+    if (this.logDebugMessages = !!r.debug, typeof r.debug == "function" && (this.logger = r.debug), this.persistSession = r.persistSession, this.storageKey = r.storageKey, this.autoRefreshToken = r.autoRefreshToken, this.admin = new Hn({
       url: r.url,
       headers: r.headers,
       fetch: r.fetch
-    }), this.url = r.url, this.headers = r.headers, this.fetch = _s(r.fetch), this.lock = r.lock || Jt, this.detectSessionInUrl = r.detectSessionInUrl, this.flowType = r.flowType, this.hasCustomAuthorizationHeader = r.hasCustomAuthorizationHeader, r.lock ? this.lock = r.lock : D() && (!((t = globalThis == null ? void 0 : globalThis.navigator) === null || t === void 0) && t.locks) ? this.lock = Vn : this.lock = Jt, this.jwks || (this.jwks = { keys: [] }, this.jwks_cached_at = Number.MIN_SAFE_INTEGER), this.mfa = {
+    }), this.url = r.url, this.headers = r.headers, this.fetch = Es(r.fetch), this.lock = r.lock || Yt, this.detectSessionInUrl = r.detectSessionInUrl, this.flowType = r.flowType, this.hasCustomAuthorizationHeader = r.hasCustomAuthorizationHeader, r.lock ? this.lock = r.lock : D() && (!((t = globalThis == null ? void 0 : globalThis.navigator) === null || t === void 0) && t.locks) ? this.lock = Kn : this.lock = Yt, this.jwks || (this.jwks = { keys: [] }, this.jwks_cached_at = Number.MIN_SAFE_INTEGER), this.mfa = {
       verify: this._verify.bind(this),
       enroll: this._enroll.bind(this),
       unenroll: this._unenroll.bind(this),
@@ -4152,7 +4195,7 @@ class _e {
       listFactors: this._listFactors.bind(this),
       challengeAndVerify: this._challengeAndVerify.bind(this),
       getAuthenticatorAssuranceLevel: this._getAuthenticatorAssuranceLevel.bind(this)
-    }, this.persistSession ? (r.storage ? this.storage = r.storage : bs() ? this.storage = globalThis.localStorage : (this.memoryStorage = {}, this.storage = Kt(this.memoryStorage)), r.userStorage && (this.userStorage = r.userStorage)) : (this.memoryStorage = {}, this.storage = Kt(this.memoryStorage)), D() && globalThis.BroadcastChannel && this.persistSession && this.storageKey) {
+    }, this.persistSession ? (r.storage ? this.storage = r.storage : ks() ? this.storage = globalThis.localStorage : (this.memoryStorage = {}, this.storage = Xt(this.memoryStorage)), r.userStorage && (this.userStorage = r.userStorage)) : (this.memoryStorage = {}, this.storage = Xt(this.memoryStorage)), D() && globalThis.BroadcastChannel && this.persistSession && this.storageKey) {
       try {
         this.broadcastChannel = new globalThis.BroadcastChannel(this.storageKey);
       } catch (n) {
@@ -4169,20 +4212,20 @@ class _e {
    */
   get jwks() {
     var e, t;
-    return (t = (e = oe[this.storageKey]) === null || e === void 0 ? void 0 : e.jwks) !== null && t !== void 0 ? t : { keys: [] };
+    return (t = (e = ae[this.storageKey]) === null || e === void 0 ? void 0 : e.jwks) !== null && t !== void 0 ? t : { keys: [] };
   }
   set jwks(e) {
-    oe[this.storageKey] = Object.assign(Object.assign({}, oe[this.storageKey]), { jwks: e });
+    ae[this.storageKey] = Object.assign(Object.assign({}, ae[this.storageKey]), { jwks: e });
   }
   get jwks_cached_at() {
     var e, t;
-    return (t = (e = oe[this.storageKey]) === null || e === void 0 ? void 0 : e.cachedAt) !== null && t !== void 0 ? t : Number.MIN_SAFE_INTEGER;
+    return (t = (e = ae[this.storageKey]) === null || e === void 0 ? void 0 : e.cachedAt) !== null && t !== void 0 ? t : Number.MIN_SAFE_INTEGER;
   }
   set jwks_cached_at(e) {
-    oe[this.storageKey] = Object.assign(Object.assign({}, oe[this.storageKey]), { cachedAt: e });
+    ae[this.storageKey] = Object.assign(Object.assign({}, ae[this.storageKey]), { cachedAt: e });
   }
   _debug(...e) {
-    return this.logDebugMessages && this.logger(`GoTrueClient@${this.instanceID} (${gs}) ${(/* @__PURE__ */ new Date()).toISOString()}`, ...e), this;
+    return this.logDebugMessages && this.logger(`GoTrueClient@${this.instanceID} (${bs}) ${(/* @__PURE__ */ new Date()).toISOString()}`, ...e), this;
   }
   /**
    * Initializes the client session either from the url or from storage.
@@ -4201,12 +4244,12 @@ class _e {
   async _initialize() {
     var e;
     try {
-      const t = bn(window.location.href);
+      const t = Sn(window.location.href);
       let s = "none";
       if (this._isImplicitGrantCallback(t) ? s = "implicit" : await this._isPKCECallback(t) && (s = "pkce"), D() && this.detectSessionInUrl && s !== "none") {
         const { data: r, error: n } = await this._getSessionFromURL(t, s);
         if (n) {
-          if (this._debug("#_initialize()", "error detecting session from URL", n), cn(n)) {
+          if (this._debug("#_initialize()", "error detecting session from URL", n), dn(n)) {
             const l = (e = n.details) === null || e === void 0 ? void 0 : e.code;
             if (l === "identity_already_exists" || l === "identity_not_found" || l === "single_identity_not_deletable")
               return { error: n };
@@ -4220,8 +4263,8 @@ class _e {
       }
       return await this._recoverAndRefresh(), { error: null };
     } catch (t) {
-      return b(t) ? { error: t } : {
-        error: new vs("Unexpected error during initialization", t)
+      return _(t) ? { error: t } : {
+        error: new ws("Unexpected error during initialization", t)
       };
     } finally {
       await this._handleVisibilityChange(), this._debug("#_initialize()", "end");
@@ -4235,7 +4278,7 @@ class _e {
   async signInAnonymously(e) {
     var t, s, r;
     try {
-      const n = await w(this.fetch, "POST", `${this.url}/signup`, {
+      const n = await S(this.fetch, "POST", `${this.url}/signup`, {
         headers: this.headers,
         body: {
           data: (s = (t = e == null ? void 0 : e.options) === null || t === void 0 ? void 0 : t.data) !== null && s !== void 0 ? s : {},
@@ -4248,7 +4291,7 @@ class _e {
       const l = o.session, u = o.user;
       return o.session && (await this._saveSession(o.session), await this._notifyAllSubscribers("SIGNED_IN", l)), { data: { user: u, session: l }, error: null };
     } catch (n) {
-      if (b(n))
+      if (_(n))
         return { data: { user: null, session: null }, error: n };
       throw n;
     }
@@ -4270,7 +4313,7 @@ class _e {
       if ("email" in e) {
         const { email: c, password: h, options: d } = e;
         let f = null, p = null;
-        this.flowType === "pkce" && ([f, p] = await re(this.storage, this.storageKey)), n = await w(this.fetch, "POST", `${this.url}/signup`, {
+        this.flowType === "pkce" && ([f, p] = await ne(this.storage, this.storageKey)), n = await S(this.fetch, "POST", `${this.url}/signup`, {
           headers: this.headers,
           redirectTo: d == null ? void 0 : d.emailRedirectTo,
           body: {
@@ -4285,7 +4328,7 @@ class _e {
         });
       } else if ("phone" in e) {
         const { phone: c, password: h, options: d } = e;
-        n = await w(this.fetch, "POST", `${this.url}/signup`, {
+        n = await S(this.fetch, "POST", `${this.url}/signup`, {
           headers: this.headers,
           body: {
             phone: c,
@@ -4297,14 +4340,14 @@ class _e {
           xform: N
         });
       } else
-        throw new Ie("You must provide either an email or phone number and a password");
+        throw new Te("You must provide either an email or phone number and a password");
       const { data: o, error: a } = n;
       if (a || !o)
         return { data: { user: null, session: null }, error: a };
       const l = o.session, u = o.user;
       return o.session && (await this._saveSession(o.session), await this._notifyAllSubscribers("SIGNED_IN", l)), { data: { user: u, session: l }, error: null };
     } catch (n) {
-      if (b(n))
+      if (_(n))
         return { data: { user: null, session: null }, error: n };
       throw n;
     }
@@ -4322,35 +4365,35 @@ class _e {
       let t;
       if ("email" in e) {
         const { email: n, password: o, options: a } = e;
-        t = await w(this.fetch, "POST", `${this.url}/token?grant_type=password`, {
+        t = await S(this.fetch, "POST", `${this.url}/token?grant_type=password`, {
           headers: this.headers,
           body: {
             email: n,
             password: o,
             gotrue_meta_security: { captcha_token: a == null ? void 0 : a.captchaToken }
           },
-          xform: Wt
+          xform: Qt
         });
       } else if ("phone" in e) {
         const { phone: n, password: o, options: a } = e;
-        t = await w(this.fetch, "POST", `${this.url}/token?grant_type=password`, {
+        t = await S(this.fetch, "POST", `${this.url}/token?grant_type=password`, {
           headers: this.headers,
           body: {
             phone: n,
             password: o,
             gotrue_meta_security: { captcha_token: a == null ? void 0 : a.captchaToken }
           },
-          xform: Wt
+          xform: Qt
         });
       } else
-        throw new Ie("You must provide either an email or phone number and a password");
+        throw new Te("You must provide either an email or phone number and a password");
       const { data: s, error: r } = t;
-      return r ? { data: { user: null, session: null }, error: r } : !s || !s.session || !s.user ? { data: { user: null, session: null }, error: new Ce() } : (s.session && (await this._saveSession(s.session), await this._notifyAllSubscribers("SIGNED_IN", s.session)), {
+      return r ? { data: { user: null, session: null }, error: r } : !s || !s.session || !s.user ? { data: { user: null, session: null }, error: new Ie() } : (s.session && (await this._saveSession(s.session), await this._notifyAllSubscribers("SIGNED_IN", s.session)), {
         data: Object.assign({ user: s.user, session: s.session }, s.weak_password ? { weakPassword: s.weak_password } : null),
         error: r
       });
     } catch (t) {
-      if (b(t))
+      if (_(t))
         return { data: { user: null, session: null }, error: t };
       throw t;
     }
@@ -4386,35 +4429,35 @@ class _e {
   }
   async signInWithSolana(e) {
     var t, s, r, n, o, a, l, u, c, h, d, f;
-    let p, v;
+    let p, y;
     if ("message" in e)
-      p = e.message, v = e.signature;
+      p = e.message, y = e.signature;
     else {
-      const { chain: m, wallet: _, statement: S, options: g } = e;
-      let k;
+      const { chain: g, wallet: w, statement: k, options: m } = e;
+      let b;
       if (D())
-        if (typeof _ == "object")
-          k = _;
+        if (typeof w == "object")
+          b = w;
         else {
           const C = window;
           if ("solana" in C && typeof C.solana == "object" && ("signIn" in C.solana && typeof C.solana.signIn == "function" || "signMessage" in C.solana && typeof C.solana.signMessage == "function"))
-            k = C.solana;
+            b = C.solana;
           else
             throw new Error("@supabase/auth-js: No compatible Solana wallet interface on the window object (window.solana) detected. Make sure the user already has a wallet installed and connected for this app. Prefer passing the wallet interface object directly to signInWithWeb3({ chain: 'solana', wallet: resolvedUserWallet }) instead.");
         }
       else {
-        if (typeof _ != "object" || !(g != null && g.url))
+        if (typeof w != "object" || !(m != null && m.url))
           throw new Error("@supabase/auth-js: Both wallet and url must be specified in non-browser environments.");
-        k = _;
+        b = w;
       }
-      const x = new URL((t = g == null ? void 0 : g.url) !== null && t !== void 0 ? t : window.location.href);
-      if ("signIn" in k && k.signIn) {
-        const C = await k.signIn(Object.assign(Object.assign(Object.assign({ issuedAt: (/* @__PURE__ */ new Date()).toISOString() }, g == null ? void 0 : g.signInWithSolana), {
+      const x = new URL((t = m == null ? void 0 : m.url) !== null && t !== void 0 ? t : window.location.href);
+      if ("signIn" in b && b.signIn) {
+        const C = await b.signIn(Object.assign(Object.assign(Object.assign({ issuedAt: (/* @__PURE__ */ new Date()).toISOString() }, m == null ? void 0 : m.signInWithSolana), {
           // non-overridable properties
           version: "1",
           domain: x.host,
           uri: x.href
-        }), S ? { statement: S } : null));
+        }), k ? { statement: k } : null));
         let O;
         if (Array.isArray(C) && C[0] && typeof C[0] == "object")
           O = C[0];
@@ -4423,58 +4466,58 @@ class _e {
         else
           throw new Error("@supabase/auth-js: Wallet method signIn() returned unrecognized value");
         if ("signedMessage" in O && "signature" in O && (typeof O.signedMessage == "string" || O.signedMessage instanceof Uint8Array) && O.signature instanceof Uint8Array)
-          p = typeof O.signedMessage == "string" ? O.signedMessage : new TextDecoder().decode(O.signedMessage), v = O.signature;
+          p = typeof O.signedMessage == "string" ? O.signedMessage : new TextDecoder().decode(O.signedMessage), y = O.signature;
         else
           throw new Error("@supabase/auth-js: Wallet method signIn() API returned object without signedMessage and signature fields");
       } else {
-        if (!("signMessage" in k) || typeof k.signMessage != "function" || !("publicKey" in k) || typeof k != "object" || !k.publicKey || !("toBase58" in k.publicKey) || typeof k.publicKey.toBase58 != "function")
+        if (!("signMessage" in b) || typeof b.signMessage != "function" || !("publicKey" in b) || typeof b != "object" || !b.publicKey || !("toBase58" in b.publicKey) || typeof b.publicKey.toBase58 != "function")
           throw new Error("@supabase/auth-js: Wallet does not have a compatible signMessage() and publicKey.toBase58() API");
         p = [
           `${x.host} wants you to sign in with your Solana account:`,
-          k.publicKey.toBase58(),
-          ...S ? ["", S, ""] : [""],
+          b.publicKey.toBase58(),
+          ...k ? ["", k, ""] : [""],
           "Version: 1",
           `URI: ${x.href}`,
-          `Issued At: ${(r = (s = g == null ? void 0 : g.signInWithSolana) === null || s === void 0 ? void 0 : s.issuedAt) !== null && r !== void 0 ? r : (/* @__PURE__ */ new Date()).toISOString()}`,
-          ...!((n = g == null ? void 0 : g.signInWithSolana) === null || n === void 0) && n.notBefore ? [`Not Before: ${g.signInWithSolana.notBefore}`] : [],
-          ...!((o = g == null ? void 0 : g.signInWithSolana) === null || o === void 0) && o.expirationTime ? [`Expiration Time: ${g.signInWithSolana.expirationTime}`] : [],
-          ...!((a = g == null ? void 0 : g.signInWithSolana) === null || a === void 0) && a.chainId ? [`Chain ID: ${g.signInWithSolana.chainId}`] : [],
-          ...!((l = g == null ? void 0 : g.signInWithSolana) === null || l === void 0) && l.nonce ? [`Nonce: ${g.signInWithSolana.nonce}`] : [],
-          ...!((u = g == null ? void 0 : g.signInWithSolana) === null || u === void 0) && u.requestId ? [`Request ID: ${g.signInWithSolana.requestId}`] : [],
-          ...!((h = (c = g == null ? void 0 : g.signInWithSolana) === null || c === void 0 ? void 0 : c.resources) === null || h === void 0) && h.length ? [
+          `Issued At: ${(r = (s = m == null ? void 0 : m.signInWithSolana) === null || s === void 0 ? void 0 : s.issuedAt) !== null && r !== void 0 ? r : (/* @__PURE__ */ new Date()).toISOString()}`,
+          ...!((n = m == null ? void 0 : m.signInWithSolana) === null || n === void 0) && n.notBefore ? [`Not Before: ${m.signInWithSolana.notBefore}`] : [],
+          ...!((o = m == null ? void 0 : m.signInWithSolana) === null || o === void 0) && o.expirationTime ? [`Expiration Time: ${m.signInWithSolana.expirationTime}`] : [],
+          ...!((a = m == null ? void 0 : m.signInWithSolana) === null || a === void 0) && a.chainId ? [`Chain ID: ${m.signInWithSolana.chainId}`] : [],
+          ...!((l = m == null ? void 0 : m.signInWithSolana) === null || l === void 0) && l.nonce ? [`Nonce: ${m.signInWithSolana.nonce}`] : [],
+          ...!((u = m == null ? void 0 : m.signInWithSolana) === null || u === void 0) && u.requestId ? [`Request ID: ${m.signInWithSolana.requestId}`] : [],
+          ...!((h = (c = m == null ? void 0 : m.signInWithSolana) === null || c === void 0 ? void 0 : c.resources) === null || h === void 0) && h.length ? [
             "Resources",
-            ...g.signInWithSolana.resources.map((O) => `- ${O}`)
+            ...m.signInWithSolana.resources.map((O) => `- ${O}`)
           ] : []
         ].join(`
 `);
-        const C = await k.signMessage(new TextEncoder().encode(p), "utf8");
+        const C = await b.signMessage(new TextEncoder().encode(p), "utf8");
         if (!C || !(C instanceof Uint8Array))
           throw new Error("@supabase/auth-js: Wallet signMessage() API returned an recognized value");
-        v = C;
+        y = C;
       }
     }
     try {
-      const { data: m, error: _ } = await w(this.fetch, "POST", `${this.url}/token?grant_type=web3`, {
+      const { data: g, error: w } = await S(this.fetch, "POST", `${this.url}/token?grant_type=web3`, {
         headers: this.headers,
-        body: Object.assign({ chain: "solana", message: p, signature: mn(v) }, !((d = e.options) === null || d === void 0) && d.captchaToken ? { gotrue_meta_security: { captcha_token: (f = e.options) === null || f === void 0 ? void 0 : f.captchaToken } } : null),
+        body: Object.assign({ chain: "solana", message: p, signature: bn(y) }, !((d = e.options) === null || d === void 0) && d.captchaToken ? { gotrue_meta_security: { captcha_token: (f = e.options) === null || f === void 0 ? void 0 : f.captchaToken } } : null),
         xform: N
       });
-      if (_)
-        throw _;
-      return !m || !m.session || !m.user ? {
+      if (w)
+        throw w;
+      return !g || !g.session || !g.user ? {
         data: { user: null, session: null },
-        error: new Ce()
-      } : (m.session && (await this._saveSession(m.session), await this._notifyAllSubscribers("SIGNED_IN", m.session)), { data: Object.assign({}, m), error: _ });
-    } catch (m) {
-      if (b(m))
-        return { data: { user: null, session: null }, error: m };
-      throw m;
+        error: new Ie()
+      } : (g.session && (await this._saveSession(g.session), await this._notifyAllSubscribers("SIGNED_IN", g.session)), { data: Object.assign({}, g), error: w });
+    } catch (g) {
+      if (_(g))
+        return { data: { user: null, session: null }, error: g };
+      throw g;
     }
   }
   async _exchangeCodeForSession(e) {
     const t = await J(this.storage, `${this.storageKey}-code-verifier`), [s, r] = (t ?? "").split("/");
     try {
-      const { data: n, error: o } = await w(this.fetch, "POST", `${this.url}/token?grant_type=pkce`, {
+      const { data: n, error: o } = await S(this.fetch, "POST", `${this.url}/token?grant_type=pkce`, {
         headers: this.headers,
         body: {
           auth_code: e,
@@ -4486,10 +4529,10 @@ class _e {
         throw o;
       return !n || !n.session || !n.user ? {
         data: { user: null, session: null, redirectType: null },
-        error: new Ce()
+        error: new Ie()
       } : (n.session && (await this._saveSession(n.session), await this._notifyAllSubscribers("SIGNED_IN", n.session)), { data: Object.assign(Object.assign({}, n), { redirectType: r ?? null }), error: o });
     } catch (n) {
-      if (b(n))
+      if (_(n))
         return { data: { user: null, session: null, redirectType: null }, error: n };
       throw n;
     }
@@ -4500,7 +4543,7 @@ class _e {
    */
   async signInWithIdToken(e) {
     try {
-      const { options: t, provider: s, token: r, access_token: n, nonce: o } = e, a = await w(this.fetch, "POST", `${this.url}/token?grant_type=id_token`, {
+      const { options: t, provider: s, token: r, access_token: n, nonce: o } = e, a = await S(this.fetch, "POST", `${this.url}/token?grant_type=id_token`, {
         headers: this.headers,
         body: {
           provider: s,
@@ -4513,10 +4556,10 @@ class _e {
       }), { data: l, error: u } = a;
       return u ? { data: { user: null, session: null }, error: u } : !l || !l.session || !l.user ? {
         data: { user: null, session: null },
-        error: new Ce()
+        error: new Ie()
       } : (l.session && (await this._saveSession(l.session), await this._notifyAllSubscribers("SIGNED_IN", l.session)), { data: l, error: u });
     } catch (t) {
-      if (b(t))
+      if (_(t))
         return { data: { user: null, session: null }, error: t };
       throw t;
     }
@@ -4544,8 +4587,8 @@ class _e {
       if ("email" in e) {
         const { email: a, options: l } = e;
         let u = null, c = null;
-        this.flowType === "pkce" && ([u, c] = await re(this.storage, this.storageKey));
-        const { error: h } = await w(this.fetch, "POST", `${this.url}/otp`, {
+        this.flowType === "pkce" && ([u, c] = await ne(this.storage, this.storageKey));
+        const { error: h } = await S(this.fetch, "POST", `${this.url}/otp`, {
           headers: this.headers,
           body: {
             email: a,
@@ -4560,7 +4603,7 @@ class _e {
         return { data: { user: null, session: null }, error: h };
       }
       if ("phone" in e) {
-        const { phone: a, options: l } = e, { data: u, error: c } = await w(this.fetch, "POST", `${this.url}/otp`, {
+        const { phone: a, options: l } = e, { data: u, error: c } = await S(this.fetch, "POST", `${this.url}/otp`, {
           headers: this.headers,
           body: {
             phone: a,
@@ -4572,9 +4615,9 @@ class _e {
         });
         return { data: { user: null, session: null, messageId: u == null ? void 0 : u.message_id }, error: c };
       }
-      throw new Ie("You must provide either an email or phone number.");
+      throw new Te("You must provide either an email or phone number.");
     } catch (a) {
-      if (b(a))
+      if (_(a))
         return { data: { user: null, session: null }, error: a };
       throw a;
     }
@@ -4587,7 +4630,7 @@ class _e {
     try {
       let r, n;
       "options" in e && (r = (t = e.options) === null || t === void 0 ? void 0 : t.redirectTo, n = (s = e.options) === null || s === void 0 ? void 0 : s.captchaToken);
-      const { data: o, error: a } = await w(this.fetch, "POST", `${this.url}/verify`, {
+      const { data: o, error: a } = await S(this.fetch, "POST", `${this.url}/verify`, {
         headers: this.headers,
         body: Object.assign(Object.assign({}, e), { gotrue_meta_security: { captcha_token: n } }),
         redirectTo: r,
@@ -4600,7 +4643,7 @@ class _e {
       const l = o.session, u = o.user;
       return l != null && l.access_token && (await this._saveSession(l), await this._notifyAllSubscribers(e.type == "recovery" ? "PASSWORD_RECOVERY" : "SIGNED_IN", l)), { data: { user: u, session: l }, error: null };
     } catch (r) {
-      if (b(r))
+      if (_(r))
         return { data: { user: null, session: null }, error: r };
       throw r;
     }
@@ -4623,13 +4666,13 @@ class _e {
     var t, s, r;
     try {
       let n = null, o = null;
-      return this.flowType === "pkce" && ([n, o] = await re(this.storage, this.storageKey)), await w(this.fetch, "POST", `${this.url}/sso`, {
+      return this.flowType === "pkce" && ([n, o] = await ne(this.storage, this.storageKey)), await S(this.fetch, "POST", `${this.url}/sso`, {
         body: Object.assign(Object.assign(Object.assign(Object.assign(Object.assign({}, "providerId" in e ? { provider_id: e.providerId } : null), "domain" in e ? { domain: e.domain } : null), { redirect_to: (s = (t = e.options) === null || t === void 0 ? void 0 : t.redirectTo) !== null && s !== void 0 ? s : void 0 }), !((r = e == null ? void 0 : e.options) === null || r === void 0) && r.captchaToken ? { gotrue_meta_security: { captcha_token: e.options.captchaToken } } : null), { skip_http_redirect: !0, code_challenge: n, code_challenge_method: o }),
         headers: this.headers,
-        xform: Dn
+        xform: Fn
       });
     } catch (n) {
-      if (b(n))
+      if (_(n))
         return { data: null, error: n };
       throw n;
     }
@@ -4648,15 +4691,15 @@ class _e {
         if (s)
           throw s;
         if (!t)
-          throw new V();
-        const { error: r } = await w(this.fetch, "GET", `${this.url}/reauthenticate`, {
+          throw new H();
+        const { error: r } = await S(this.fetch, "GET", `${this.url}/reauthenticate`, {
           headers: this.headers,
           jwt: t.access_token
         });
         return { data: { user: null, session: null }, error: r };
       });
     } catch (e) {
-      if (b(e))
+      if (_(e))
         return { data: { user: null, session: null }, error: e };
       throw e;
     }
@@ -4668,7 +4711,7 @@ class _e {
     try {
       const t = `${this.url}/resend`;
       if ("email" in e) {
-        const { email: s, type: r, options: n } = e, { error: o } = await w(this.fetch, "POST", t, {
+        const { email: s, type: r, options: n } = e, { error: o } = await S(this.fetch, "POST", t, {
           headers: this.headers,
           body: {
             email: s,
@@ -4679,7 +4722,7 @@ class _e {
         });
         return { data: { user: null, session: null }, error: o };
       } else if ("phone" in e) {
-        const { phone: s, type: r, options: n } = e, { data: o, error: a } = await w(this.fetch, "POST", t, {
+        const { phone: s, type: r, options: n } = e, { data: o, error: a } = await S(this.fetch, "POST", t, {
           headers: this.headers,
           body: {
             phone: s,
@@ -4689,9 +4732,9 @@ class _e {
         });
         return { data: { user: null, session: null, messageId: o == null ? void 0 : o.message_id }, error: a };
       }
-      throw new Ie("You must provide either an email or phone number and a type");
+      throw new Te("You must provide either an email or phone number and a type");
     } catch (t) {
-      if (b(t))
+      if (_(t))
         return { data: { user: null, session: null }, error: t };
       throw t;
     }
@@ -4775,11 +4818,11 @@ class _e {
       const t = await J(this.storage, this.storageKey);
       if (this._debug("#getSession()", "session from storage", t), t !== null && (this._isValidSession(t) ? e = t : (this._debug("#getSession()", "session from storage is not valid"), await this._removeSession())), !e)
         return { data: { session: null }, error: null };
-      const s = e.expires_at ? e.expires_at * 1e3 - Date.now() < qe : !1;
+      const s = e.expires_at ? e.expires_at * 1e3 - Date.now() < He : !1;
       if (this._debug("#__loadSession()", `session has${s ? "" : " not"} expired`, "expires_at", e.expires_at), !s) {
         if (this.userStorage) {
           const o = await J(this.userStorage, this.storageKey + "-user");
-          o != null && o.user ? e.user = o.user : e.user = He();
+          o != null && o.user ? e.user = o.user : e.user = Ke();
         }
         if (this.storage.isServer && e.user) {
           let o = this.suppressGetSessionWarning;
@@ -4807,24 +4850,24 @@ class _e {
   }
   async _getUser(e) {
     try {
-      return e ? await w(this.fetch, "GET", `${this.url}/user`, {
+      return e ? await S(this.fetch, "GET", `${this.url}/user`, {
         headers: this.headers,
         jwt: e,
-        xform: H
+        xform: V
       }) : await this._useSession(async (t) => {
         var s, r, n;
         const { data: o, error: a } = t;
         if (a)
           throw a;
-        return !(!((s = o.session) === null || s === void 0) && s.access_token) && !this.hasCustomAuthorizationHeader ? { data: { user: null }, error: new V() } : await w(this.fetch, "GET", `${this.url}/user`, {
+        return !(!((s = o.session) === null || s === void 0) && s.access_token) && !this.hasCustomAuthorizationHeader ? { data: { user: null }, error: new H() } : await S(this.fetch, "GET", `${this.url}/user`, {
           headers: this.headers,
           jwt: (n = (r = o.session) === null || r === void 0 ? void 0 : r.access_token) !== null && n !== void 0 ? n : void 0,
-          xform: H
+          xform: V
         });
       });
     } catch (t) {
-      if (b(t))
-        return ln(t) && (await this._removeSession(), await z(this.storage, `${this.storageKey}-code-verifier`)), { data: { user: null }, error: t };
+      if (_(t))
+        return hn(t) && (await this._removeSession(), await z(this.storage, `${this.storageKey}-code-verifier`)), { data: { user: null }, error: t };
       throw t;
     }
   }
@@ -4841,23 +4884,23 @@ class _e {
         if (n)
           throw n;
         if (!r.session)
-          throw new V();
+          throw new H();
         const o = r.session;
         let a = null, l = null;
-        this.flowType === "pkce" && e.email != null && ([a, l] = await re(this.storage, this.storageKey));
-        const { data: u, error: c } = await w(this.fetch, "PUT", `${this.url}/user`, {
+        this.flowType === "pkce" && e.email != null && ([a, l] = await ne(this.storage, this.storageKey));
+        const { data: u, error: c } = await S(this.fetch, "PUT", `${this.url}/user`, {
           headers: this.headers,
           redirectTo: t == null ? void 0 : t.emailRedirectTo,
           body: Object.assign(Object.assign({}, e), { code_challenge: a, code_challenge_method: l }),
           jwt: o.access_token,
-          xform: H
+          xform: V
         });
         if (c)
           throw c;
         return o.user = u.user, await this._saveSession(o), await this._notifyAllSubscribers("USER_UPDATED", o), { data: { user: o.user }, error: null };
       });
     } catch (s) {
-      if (b(s))
+      if (_(s))
         return { data: { user: null }, error: s };
       throw s;
     }
@@ -4873,10 +4916,10 @@ class _e {
   async _setSession(e) {
     try {
       if (!e.access_token || !e.refresh_token)
-        throw new V();
+        throw new H();
       const t = Date.now() / 1e3;
       let s = t, r = !0, n = null;
-      const { payload: o } = Ve(e.access_token);
+      const { payload: o } = We(e.access_token);
       if (o.exp && (s = o.exp, r = s <= t), r) {
         const { session: a, error: l } = await this._callRefreshToken(e.refresh_token);
         if (l)
@@ -4899,7 +4942,7 @@ class _e {
       }
       return { data: { user: n.user, session: n }, error: null };
     } catch (t) {
-      if (b(t))
+      if (_(t))
         return { data: { session: null, user: null }, error: t };
       throw t;
     }
@@ -4924,12 +4967,12 @@ class _e {
           e = (s = o.session) !== null && s !== void 0 ? s : void 0;
         }
         if (!(e != null && e.refresh_token))
-          throw new V();
+          throw new H();
         const { session: r, error: n } = await this._callRefreshToken(e.refresh_token);
         return n ? { data: { user: null, session: null }, error: n } : r ? { data: { user: r.user, session: r }, error: null } : { data: { user: null, session: null }, error: null };
       });
     } catch (t) {
-      if (b(t))
+      if (_(t))
         return { data: { user: null, session: null }, error: t };
       throw t;
     }
@@ -4940,46 +4983,46 @@ class _e {
   async _getSessionFromURL(e, t) {
     try {
       if (!D())
-        throw new Te("No browser detected.");
+        throw new xe("No browser detected.");
       if (e.error || e.error_description || e.error_code)
-        throw new Te(e.error_description || "Error in URL with unspecified error_description", {
+        throw new xe(e.error_description || "Error in URL with unspecified error_description", {
           error: e.error || "unspecified_error",
           code: e.error_code || "unspecified_code"
         });
       switch (t) {
         case "implicit":
           if (this.flowType === "pkce")
-            throw new Ft("Not a valid PKCE flow url.");
+            throw new zt("Not a valid PKCE flow url.");
           break;
         case "pkce":
           if (this.flowType === "implicit")
-            throw new Te("Not a valid implicit grant flow url.");
+            throw new xe("Not a valid implicit grant flow url.");
           break;
         default:
       }
       if (t === "pkce") {
         if (this._debug("#_initialize()", "begin", "is PKCE flow", !0), !e.code)
-          throw new Ft("No code detected.");
-        const { data: S, error: g } = await this._exchangeCodeForSession(e.code);
-        if (g)
-          throw g;
-        const k = new URL(window.location.href);
-        return k.searchParams.delete("code"), window.history.replaceState(window.history.state, "", k.toString()), { data: { session: S.session, redirectType: null }, error: null };
+          throw new zt("No code detected.");
+        const { data: k, error: m } = await this._exchangeCodeForSession(e.code);
+        if (m)
+          throw m;
+        const b = new URL(window.location.href);
+        return b.searchParams.delete("code"), window.history.replaceState(window.history.state, "", b.toString()), { data: { session: k.session, redirectType: null }, error: null };
       }
       const { provider_token: s, provider_refresh_token: r, access_token: n, refresh_token: o, expires_in: a, expires_at: l, token_type: u } = e;
       if (!n || !a || !o || !u)
-        throw new Te("No session defined in URL");
+        throw new xe("No session defined in URL");
       const c = Math.round(Date.now() / 1e3), h = parseInt(a);
       let d = c + h;
       l && (d = parseInt(l));
       const f = d - c;
-      f * 1e3 <= ae && console.warn(`@supabase/gotrue-js: Session as retrieved from URL expires in ${f}s, should have been closer to ${h}s`);
+      f * 1e3 <= le && console.warn(`@supabase/gotrue-js: Session as retrieved from URL expires in ${f}s, should have been closer to ${h}s`);
       const p = d - h;
       c - p >= 120 ? console.warn("@supabase/gotrue-js: Session as retrieved from URL was issued over 120s ago, URL could be stale", p, d, c) : c - p < 0 && console.warn("@supabase/gotrue-js: Session as retrieved from URL was issued in the future? Check the device clock for skew", p, d, c);
-      const { data: v, error: m } = await this._getUser(n);
-      if (m)
-        throw m;
-      const _ = {
+      const { data: y, error: g } = await this._getUser(n);
+      if (g)
+        throw g;
+      const w = {
         provider_token: s,
         provider_refresh_token: r,
         access_token: n,
@@ -4987,11 +5030,11 @@ class _e {
         expires_at: d,
         refresh_token: o,
         token_type: u,
-        user: v.user
+        user: y.user
       };
-      return window.location.hash = "", this._debug("#_getSessionFromURL()", "clearing window.location.hash"), { data: { session: _, redirectType: e.type }, error: null };
+      return window.location.hash = "", this._debug("#_getSessionFromURL()", "clearing window.location.hash"), { data: { session: w, redirectType: e.type }, error: null };
     } catch (s) {
-      if (b(s))
+      if (_(s))
         return { data: { session: null, redirectType: null }, error: s };
       throw s;
     }
@@ -5029,7 +5072,7 @@ class _e {
       const o = (s = r.session) === null || s === void 0 ? void 0 : s.access_token;
       if (o) {
         const { error: a } = await this.admin.signOut(o, e);
-        if (a && !(an(a) && (a.status === 404 || a.status === 401 || a.status === 403)))
+        if (a && !(un(a) && (a.status === 404 || a.status === 401 || a.status === 403)))
           return { error: a };
       }
       return e !== "others" && (await this._removeSession(), await z(this.storage, `${this.storageKey}-code-verifier`)), { error: null };
@@ -5040,7 +5083,7 @@ class _e {
    * @param callback A callback function to be invoked when an auth event happens.
    */
   onAuthStateChange(e) {
-    const t = yn(), s = {
+    const t = wn(), s = {
       id: t,
       callback: e,
       unsubscribe: () => {
@@ -5073,14 +5116,14 @@ class _e {
    */
   async resetPasswordForEmail(e, t = {}) {
     let s = null, r = null;
-    this.flowType === "pkce" && ([s, r] = await re(
+    this.flowType === "pkce" && ([s, r] = await ne(
       this.storage,
       this.storageKey,
       !0
       // isPasswordRecovery
     ));
     try {
-      return await w(this.fetch, "POST", `${this.url}/recover`, {
+      return await S(this.fetch, "POST", `${this.url}/recover`, {
         body: {
           email: e,
           code_challenge: s,
@@ -5091,7 +5134,7 @@ class _e {
         redirectTo: t.redirectTo
       });
     } catch (n) {
-      if (b(n))
+      if (_(n))
         return { data: null, error: n };
       throw n;
     }
@@ -5107,7 +5150,7 @@ class _e {
         throw s;
       return { data: { identities: (e = t.user.identities) !== null && e !== void 0 ? e : [] }, error: null };
     } catch (t) {
-      if (b(t))
+      if (_(t))
         return { data: null, error: t };
       throw t;
     }
@@ -5130,7 +5173,7 @@ class _e {
           queryParams: (l = e.options) === null || l === void 0 ? void 0 : l.queryParams,
           skipBrowserRedirect: !0
         });
-        return await w(this.fetch, "GET", f, {
+        return await S(this.fetch, "GET", f, {
           headers: this.headers,
           jwt: (c = (u = h.session) === null || u === void 0 ? void 0 : u.access_token) !== null && c !== void 0 ? c : void 0
         });
@@ -5139,7 +5182,7 @@ class _e {
         throw r;
       return D() && !(!((t = e.options) === null || t === void 0) && t.skipBrowserRedirect) && window.location.assign(s == null ? void 0 : s.url), { data: { provider: e.provider, url: s == null ? void 0 : s.url }, error: null };
     } catch (s) {
-      if (b(s))
+      if (_(s))
         return { data: { provider: e.provider, url: null }, error: s };
       throw s;
     }
@@ -5154,13 +5197,13 @@ class _e {
         const { data: n, error: o } = t;
         if (o)
           throw o;
-        return await w(this.fetch, "DELETE", `${this.url}/user/identities/${e.identity_id}`, {
+        return await S(this.fetch, "DELETE", `${this.url}/user/identities/${e.identity_id}`, {
           headers: this.headers,
           jwt: (r = (s = n.session) === null || s === void 0 ? void 0 : s.access_token) !== null && r !== void 0 ? r : void 0
         });
       });
     } catch (t) {
-      if (b(t))
+      if (_(t))
         return { data: null, error: t };
       throw t;
     }
@@ -5174,17 +5217,17 @@ class _e {
     this._debug(t, "begin");
     try {
       const s = Date.now();
-      return await Sn(async (r) => (r > 0 && await wn(200 * Math.pow(2, r - 1)), this._debug(t, "refreshing attempt", r), await w(this.fetch, "POST", `${this.url}/token?grant_type=refresh_token`, {
+      return await Cn(async (r) => (r > 0 && await En(200 * Math.pow(2, r - 1)), this._debug(t, "refreshing attempt", r), await S(this.fetch, "POST", `${this.url}/token?grant_type=refresh_token`, {
         body: { refresh_token: e },
         headers: this.headers,
         xform: N
       })), (r, n) => {
         const o = 200 * Math.pow(2, r);
-        return n && ze(n) && // retryable only if the request can be sent before the backoff overflows the tick duration
-        Date.now() + o - s < ae;
+        return n && Ve(n) && // retryable only if the request can be sent before the backoff overflows the tick duration
+        Date.now() + o - s < le;
       });
     } catch (s) {
-      if (this._debug(t, "error", s), b(s))
+      if (this._debug(t, "error", s), _(s))
         return { data: { session: null, user: null }, error: s };
       throw s;
     } finally {
@@ -5214,20 +5257,20 @@ class _e {
       const r = await J(this.storage, this.storageKey);
       if (r && this.userStorage) {
         let o = await J(this.userStorage, this.storageKey + "-user");
-        !this.storage.isServer && Object.is(this.storage, this.userStorage) && !o && (o = { user: r.user }, await le(this.userStorage, this.storageKey + "-user", o)), r.user = (e = o == null ? void 0 : o.user) !== null && e !== void 0 ? e : He();
+        !this.storage.isServer && Object.is(this.storage, this.userStorage) && !o && (o = { user: r.user }, await ce(this.userStorage, this.storageKey + "-user", o)), r.user = (e = o == null ? void 0 : o.user) !== null && e !== void 0 ? e : Ke();
       } else if (r && !r.user && !r.user) {
         const o = await J(this.storage, this.storageKey + "-user");
-        o && (o != null && o.user) ? (r.user = o.user, await z(this.storage, this.storageKey + "-user"), await le(this.storage, this.storageKey, r)) : r.user = He();
+        o && (o != null && o.user) ? (r.user = o.user, await z(this.storage, this.storageKey + "-user"), await ce(this.storage, this.storageKey, r)) : r.user = Ke();
       }
       if (this._debug(s, "session from storage", r), !this._isValidSession(r)) {
         this._debug(s, "session is not valid"), r !== null && await this._removeSession();
         return;
       }
-      const n = ((t = r.expires_at) !== null && t !== void 0 ? t : 1 / 0) * 1e3 - Date.now() < qe;
-      if (this._debug(s, `session has${n ? "" : " not"} expired with margin of ${qe}s`), n) {
+      const n = ((t = r.expires_at) !== null && t !== void 0 ? t : 1 / 0) * 1e3 - Date.now() < He;
+      if (this._debug(s, `session has${n ? "" : " not"} expired with margin of ${He}s`), n) {
         if (this.autoRefreshToken && r.refresh_token) {
           const { error: o } = await this._callRefreshToken(r.refresh_token);
-          o && (console.error(o), ze(o) || (this._debug(s, "refresh failed with a non-retryable error, removing the session", o), await this._removeSession()));
+          o && (console.error(o), Ve(o) || (this._debug(s, "refresh failed with a non-retryable error, removing the session", o), await this._removeSession()));
         }
       } else if (r.user && r.user.__isUserNotAvailableProxy === !0)
         try {
@@ -5248,25 +5291,25 @@ class _e {
   async _callRefreshToken(e) {
     var t, s;
     if (!e)
-      throw new V();
+      throw new H();
     if (this.refreshingDeferred)
       return this.refreshingDeferred.promise;
     const r = `#_callRefreshToken(${e.substring(0, 5)}...)`;
     this._debug(r, "begin");
     try {
-      this.refreshingDeferred = new Ue();
+      this.refreshingDeferred = new Fe();
       const { data: n, error: o } = await this._refreshAccessToken(e);
       if (o)
         throw o;
       if (!n.session)
-        throw new V();
+        throw new H();
       await this._saveSession(n.session), await this._notifyAllSubscribers("TOKEN_REFRESHED", n.session);
       const a = { session: n.session, error: null };
       return this.refreshingDeferred.resolve(a), a;
     } catch (n) {
-      if (this._debug(r, "error", n), b(n)) {
+      if (this._debug(r, "error", n), _(n)) {
         const o = { session: null, error: n };
-        return ze(n) || await this._removeSession(), (t = this.refreshingDeferred) === null || t === void 0 || t.resolve(o), o;
+        return Ve(n) || await this._removeSession(), (t = this.refreshingDeferred) === null || t === void 0 || t.resolve(o), o;
       }
       throw (s = this.refreshingDeferred) === null || s === void 0 || s.reject(n), n;
     } finally {
@@ -5302,16 +5345,16 @@ class _e {
     this._debug("#_saveSession()", e), this.suppressGetSessionWarning = !0;
     const t = Object.assign({}, e), s = t.user && t.user.__isUserNotAvailableProxy === !0;
     if (this.userStorage) {
-      !s && t.user && await le(this.userStorage, this.storageKey + "-user", {
+      !s && t.user && await ce(this.userStorage, this.storageKey + "-user", {
         user: t.user
       });
       const r = Object.assign({}, t);
       delete r.user;
-      const n = Vt(r);
-      await le(this.storage, this.storageKey, n);
+      const n = Jt(r);
+      await ce(this.storage, this.storageKey, n);
     } else {
-      const r = Vt(t);
-      await le(this.storage, this.storageKey, r);
+      const r = Jt(t);
+      await ce(this.storage, this.storageKey, r);
     }
   }
   async _removeSession() {
@@ -5339,7 +5382,7 @@ class _e {
    */
   async _startAutoRefresh() {
     await this._stopAutoRefresh(), this._debug("#_startAutoRefresh()");
-    const e = setInterval(() => this._autoRefreshTokenTick(), ae);
+    const e = setInterval(() => this._autoRefreshTokenTick(), le);
     this.autoRefreshTicker = e, e && typeof e == "object" && typeof e.unref == "function" ? e.unref() : typeof Deno < "u" && typeof Deno.unrefTimer == "function" && Deno.unrefTimer(e), setTimeout(async () => {
       await this.initializePromise, await this._autoRefreshTokenTick();
     }, 0);
@@ -5405,8 +5448,8 @@ class _e {
                 this._debug("#_autoRefreshTokenTick()", "no session");
                 return;
               }
-              const r = Math.floor((s.expires_at * 1e3 - e) / ae);
-              this._debug("#_autoRefreshTokenTick()", `access token expires in ${r} ticks, a tick lasts ${ae}ms, refresh threshold is ${Ze} ticks`), r <= Ze && await this._callRefreshToken(s.refresh_token);
+              const r = Math.floor((s.expires_at * 1e3 - e) / le);
+              this._debug("#_autoRefreshTokenTick()", `access token expires in ${r} ticks, a tick lasts ${le}ms, refresh threshold is ${st} ticks`), r <= st && await this._callRefreshToken(s.refresh_token);
             });
           } catch (t) {
             console.error("Auto refresh tick failed with error. This is likely a transient error.", t);
@@ -5416,7 +5459,7 @@ class _e {
         }
       });
     } catch (e) {
-      if (e.isAcquireTimeout || e instanceof ws)
+      if (e.isAcquireTimeout || e instanceof Cs)
         this._debug("auto refresh token tick lock not available");
       else
         throw e;
@@ -5458,7 +5501,7 @@ class _e {
   async _getUrlForProvider(e, t, s) {
     const r = [`provider=${encodeURIComponent(t)}`];
     if (s != null && s.redirectTo && r.push(`redirect_to=${encodeURIComponent(s.redirectTo)}`), s != null && s.scopes && r.push(`scopes=${encodeURIComponent(s.scopes)}`), this.flowType === "pkce") {
-      const [n, o] = await re(this.storage, this.storageKey), a = new URLSearchParams({
+      const [n, o] = await ne(this.storage, this.storageKey), a = new URLSearchParams({
         code_challenge: `${encodeURIComponent(n)}`,
         code_challenge_method: `${encodeURIComponent(o)}`
       });
@@ -5475,13 +5518,13 @@ class _e {
       return await this._useSession(async (t) => {
         var s;
         const { data: r, error: n } = t;
-        return n ? { data: null, error: n } : await w(this.fetch, "DELETE", `${this.url}/factors/${e.factorId}`, {
+        return n ? { data: null, error: n } : await S(this.fetch, "DELETE", `${this.url}/factors/${e.factorId}`, {
           headers: this.headers,
           jwt: (s = r == null ? void 0 : r.session) === null || s === void 0 ? void 0 : s.access_token
         });
       });
     } catch (t) {
-      if (b(t))
+      if (_(t))
         return { data: null, error: t };
       throw t;
     }
@@ -5493,7 +5536,7 @@ class _e {
         const { data: n, error: o } = t;
         if (o)
           return { data: null, error: o };
-        const a = Object.assign({ friendly_name: e.friendlyName, factor_type: e.factorType }, e.factorType === "phone" ? { phone: e.phone } : { issuer: e.issuer }), { data: l, error: u } = await w(this.fetch, "POST", `${this.url}/factors`, {
+        const a = Object.assign({ friendly_name: e.friendlyName, factor_type: e.factorType }, e.factorType === "phone" ? { phone: e.phone } : { issuer: e.issuer }), { data: l, error: u } = await S(this.fetch, "POST", `${this.url}/factors`, {
           body: a,
           headers: this.headers,
           jwt: (s = n == null ? void 0 : n.session) === null || s === void 0 ? void 0 : s.access_token
@@ -5501,7 +5544,7 @@ class _e {
         return u ? { data: null, error: u } : (e.factorType === "totp" && (!((r = l == null ? void 0 : l.totp) === null || r === void 0) && r.qr_code) && (l.totp.qr_code = `data:image/svg+xml;utf-8,${l.totp.qr_code}`), { data: l, error: null });
       });
     } catch (t) {
-      if (b(t))
+      if (_(t))
         return { data: null, error: t };
       throw t;
     }
@@ -5517,7 +5560,7 @@ class _e {
           const { data: r, error: n } = t;
           if (n)
             return { data: null, error: n };
-          const { data: o, error: a } = await w(this.fetch, "POST", `${this.url}/factors/${e.factorId}/verify`, {
+          const { data: o, error: a } = await S(this.fetch, "POST", `${this.url}/factors/${e.factorId}/verify`, {
             body: { code: e.code, challenge_id: e.challengeId },
             headers: this.headers,
             jwt: (s = r == null ? void 0 : r.session) === null || s === void 0 ? void 0 : s.access_token
@@ -5525,7 +5568,7 @@ class _e {
           return a ? { data: null, error: a } : (await this._saveSession(Object.assign({ expires_at: Math.round(Date.now() / 1e3) + o.expires_in }, o)), await this._notifyAllSubscribers("MFA_CHALLENGE_VERIFIED", o), { data: o, error: a });
         });
       } catch (t) {
-        if (b(t))
+        if (_(t))
           return { data: null, error: t };
         throw t;
       }
@@ -5540,14 +5583,14 @@ class _e {
         return await this._useSession(async (t) => {
           var s;
           const { data: r, error: n } = t;
-          return n ? { data: null, error: n } : await w(this.fetch, "POST", `${this.url}/factors/${e.factorId}/challenge`, {
+          return n ? { data: null, error: n } : await S(this.fetch, "POST", `${this.url}/factors/${e.factorId}/challenge`, {
             body: { channel: e.channel },
             headers: this.headers,
             jwt: (s = r == null ? void 0 : r.session) === null || s === void 0 ? void 0 : s.access_token
           });
         });
       } catch (t) {
-        if (b(t))
+        if (_(t))
           return { data: null, error: t };
         throw t;
       }
@@ -5597,7 +5640,7 @@ class _e {
           data: { currentLevel: null, nextLevel: null, currentAuthenticationMethods: [] },
           error: null
         };
-      const { payload: o } = Ve(r.access_token);
+      const { payload: o } = We(r.access_token);
       let a = null;
       o.aal && (a = o.aal);
       let l = a;
@@ -5611,9 +5654,9 @@ class _e {
     if (s)
       return s;
     const r = Date.now();
-    if (s = this.jwks.keys.find((a) => a.kid === e), s && this.jwks_cached_at + nn > r)
+    if (s = this.jwks.keys.find((a) => a.kid === e), s && this.jwks_cached_at + ln > r)
       return s;
-    const { data: n, error: o } = await w(this.fetch, "GET", `${this.url}/.well-known/jwks.json`, {
+    const { data: n, error: o } = await S(this.fetch, "GET", `${this.url}/.well-known/jwks.json`, {
       headers: this.headers
     });
     if (o)
@@ -5645,8 +5688,8 @@ class _e {
           return { data: null, error: p };
         s = f.session.access_token;
       }
-      const { header: r, payload: n, signature: o, raw: { header: a, payload: l } } = Ve(s);
-      t != null && t.allowExpired || Pn(n.exp);
+      const { header: r, payload: n, signature: o, raw: { header: a, payload: l } } = We(s);
+      t != null && t.allowExpired || jn(n.exp);
       const u = !r.alg || r.alg.startsWith("HS") || !r.kid || !("crypto" in globalThis && "subtle" in globalThis.crypto) ? null : await this.fetchJwk(r.kid, t != null && t.keys ? { keys: t.keys } : t == null ? void 0 : t.jwks);
       if (!u) {
         const { error: f } = await this.getUser(s);
@@ -5661,11 +5704,11 @@ class _e {
           error: null
         };
       }
-      const c = An(r.alg), h = await crypto.subtle.importKey("jwk", u, c, !0, [
+      const c = $n(r.alg), h = await crypto.subtle.importKey("jwk", u, c, !0, [
         "verify"
       ]);
-      if (!await crypto.subtle.verify(c, h, o, gn(`${a}.${l}`)))
-        throw new st("Invalid JWT signature");
+      if (!await crypto.subtle.verify(c, h, o, yn(`${a}.${l}`)))
+        throw new it("Invalid JWT signature");
       return {
         data: {
           claims: n,
@@ -5675,20 +5718,20 @@ class _e {
         error: null
       };
     } catch (s) {
-      if (b(s))
+      if (_(s))
         return { data: null, error: s };
       throw s;
     }
   }
 }
-_e.nextInstanceID = 0;
-const Wn = _e;
-class Kn extends Wn {
+we.nextInstanceID = 0;
+const Gn = we;
+class Qn extends Gn {
   constructor(e) {
     super(e);
   }
 }
-var Jn = function(i, e, t, s) {
+var Xn = function(i, e, t, s) {
   function r(n) {
     return n instanceof t ? n : new t(function(o) {
       o(n);
@@ -5715,7 +5758,7 @@ var Jn = function(i, e, t, s) {
     u((s = s.apply(i, e || [])).next());
   });
 };
-class Gn {
+class Yn {
   /**
    * Create a new client for use in the browser.
    * @param supabaseUrl The unique Supabase URL which is supplied when you create a new project in your project dashboard.
@@ -5735,29 +5778,29 @@ class Gn {
       throw new Error("supabaseUrl is required.");
     if (!t)
       throw new Error("supabaseKey is required.");
-    const a = Yr(e), l = new URL(a);
+    const a = tn(e), l = new URL(a);
     this.realtimeUrl = new URL("realtime/v1", l), this.realtimeUrl.protocol = this.realtimeUrl.protocol.replace("http", "ws"), this.authUrl = new URL("auth/v1", l), this.storageUrl = new URL("storage/v1", l), this.functionsUrl = new URL("functions/v1", l);
     const u = `sb-${l.hostname.split(".")[0]}-auth-token`, c = {
-      db: Vr,
-      realtime: Wr,
-      auth: Object.assign(Object.assign({}, Hr), { storageKey: u }),
-      global: zr
-    }, h = Zr(s ?? {}, c);
+      db: Kr,
+      realtime: Gr,
+      auth: Object.assign(Object.assign({}, Jr), { storageKey: u }),
+      global: Wr
+    }, h = sn(s ?? {}, c);
     this.storageKey = (r = h.auth.storageKey) !== null && r !== void 0 ? r : "", this.headers = (n = h.global.headers) !== null && n !== void 0 ? n : {}, h.accessToken ? (this.accessToken = h.accessToken, this.auth = new Proxy({}, {
       get: (d, f) => {
         throw new Error(`@supabase/supabase-js: Supabase Client is configured with the accessToken option, accessing supabase.auth.${String(f)} is not possible`);
       }
-    })) : this.auth = this._initSupabaseAuthClient((o = h.auth) !== null && o !== void 0 ? o : {}, this.headers, h.global.fetch), this.fetch = Qr(t, this._getAccessToken.bind(this), h.global.fetch), this.realtime = this._initRealtimeClient(Object.assign({ headers: this.headers, accessToken: this._getAccessToken.bind(this) }, h.realtime)), this.rest = new dr(new URL("rest/v1", l).href, {
+    })) : this.auth = this._initSupabaseAuthClient((o = h.auth) !== null && o !== void 0 ? o : {}, this.headers, h.global.fetch), this.fetch = Zr(t, this._getAccessToken.bind(this), h.global.fetch), this.realtime = this._initRealtimeClient(Object.assign({ headers: this.headers, accessToken: this._getAccessToken.bind(this) }, h.realtime)), this.rest = new gr(new URL("rest/v1", l).href, {
       headers: this.headers,
       schema: h.db.schema,
       fetch: this.fetch
-    }), this.storage = new Br(this.storageUrl.href, this.headers, this.fetch, s == null ? void 0 : s.storage), h.accessToken || this._listenForAuthEvents();
+    }), this.storage = new zr(this.storageUrl.href, this.headers, this.fetch, s == null ? void 0 : s.storage), h.accessToken || this._listenForAuthEvents();
   }
   /**
    * Supabase Functions allows you to deploy and invoke edge functions.
    */
   get functions() {
-    return new Ms(this.functionsUrl.href, {
+    return new Hs(this.functionsUrl.href, {
       headers: this.headers,
       customFetch: this.fetch
     });
@@ -5841,7 +5884,7 @@ class Gn {
   }
   _getAccessToken() {
     var e, t;
-    return Jn(this, void 0, void 0, function* () {
+    return Xn(this, void 0, void 0, function* () {
       if (this.accessToken)
         return yield this.accessToken();
       const { data: s } = yield this.auth.getSession();
@@ -5853,7 +5896,7 @@ class Gn {
       Authorization: `Bearer ${this.supabaseKey}`,
       apikey: `${this.supabaseKey}`
     };
-    return new Kn({
+    return new Qn({
       url: this.authUrl.href,
       headers: Object.assign(Object.assign({}, h), u),
       storageKey: n,
@@ -5871,7 +5914,7 @@ class Gn {
     });
   }
   _initRealtimeClient(e) {
-    return new Tr(this.realtimeUrl.href, Object.assign(Object.assign({}, e), { params: Object.assign({ apikey: this.supabaseKey }, e == null ? void 0 : e.params) }));
+    return new Ar(this.realtimeUrl.href, Object.assign(Object.assign({}, e), { params: Object.assign({ apikey: this.supabaseKey }, e == null ? void 0 : e.params) }));
   }
   _listenForAuthEvents() {
     return this.auth.onAuthStateChange((t, s) => {
@@ -5882,19 +5925,19 @@ class Gn {
     (e === "TOKEN_REFRESHED" || e === "SIGNED_IN") && this.changedAccessToken !== s ? this.changedAccessToken = s : e === "SIGNED_OUT" && (this.realtime.setAuth(), t == "STORAGE" && this.auth.signOut(), this.changedAccessToken = void 0);
   }
 }
-const Qn = (i, e, t) => new Gn(i, e, t);
-function Xn() {
+const Zn = (i, e, t) => new Yn(i, e, t);
+function ei() {
   if (typeof window < "u" || typeof process > "u" || process.version === void 0 || process.version === null)
     return !1;
   const i = process.version.match(/^v(\d+)\./);
   return i ? parseInt(i[1], 10) <= 18 : !1;
 }
-Xn() && console.warn("⚠️  Node.js 18 and below are deprecated and will no longer be supported in future versions of @supabase/supabase-js. Please upgrade to Node.js 20 or later. For more information, visit: https://github.com/orgs/supabase/discussions/37217");
-class ft {
+ei() && console.warn("⚠️  Node.js 18 and below are deprecated and will no longer be supported in future versions of @supabase/supabase-js. Please upgrade to Node.js 20 or later. For more information, visit: https://github.com/orgs/supabase/discussions/37217");
+class vt {
   constructor(e, t) {
-    y(this, "client");
+    v(this, "client");
     const s = e || "https://yoflhmaayrceswiwvxba.supabase.co", r = t || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlvZmxobWFheXJjZXN3aXd2eGJhIiwicm9sZSI6ImFub24iLCJpYXQiOjE2NzI5MzQ4MzUsImV4cCI6MTk4ODUxMDgzNX0.dq8OdZylVnB1Gwa_nYLALxUHk2NOPmRlhS_YbA7E8pg";
-    this.client = Qn(s, r);
+    this.client = Zn(s, r);
   }
   async getCheckoutCampaign(e) {
     try {
@@ -5989,7 +6032,7 @@ class ft {
     }
   }
 }
-const Ne = "assistantAnalyticsPayload", Yn = "ei_enhanced_insights", ve = "ei_analytics", pt = "ei_insights", rt = "ei_analytics_consent", Zn = 3500, ei = 10, ti = 3, si = 50, ri = 100, ni = 8, ii = [
+const Be = "assistantAnalyticsPayload", ti = "ei_enhanced_insights", ye = "ei_analytics", yt = "ei_insights", ot = "ei_analytics_consent", si = 3500, ri = 10, ni = 3, ii = 50, oi = 100, ai = 8, li = [
   "utm_source",
   "utm_medium",
   "utm_campaign",
@@ -6011,7 +6054,7 @@ const Ne = "assistantAnalyticsPayload", Yn = "ei_enhanced_insights", ve = "ei_an
   "irclickid",
   "mc_cid",
   "ad_name"
-], oi = [
+], ci = [
   "attribution_history",
   "touch_count",
   "first_utm_source",
@@ -6022,12 +6065,12 @@ const Ne = "assistantAnalyticsPayload", Yn = "ei_enhanced_insights", ve = "ei_an
   "first_date_visited",
   "enhanced_insights"
 ];
-function Gt(i) {
+function Zt(i) {
   return typeof i.activeMs == "number" && i.activeMs > 0 ? i.activeMs : typeof i.leftAt == "number" && i.leftAt > i.enteredAt ? i.leftAt - i.enteredAt : 0;
 }
-let Y = {}, ce = null, we = !0, Qt = !1, F;
-const Ss = [];
-function ks(i) {
+let Z = {}, ue = null, Se = !0, es = !1, F;
+const Is = [];
+function Ts(i) {
   if (typeof document > "u") return [];
   const e = i + "=", t = [];
   for (const s of ("; " + document.cookie).split("; ")) {
@@ -6041,12 +6084,12 @@ function ks(i) {
   }
   return t;
 }
-function Es() {
+function xs() {
   if (F !== void 0) return F;
   F = null;
   try {
-    if (Y.cookieDomain)
-      return F = Y.cookieDomain.replace(/^\./, ""), F;
+    if (Z.cookieDomain)
+      return F = Z.cookieDomain.replace(/^\./, ""), F;
     const i = window.location.hostname;
     if (!i || /^[\d.]+$/.test(i) || i === "localhost")
       return null;
@@ -6060,26 +6103,26 @@ function Es() {
   }
   return F;
 }
-function ye(i, e) {
+function be(i, e) {
   try {
     const t = encodeURIComponent(JSON.stringify(e));
-    if (t.length > Zn) return !1;
-    const s = Es(), r = window.location.protocol === "https:" ? "; Secure" : "";
+    if (t.length > si) return !1;
+    const s = xs(), r = window.location.protocol === "https:" ? "; Secure" : "";
     return document.cookie = `${i}=${t}` + (s ? `; domain=.${s}` : "") + `; path=/; SameSite=Lax${r}`, !0;
   } catch {
     return !1;
   }
 }
-function nt(i) {
+function at(i) {
   try {
-    const e = Es();
+    const e = xs();
     document.cookie = `${i}=` + (e ? `; domain=.${e}` : "") + "; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
   } catch {
   }
 }
-function Cs(i) {
+function Ps(i) {
   const e = [];
-  for (const t of ks(i))
+  for (const t of Ts(i))
     try {
       const s = JSON.parse(t);
       s && typeof s == "object" && !Array.isArray(s) && e.push(s);
@@ -6087,9 +6130,9 @@ function Cs(i) {
     }
   return e;
 }
-function Is() {
+function As() {
   const i = {};
-  for (const e of Cs(pt))
+  for (const e of Ps(yt))
     for (const [t, s] of Object.entries(e)) {
       if (!s || typeof s != "object" || Array.isArray(s))
         continue;
@@ -6098,27 +6141,27 @@ function Is() {
     }
   return i;
 }
-function ai(i) {
-  if (ye(ve, i)) return;
-  const e = Ae(i);
+function ui(i) {
+  if (be(ye, i)) return;
+  const e = Oe(i);
   for (let t = e.length - 1; t >= 2; t--) {
     const s = [e[0], ...e.slice(-(t - 1))];
-    if (ye(ve, ot(s)))
+    if (be(ye, ct(s)))
       return;
   }
-  e.length > 1 && ye(
-    ve,
-    ot([e[0], e[e.length - 1]])
+  e.length > 1 && be(
+    ye,
+    ct([e[0], e[e.length - 1]])
   );
 }
-function li() {
-  nt(ve);
+function hi() {
+  at(ye);
 }
-function ci() {
-  const i = Cs(ve);
+function di() {
+  const i = Ps(ye);
   if (i.length === 0) return null;
   const e = (r) => {
-    const n = Ae(r), o = n[0], a = o && typeof o.date_visited == "string" ? o.date_visited : "";
+    const n = Oe(r), o = n[0], a = o && typeof o.date_visited == "string" ? o.date_visited : "";
     return { touches: n.length, at: a };
   };
   let t = i[0], s = e(t);
@@ -6128,21 +6171,21 @@ function ci() {
   }
   return t;
 }
-function ui() {
-  const i = Os();
+function fi() {
+  const i = Ls();
   if (!i) return null;
   const { visits: e, time_per_page: t, ...s } = i, r = {};
-  return Object.entries(t ?? {}).sort((n, o) => o[1] - n[1]).slice(0, ei).forEach(([n, o]) => {
+  return Object.entries(t ?? {}).sort((n, o) => o[1] - n[1]).slice(0, ri).forEach(([n, o]) => {
     r[n] = o;
   }), { ...s, time_per_page: r };
 }
-function hi() {
+function pi() {
   try {
-    if (typeof window > "u" || Y.shareInsightsAcrossSubdomains === !1 || !gt())
+    if (typeof window > "u" || Z.shareInsightsAcrossSubdomains === !1 || !bt())
       return;
-    const i = ui();
+    const i = fi();
     if (!i) return;
-    const e = window.location.hostname, t = Is();
+    const e = window.location.hostname, t = As();
     let s = Object.entries(t).filter(([n, o]) => n !== e && o && typeof o == "object").sort(
       (n, o) => {
         var a, l;
@@ -6152,13 +6195,13 @@ function hi() {
       }
     );
     s = s.slice(
-      Math.max(0, s.length - (ti - 1))
+      Math.max(0, s.length - (ni - 1))
     );
     let r = i;
     for (; ; ) {
       const n = {};
       for (const [a, l] of s) n[a] = l;
-      if (n[e] = r, ye(pt, n)) return;
+      if (n[e] = r, be(yt, n)) return;
       if (s.length > 0) {
         s = s.slice(1);
         continue;
@@ -6182,29 +6225,29 @@ function hi() {
   } catch {
   }
 }
-function di() {
+function gi() {
   if (typeof window > "u") return [];
-  const i = Is(), e = window.location.hostname;
+  const i = As(), e = window.location.hostname;
   return Object.entries(i).filter(
     ([t, s]) => t !== e && s && typeof s == "object" && !Array.isArray(s)
   ).map(([, t]) => t);
 }
-function fi(i, e) {
+function mi(i, e) {
   if (e.length === 0) return i;
   const t = i ? [i, ...e] : e, s = (h) => typeof h == "number" && isFinite(h) ? h : 0;
   let r = 0, n = 0;
   const o = [], a = {};
   let l = null, u = null;
   for (const h of t) {
-    r += s(h.visit_count), n += s(h.total_time_seconds), String(h.pages ?? "").split(",").forEach((v) => {
-      v && o.indexOf(v) === -1 && o.push(v);
+    r += s(h.visit_count), n += s(h.total_time_seconds), typeof h.pages == "string" && h.pages.split(",").forEach((y) => {
+      y && o.indexOf(y) === -1 && o.push(y);
     });
     const d = h.time_per_page;
     if (d && typeof d == "object" && !Array.isArray(d))
-      for (const [v, m] of Object.entries(
+      for (const [y, g] of Object.entries(
         d
       ))
-        a[v] = (a[v] ?? 0) + s(m);
+        a[y] = (a[y] ?? 0) + s(g);
     const f = typeof h.first_visit_at == "string" ? h.first_visit_at : null, p = typeof h.last_visit_at == "string" ? h.last_visit_at : null;
     f && (!l || f < l) && (l = f), p && (!u || p > u) && (u = p);
   }
@@ -6217,7 +6260,7 @@ function fi(i, e) {
   };
   return l && (c.first_visit_at = l), u && (c.last_visit_at = u), i && Array.isArray(i.visits) && (c.visits = i.visits), c;
 }
-function Ts() {
+function Os() {
   try {
     const i = window, e = i.Cookiebot;
     if (e && e.consent && typeof e.consent.statistics == "boolean" && e.hasResponse)
@@ -6228,51 +6271,51 @@ function Ts() {
   }
   return null;
 }
-function pi() {
-  if (Qt || typeof window > "u") return;
-  Qt = !0;
+function vi() {
+  if (es || typeof window > "u") return;
+  es = !0;
   const i = () => {
-    const e = Ts();
-    e === !0 ? be(!0) : e === !1 && be(!1);
+    const e = Os();
+    e === !0 ? _e(!0) : e === !1 && _e(!1);
   };
   try {
     window.addEventListener("CookiebotOnConsentReady", i), window.addEventListener("CookiebotOnAccept", i), window.addEventListener("CookiebotOnDecline", i), window.addEventListener("OneTrustGroupsUpdated", i);
     const e = window.__tcfapi;
     typeof e == "function" && e("addEventListener", 2, (t, s) => {
       var r, n;
-      !s || !t || (t.eventStatus === "tcloaded" || t.eventStatus === "useractioncomplete") && be(!!((n = (r = t.purpose) == null ? void 0 : r.consents) != null && n[1]));
+      !s || !t || (t.eventStatus === "tcloaded" || t.eventStatus === "useractioncomplete") && _e(!!((n = (r = t.purpose) == null ? void 0 : r.consents) != null && n[1]));
     });
   } catch {
   }
 }
-function gt() {
-  return xs() ? !1 : !Y.requireConsent || we;
+function bt() {
+  return js() ? !1 : !Z.requireConsent || Se;
 }
-function xs() {
-  return ks(rt).indexOf("0") !== -1;
+function js() {
+  return Ts(ot).indexOf("0") !== -1;
 }
-function gi(i) {
-  Ss.push(i);
+function yi(i) {
+  Is.push(i);
 }
-function be(i) {
-  const e = i !== we;
-  if (we = i, i)
-    nt(rt), Ps();
+function _e(i) {
+  const e = i !== Se;
+  if (Se = i, i)
+    at(ot), $s();
   else {
-    ye(rt, 0), li(), nt(pt);
+    be(ot, 0), hi(), at(yt);
     try {
-      sessionStorage.removeItem(Ne);
+      sessionStorage.removeItem(Be);
     } catch {
     }
   }
   if (e)
-    for (const t of Ss)
+    for (const t of Is)
       try {
         t(i);
       } catch {
       }
 }
-function mi() {
+function bi() {
   const i = {};
   for (const [e, t] of new URL(
     window.location.href
@@ -6285,10 +6328,10 @@ function mi() {
     referrer: document.referrer
   };
 }
-function it(i) {
-  return ii.filter((e) => i[e] !== void 0).map((e) => e + "=" + String(i[e])).join("&");
+function lt(i) {
+  return li.filter((e) => i[e] !== void 0).map((e) => e + "=" + String(i[e])).join("&");
 }
-function Ae(i) {
+function Oe(i) {
   if (!i) return [];
   const e = i.attribution_history;
   if (Array.isArray(e))
@@ -6297,85 +6340,85 @@ function Ae(i) {
     );
   const t = {};
   for (const [s, r] of Object.entries(i))
-    oi.indexOf(s) === -1 && (t[s] = r);
+    ci.indexOf(s) === -1 && (t[s] = r);
   return Object.keys(t).length > 0 ? [t] : [];
 }
-function vi(...i) {
+function _i(...i) {
   const e = /* @__PURE__ */ new Set(), t = [];
   for (const s of i)
     for (const r of s) {
-      const n = String(r.date_visited ?? "") + "|" + it(r);
+      const n = String(r.date_visited ?? "") + "|" + lt(r);
       e.has(n) || (e.add(n), t.push(r));
     }
   return t.sort(
     (s, r) => String(s.date_visited ?? "").localeCompare(String(r.date_visited ?? ""))
   );
 }
-function yi(i) {
-  return i.length <= ni ? i : [i[0], ...i.slice(-7)];
+function wi(i) {
+  return i.length <= ai ? i : [i[0], ...i.slice(-7)];
 }
-function bi(i, e) {
+function Si(i, e) {
   if (i.length === 0) return [e];
-  const t = it(e);
-  return !t || t === it(i[i.length - 1]) ? i : yi([...i, e]);
+  const t = lt(e);
+  return !t || t === lt(i[i.length - 1]) ? i : wi([...i, e]);
 }
-function ot(i) {
+function ct(i) {
   if (i.length === 0) return {};
   const e = i[0], s = { ...i[i.length - 1] }, r = (n, o) => {
     e[o] !== void 0 && (s[n] = e[o]);
   };
   return r("first_utm_source", "utm_source"), r("first_utm_medium", "utm_medium"), r("first_utm_campaign", "utm_campaign"), r("first_landing_page", "landing_page"), r("first_referrer", "referrer"), r("first_date_visited", "date_visited"), s.touch_count = i.length, s.attribution_history = i, s;
 }
-function Ps() {
-  if (!(typeof window > "u" || !ce) && !xs())
+function $s() {
+  if (!(typeof window > "u" || !ue) && !js())
     try {
       window.sessionStorage && sessionStorage.setItem(
-        Ne,
-        JSON.stringify(ce)
-      ), ai(ce);
+        Be,
+        JSON.stringify(ue)
+      ), ui(ue);
     } catch {
     }
 }
-function _i(i) {
+function ki(i) {
   if (!(typeof window > "u")) {
-    Y = i ?? {}, F = void 0;
+    Z = i ?? {}, F = void 0;
     try {
-      const e = window.sessionStorage ? sessionStorage.getItem(Ne) : null;
+      const e = window.sessionStorage ? sessionStorage.getItem(Be) : null;
       let t = null;
       if (e) {
         const r = JSON.parse(e);
         r && typeof r == "object" && !Array.isArray(r) && (t = r);
       }
-      const s = bi(
-        vi(
-          Ae(t),
-          Ae(ci())
+      const s = Si(
+        _i(
+          Oe(t),
+          Oe(di())
         ),
-        mi()
+        bi()
       );
-      if (ce = ot(s), Y.requireConsent) {
-        pi();
-        const r = Ts();
-        r === null ? we = !1 : be(r);
+      if (ue = ct(s), Z.requireConsent) {
+        vi();
+        const r = Os();
+        r === null ? Se = !1 : _e(r);
       } else
-        we = !0, Ps();
+        Se = !0, $s();
     } catch {
     }
   }
 }
-function As(i) {
+function Rs(i) {
   let e = i.trim();
   if (!e) return "";
   const t = e.search(/[?#]/);
   return t >= 0 && (e = e.slice(0, t)), e.startsWith("/") || (e = "/" + e), e.length > 1 && e.endsWith("/") && (e = e.slice(0, -1)), e;
 }
-function wi(i) {
-  return As(i).replace(/\./g, "_");
+function Ei(i) {
+  return Rs(i).replace(/\./g, "_");
 }
-function Os() {
+function Ls() {
   try {
     if (typeof window > "u" || !window.localStorage) return null;
-    const i = window.localStorage.getItem(Yn);
+    const i = window.localStorage.getItem(ti);
     if (!i) return null;
     const e = JSON.parse(i), t = Array.isArray(e == null ? void 0 : e.visits) ? e.visits.filter(
       (u) => u && typeof u.page == "string" && typeof u.enteredAt == "number"
@@ -6383,20 +6426,20 @@ function Os() {
     if (!s || !r) return null;
     const n = [];
     for (const u of t) {
-      const c = As(u.page);
+      const c = Rs(u.page);
       c && n.indexOf(c) === -1 && n.push(c);
     }
-    const o = t.reduce((u, c) => u + Gt(c), 0), a = {};
+    const o = t.reduce((u, c) => u + Zt(c), 0), a = {};
     for (const u of t) {
-      const c = wi(u.page);
-      c && (a[c] = (a[c] ?? 0) + Gt(u));
+      const c = Ei(u.page);
+      c && (a[c] = (a[c] ?? 0) + Zt(u));
     }
     const l = {};
-    return Object.entries(a).slice(0, ri).forEach(([u, c]) => {
+    return Object.entries(a).slice(0, oi).forEach(([u, c]) => {
       l[u] = Math.round(c / 1e3);
     }), {
       time_per_page: l,
-      visits: t.slice(-si),
+      visits: t.slice(-ii),
       visit_count: t.length,
       unique_pages: n.length,
       total_time_seconds: Math.round(o / 1e3),
@@ -6408,49 +6451,50 @@ function Os() {
     return null;
   }
 }
-function Si() {
+function Ci() {
   try {
-    if (!gt()) return null;
+    if (!bt()) return null;
     let i = {};
     if (typeof window < "u" && window.sessionStorage) {
-      const t = sessionStorage.getItem(Ne);
+      const t = sessionStorage.getItem(Be);
       if (t) {
         const s = JSON.parse(t);
         s && typeof s == "object" && (i = s);
       }
     }
-    Object.keys(i).length === 0 && ce && (i = { ...ce });
-    let e = Os();
-    return Y.shareInsightsAcrossSubdomains !== !1 && (e = fi(
+    Object.keys(i).length === 0 && ue && (i = { ...ue });
+    let e = Ls();
+    return Z.shareInsightsAcrossSubdomains !== !1 && (e = mi(
       e,
-      di()
+      gi()
     )), e && (i.enhanced_insights = e), Object.keys(i).length > 0 ? JSON.stringify(i) : null;
   } catch {
     return null;
   }
 }
-let Xt = !1;
-class ki {
+let ts = !1;
+const je = class je {
   // Flag to prevent duplicate storage listeners
   constructor(e) {
-    y(this, "options");
-    y(this, "supabaseService");
-    y(this, "inputDetector");
-    y(this, "productDetector");
-    y(this, "totalExtractor");
-    y(this, "campaign");
-    y(this, "totalAverage", 0);
-    y(this, "_sessionId");
-    y(this, "isInitialized", !1);
-    y(this, "previousContent", {});
-    y(this, "previousProducts", []);
-    y(this, "previousTotal", 0);
-    y(this, "debounceTimer");
-    y(this, "pendingContentUpdate");
-    y(this, "isSubmitting", !1);
+    v(this, "options");
+    v(this, "supabaseService");
+    v(this, "inputDetector");
+    v(this, "productDetector");
+    v(this, "totalExtractor");
+    v(this, "campaign");
+    v(this, "totalAverage", 0);
+    v(this, "_sessionId");
+    v(this, "isInitialized", !1);
+    v(this, "previousContent", {});
+    v(this, "previousProducts", []);
+    v(this, "previousTotal", 0);
+    v(this, "debounceTimer");
+    v(this, "pendingContentUpdate");
+    v(this, "isSubmitting", !1);
     // Lock to prevent concurrent submissions
-    y(this, "autofieldStorageListenersSetup", !1);
-    this.options = e, this.supabaseService = new ft(
+    v(this, "autofieldStorageListenersSetup", !1);
+    v(this, "boundHandleAutofieldBlur", (e) => this.handleAutofieldBlur(e));
+    this.options = e, this.supabaseService = new vt(
       e.supabaseUrl,
       e.supabaseAnonKey
     );
@@ -6465,13 +6509,13 @@ class ki {
       const r = await this.supabaseService.getCheckoutCampaign(
         this.options.checkoutCampaignId
       );
-      return this.totalAverage = r != null && r.average_checkout_value ? r.average_checkout_value : 0, r ? (this.campaign = r, this.inputDetector = new Ls(r.input_mapping), r.type !== "bookvisit" && r.type !== "synxis" && r.type !== "elinapms" && (this.productDetector = new Ds(
+      return this.totalAverage = r != null && r.average_checkout_value ? r.average_checkout_value : 0, r ? (this.campaign = r, this.inputDetector = new Ge(r.input_mapping), r.type !== "bookvisit" && r.type !== "synxis" && r.type !== "elinapms" && (this.productDetector = new Fs(
         r.product_mapping
-      ), this.totalExtractor = new Us(
+      ), this.totalExtractor = new Bs(
         r.total_selector
       )), this.inputDetector.setOnContentUpdate(
         this.debouncedHandleContentUpdate.bind(this)
-      ), this._sessionId && this.inputDetector.setSessionId(this._sessionId), r.type === "bookvisit" && ((s = (t = r.config) == null ? void 0 : t.bookvisit) == null ? void 0 : s.autofields) === !0 && window.location.pathname === "/checkout" && !Xt && (Xt = !0, this.injectBookVisitAutofields(r.input_mapping)), this.checkAndFillPaymentPageFields(), this.inputDetector.startListening(), this.setupUrlChangeListener(), this.isInitialized = !0, !0) : (console.error("Failed to fetch checkout campaign data"), !1);
+      ), this._sessionId && this.inputDetector.setSessionId(this._sessionId), r.type === "bookvisit" && ((s = (t = r.config) == null ? void 0 : t.bookvisit) == null ? void 0 : s.autofields) === !0 && window.location.pathname === "/checkout" && !ts && (ts = !0, this.injectBookVisitAutofields(r.input_mapping)), this.checkAndFillPaymentPageFields(), this.inputDetector.startListening(), this.setupUrlChangeListener(), this.isInitialized = !0, !0) : (console.error("Failed to fetch checkout campaign data"), !1);
     } catch (r) {
       return console.error("Failed to initialize abandoned cart tool:", r), !1;
     }
@@ -6482,34 +6526,42 @@ class ki {
    */
   debouncedHandleContentUpdate(e, t) {
     this.pendingContentUpdate = { content: e, sessionId: t }, this.debounceTimer && clearTimeout(this.debounceTimer), this.debounceTimer = setTimeout(() => {
-      this.pendingContentUpdate && (this.handleContentUpdate(
-        this.pendingContentUpdate.content,
-        this.pendingContentUpdate.sessionId
-      ), this.pendingContentUpdate = void 0);
+      if (this.pendingContentUpdate) {
+        const s = this.pendingContentUpdate;
+        this.pendingContentUpdate = void 0, this.handleContentUpdate(s.content, s.sessionId);
+      }
     }, 300);
   }
   async handleContentUpdate(e, t) {
     var s, r, n, o, a, l, u, c;
     if (this.isSubmitting) {
       this.pendingContentUpdate = { content: e, sessionId: t }, this.debounceTimer && clearTimeout(this.debounceTimer), this.debounceTimer = setTimeout(() => {
-        this.pendingContentUpdate && this.handleContentUpdate(
-          this.pendingContentUpdate.content,
-          this.pendingContentUpdate.sessionId
-        );
+        if (this.pendingContentUpdate) {
+          const h = this.pendingContentUpdate;
+          this.pendingContentUpdate = void 0, this.handleContentUpdate(
+            h.content,
+            h.sessionId
+          );
+        }
       }, 100);
       return;
     }
+    this.isSubmitting = !0;
     try {
       let h = [], d = this.totalAverage;
       if (((s = this.campaign) == null ? void 0 : s.type) === "bookvisit") {
-        const g = await this.fetchBookVisitBasket();
-        g && (h = g.products, d = g.total);
+        const b = await this.withBasketTimeout(
+          this.fetchBookVisitBasket()
+        );
+        b && (h = b.products, d = b.total);
       } else if (((r = this.campaign) == null ? void 0 : r.type) === "synxis") {
-        const g = await this.fetchSynxisBasket();
-        g && (h = g.products, d = g.total);
+        const b = await this.withBasketTimeout(
+          this.fetchSynxisBasket()
+        );
+        b && (h = b.products, d = b.total);
       } else if (((n = this.campaign) == null ? void 0 : n.type) === "elinapms") {
-        const g = await this.fetchElinapmsBasket();
-        g && (h = g.products, d = g.total);
+        const b = await this.fetchElinapmsBasket();
+        b && (h = b.products, d = b.total);
       } else
         h = ((o = this.productDetector) == null ? void 0 : o.detectProducts()) || [], d = ((a = this.totalExtractor) == null ? void 0 : a.extractTotal()) || this.totalAverage;
       if (!this.hasContentChanged(
@@ -6520,24 +6572,41 @@ class ki {
         console.log("Content unchanged, skipping upload");
         return;
       }
-      this.isSubmitting = !0;
-      const p = typeof window < "u" ? window.location.href : "", v = this._sessionId || t, m = Si(), _ = {
+      const p = typeof window < "u" ? window.location.href : "", y = this._sessionId || t, g = Ci(), w = { ...e }, k = {
         organization_id: this.options.organizationId,
         checkout_campaign_id: this.options.checkoutCampaignId,
-        content: e,
+        content: w,
         products: h,
         url: p,
         total: d,
-        id: v,
-        ...m ? { analytics: m } : {},
+        id: y,
+        ...g ? { analytics: g } : {},
         ...((l = this.campaign) == null ? void 0 : l.type) === "synxis" && this._synxisSessionIds ? { metadata: this._synxisSessionIds } : {},
         ...((u = this.campaign) == null ? void 0 : u.type) === "elinapms" && this._elinapmsSessionIds ? { metadata: this._elinapmsSessionIds } : {}
-      }, S = await this.supabaseService.submitCartSession(_);
-      S && S.id ? (this._sessionId = S.id, (c = this.inputDetector) == null || c.setSessionId(S.id), this.saveSessionIdToStorage(S.id), this.previousContent = { ...e }, this.previousProducts = [...h], this.previousTotal = d, console.log("Cart session updated successfully:", S.id)) : console.error("Failed to submit cart session");
+      }, m = await this.supabaseService.submitCartSession(k);
+      m && m.id ? (this._sessionId = m.id, (c = this.inputDetector) == null || c.setSessionId(m.id), this.saveSessionIdToStorage(m.id), this.previousContent = w, this.previousProducts = [...h], this.previousTotal = d, console.log("Cart session updated successfully:", m.id)) : console.error("Failed to submit cart session");
     } catch (h) {
       console.error("Error handling content update:", h);
     } finally {
       this.isSubmitting = !1;
+    }
+  }
+  /**
+   * The submission lock is held while the basket is fetched, so a basket
+   * request that hangs must not hold it indefinitely. On timeout the update
+   * goes out without basket data — the same path as a failed basket fetch.
+   */
+  async withBasketTimeout(e) {
+    let t;
+    const s = new Promise((r) => {
+      t = setTimeout(() => {
+        console.warn("Basket fetch timed out, continuing without it"), r(null);
+      }, je.BASKET_FETCH_TIMEOUT_MS);
+    });
+    try {
+      return await Promise.race([e, s]);
+    } finally {
+      t && clearTimeout(t);
     }
   }
   hasContentChanged(e, t, s) {
@@ -6683,9 +6752,9 @@ class ki {
       s = n.totalPrice || 0;
       const o = n.rooms || [], a = n.roomDescriptions || [], l = n.addOnDescriptions || [];
       o.forEach((c) => {
-        var v;
+        var y;
         const h = a.find(
-          (m) => m.id === c.roomId
+          (g) => g.id === c.roomId
         ), d = c.totalPrice || 0, f = {
           id: c.roomId,
           name: (h == null ? void 0 : h.name) || "Room",
@@ -6697,25 +6766,25 @@ class ki {
           roomConfig: c.roomConfig
         };
         if (c.priceInfo && c.priceInfo.length > 0) {
-          const m = c.priceInfo[0].ratePlanId, _ = (v = n.ratePlanDescriptions) == null ? void 0 : v.find(
-            (S) => S.id === m
+          const g = c.priceInfo[0].ratePlanId, w = (y = n.ratePlanDescriptions) == null ? void 0 : y.find(
+            (k) => k.id === g
           );
-          _ && (f.ratePlan = _.name);
+          w && (f.ratePlan = w.name);
         }
-        t.push(f), (c.mandatoryAddOns || []).forEach((m) => {
-          const _ = m.totalPrice || 0;
-          if (_ > 0) {
-            const S = l.find(
-              (g) => g.id === m.addOnId
+        t.push(f), (c.mandatoryAddOns || []).forEach((g) => {
+          const w = g.totalPrice || 0;
+          if (w > 0) {
+            const k = l.find(
+              (m) => m.id === g.addOnId
             );
             t.push({
-              id: m.addOnId,
-              name: (S == null ? void 0 : S.name) || "Add-on",
-              price: _,
-              quantity: m.numberOfUnits || 1,
+              id: g.addOnId,
+              name: (k == null ? void 0 : k.name) || "Add-on",
+              price: w,
+              quantity: g.numberOfUnits || 1,
               type: "addon",
               roomId: c.roomId,
-              date: m.date
+              date: g.date
             });
           }
         });
@@ -7005,61 +7074,61 @@ class ki {
    * it per-product as `actualTotal` for reference.
    */
   extractSynxisCartApiData(e) {
-    var o, a, l, u, c, h, d, f, p, v, m, _, S, g, k, x, C, O, mt, vt;
+    var o, a, l, u, c, h, d, f, p, y, g, w, k, m, b, x, C, O, _t, wt;
     const t = [];
     let s = 0;
     const r = this.getSynxisActualTotal(), n = this._synxisSessionIds;
     try {
-      const Fe = (e == null ? void 0 : e.ShoppingCart) || [], ee = [];
-      for (const I of Fe) {
+      const Me = (e == null ? void 0 : e.ShoppingCart) || [], te = [];
+      for (const I of Me) {
         const T = ((a = (o = I == null ? void 0 : I.UpdatedData) == null ? void 0 : o.itinerary) == null ? void 0 : a.reservations) || [];
-        for (const te of T)
-          ee.push({
-            resv: te,
+        for (const se of T)
+          te.push({
+            resv: se,
             itineraryNumber: (I == null ? void 0 : I.Itemid) || ""
           });
       }
-      let Ee = ee;
+      let Ce = te;
       if (n != null && n.sbeRcDecoded) {
-        const I = ee.filter(
+        const I = te.filter(
           ({ resv: T }) => T.id === n.sbeRcDecoded
         );
-        I.length > 0 && (Ee = I);
+        I.length > 0 && (Ce = I);
       }
-      Ee === ee && ee.length > 1 && (Ee = [...ee].sort(
+      Ce === te && te.length > 1 && (Ce = [...te].sort(
         (I, T) => T.itineraryNumber.localeCompare(I.itineraryNumber)
       ).slice(0, 1));
-      for (const { resv: I } of Ee) {
-        const T = I.extrasFromShopping || {}, te = I.stayCriteria || {}, yt = I.guestCriteria || {}, P = T.prices || {}, bt = ((c = (u = (l = P == null ? void 0 : P.Total) == null ? void 0 : l.Price) == null ? void 0 : u.Total) == null ? void 0 : c.AmountWithTaxesFees) || ((f = (d = (h = P == null ? void 0 : P.Total) == null ? void 0 : h.Price) == null ? void 0 : d.Total) == null ? void 0 : f.Amount) || ((v = (p = P == null ? void 0 : P.Total) == null ? void 0 : p.Price) == null ? void 0 : v.Amount) || 0, _t = ((P == null ? void 0 : P.Daily) || []).map((q) => {
-          var wt, St, kt, Et, Ct, It, Tt, xt, Pt, At;
+      for (const { resv: I } of Ce) {
+        const T = I.extrasFromShopping || {}, se = I.stayCriteria || {}, St = I.guestCriteria || {}, P = T.prices || {}, kt = ((c = (u = (l = P == null ? void 0 : P.Total) == null ? void 0 : l.Price) == null ? void 0 : u.Total) == null ? void 0 : c.AmountWithTaxesFees) || ((f = (d = (h = P == null ? void 0 : P.Total) == null ? void 0 : h.Price) == null ? void 0 : d.Total) == null ? void 0 : f.Amount) || ((y = (p = P == null ? void 0 : P.Total) == null ? void 0 : p.Price) == null ? void 0 : y.Amount) || 0, Et = ((P == null ? void 0 : P.Daily) || []).map((q) => {
+          var Ct, It, Tt, xt, Pt, At, Ot, jt, $t, Rt;
           return {
             date: q.Date,
-            amount: ((St = (wt = q.Price) == null ? void 0 : wt.Total) == null ? void 0 : St.Amount) || ((kt = q.Price) == null ? void 0 : kt.Amount) || 0,
-            amountWithTax: ((Ct = (Et = q.Price) == null ? void 0 : Et.Total) == null ? void 0 : Ct.AmountWithTaxesFees) || 0,
-            tax: ((Tt = (It = q.Price) == null ? void 0 : It.Tax) == null ? void 0 : Tt.Amount) || 0,
-            fees: ((Pt = (xt = q.Price) == null ? void 0 : xt.Fees) == null ? void 0 : Pt.Amount) || 0,
-            currency: (At = q.Price) == null ? void 0 : At.CurrencyCode,
+            amount: ((It = (Ct = q.Price) == null ? void 0 : Ct.Total) == null ? void 0 : It.Amount) || ((Tt = q.Price) == null ? void 0 : Tt.Amount) || 0,
+            amountWithTax: ((Pt = (xt = q.Price) == null ? void 0 : xt.Total) == null ? void 0 : Pt.AmountWithTaxesFees) || 0,
+            tax: ((Ot = (At = q.Price) == null ? void 0 : At.Tax) == null ? void 0 : Ot.Amount) || 0,
+            fees: (($t = (jt = q.Price) == null ? void 0 : jt.Fees) == null ? void 0 : $t.Amount) || 0,
+            currency: (Rt = q.Price) == null ? void 0 : Rt.CurrencyCode,
             inventory: q.AvailableInventory
           };
-        }), js = {
+        }), Ds = {
           id: I.id,
           confirmationNumber: I.confirmationNumber,
           itineraryNumber: I.itineraryNumber,
           name: T.displayname || "Room",
-          roomCode: te.roomCode,
-          rateCode: te.rateCode,
-          price: bt,
+          roomCode: se.roomCode,
+          rateCode: se.rateCode,
+          price: kt,
           actualTotal: r,
           dailyRate: T.amount || T.amountWithTaxesFees,
           currency: T.currencyCode,
-          dailyPrices: _t,
-          taxes: ((S = (_ = (m = P == null ? void 0 : P.Total) == null ? void 0 : m.Price) == null ? void 0 : _.Tax) == null ? void 0 : S.Amount) || 0,
-          fees: ((x = (k = (g = P == null ? void 0 : P.Total) == null ? void 0 : g.Price) == null ? void 0 : k.Fees) == null ? void 0 : x.Amount) || 0,
-          startDate: (C = te.startDate) == null ? void 0 : C.split("T")[0],
-          endDate: (O = te.endDate) == null ? void 0 : O.split("T")[0],
-          nights: _t.length || null,
-          adults: yt.numAdults || 1,
-          children: yt.numChildren || 0,
+          dailyPrices: Et,
+          taxes: ((k = (w = (g = P == null ? void 0 : P.Total) == null ? void 0 : g.Price) == null ? void 0 : w.Tax) == null ? void 0 : k.Amount) || 0,
+          fees: ((x = (b = (m = P == null ? void 0 : P.Total) == null ? void 0 : m.Price) == null ? void 0 : b.Fees) == null ? void 0 : x.Amount) || 0,
+          startDate: (C = se.startDate) == null ? void 0 : C.split("T")[0],
+          endDate: (O = se.endDate) == null ? void 0 : O.split("T")[0],
+          nights: Et.length || null,
+          adults: St.numAdults || 1,
+          children: St.numChildren || 0,
           hotelId: String(I.hotelId),
           chainId: String(I.chainId),
           bedDescription: T.bedDescription,
@@ -7075,12 +7144,12 @@ class ki {
           type: "room",
           quantity: 1,
           addons: I.addOns || [],
-          image: T.coverImage || ((vt = (mt = T.imageUrls) == null ? void 0 : mt[0]) == null ? void 0 : vt.Path) || null
+          image: T.coverImage || ((wt = (_t = T.imageUrls) == null ? void 0 : _t[0]) == null ? void 0 : wt.Path) || null
         };
-        t.push(js), s += bt;
+        t.push(Ds), s += kt;
       }
-    } catch (Fe) {
-      console.error("SynXis: Error extracting cart API data:", Fe);
+    } catch (Me) {
+      console.error("SynXis: Error extracting cart API data:", Me);
     }
     return r !== null && r > 0 ? s = r : s === 0 && (s = this.totalAverage || 0), { products: t, total: s };
   }
@@ -7331,8 +7400,7 @@ class ki {
         'input[name="phoneNumber"]'
       )
     ].filter((t) => t !== null).forEach((t) => {
-      const s = this.handleAutofieldBlur.bind(this);
-      t.removeEventListener("blur", s), t.addEventListener("blur", s);
+      t.addEventListener("blur", this.boundHandleAutofieldBlur);
     });
   }
   /**
@@ -7457,10 +7525,10 @@ class ki {
             "registrationManualPhonePrefix"
           );
           if (p) {
-            const v = p.querySelector(
+            const y = p.querySelector(
               ".css-1yh68ch-singleValue"
             );
-            v && (v.textContent = u);
+            y && (y.textContent = u);
           }
           console.log(
             "Filled phone country code from sessionStorage:",
@@ -7514,17 +7582,17 @@ class ki {
       );
       if (!d && !f && !p)
         return;
-      let v = "*";
+      let y = "*";
       if (e.src)
         try {
-          v = new URL(e.src).origin;
+          y = new URL(e.src).origin;
         } catch {
         }
-      const m = ((t = e.src) == null ? void 0 : t.includes("dibspayment.eu")) || ((s = e.src) == null ? void 0 : s.includes("dibs.")) || ((r = e.name) == null ? void 0 : r.toLowerCase().includes("dibs")), _ = ((n = e.src) == null ? void 0 : n.includes("netseasy")) || ((o = e.src) == null ? void 0 : o.includes("nets.eu")) || ((a = e.src) == null ? void 0 : a.includes("nexigroup.com")) || ((l = e.src) == null ? void 0 : l.includes("dibspayment.eu")) || // Dibs is part of Nexi Group
+      const g = ((t = e.src) == null ? void 0 : t.includes("dibspayment.eu")) || ((s = e.src) == null ? void 0 : s.includes("dibs.")) || ((r = e.name) == null ? void 0 : r.toLowerCase().includes("dibs")), w = ((n = e.src) == null ? void 0 : n.includes("netseasy")) || ((o = e.src) == null ? void 0 : o.includes("nets.eu")) || ((a = e.src) == null ? void 0 : a.includes("nexigroup.com")) || ((l = e.src) == null ? void 0 : l.includes("dibspayment.eu")) || // Dibs is part of Nexi Group
       ((u = e.name) == null ? void 0 : u.toLowerCase().includes("nets")) || ((c = e.name) == null ? void 0 : c.toLowerCase().includes("easy"));
       if (!e.contentWindow)
         return;
-      const S = [
+      const k = [
         // Format 1: Our standard format
         {
           type: "ekteintelligens-autofill",
@@ -7533,7 +7601,7 @@ class ki {
           phoneNumber: p || null
         },
         // Format 2: Dibs/Nets Easy-specific formats
-        ...m || _ ? [
+        ...g || w ? [
           {
             type: "dibs-autofill",
             email: d || null,
@@ -7571,19 +7639,19 @@ class ki {
           phoneNumber: p || null
         }
       ];
-      S.forEach((k) => {
+      k.forEach((b) => {
         try {
-          e.contentWindow.postMessage(k, v);
+          e.contentWindow.postMessage(b, y);
         } catch {
         }
       }), console.log(
-        `Sent autofill data to ${_ ? "Nets Easy/Nexi" : m ? "Dibs" : "cross-origin"} iframe via postMessage (${S.length} formats):`,
+        `Sent autofill data to ${w ? "Nets Easy/Nexi" : g ? "Dibs" : "cross-origin"} iframe via postMessage (${k.length} formats):`,
         {
           iframeSrc: ((h = e.src) == null ? void 0 : h.substring(0, 100)) || "unknown",
           email: d ? "***" : null,
           phoneCountryCode: f,
           phoneNumber: p ? "***" : null,
-          targetOrigin: v
+          targetOrigin: y
         }
       ), this.tryIframeUrlParameters(
         e,
@@ -7703,18 +7771,20 @@ class ki {
     }, 500);
     this._urlCheckInterval = t;
   }
-}
-class Ei {
+};
+v(je, "BASKET_FETCH_TIMEOUT_MS", 8e3);
+let ut = je;
+class Ii {
   constructor(e) {
-    y(this, "options");
-    y(this, "supabaseService");
-    y(this, "campaign");
-    y(this, "formData", {});
-    y(this, "inputListeners", []);
-    y(this, "buttonListeners", []);
-    y(this, "submitListener");
-    y(this, "isInitialized", !1);
-    this.options = e, this.supabaseService = new ft(
+    v(this, "options");
+    v(this, "supabaseService");
+    v(this, "campaign");
+    v(this, "formData", {});
+    v(this, "inputListeners", []);
+    v(this, "buttonListeners", []);
+    v(this, "submitListener");
+    v(this, "isInitialized", !1);
+    this.options = e, this.supabaseService = new vt(
       e.supabaseUrl,
       e.supabaseAnonKey
     );
@@ -7934,24 +8004,24 @@ class Ei {
     return { ...this.formData };
   }
 }
-class Ci {
+class Ti {
   constructor(e) {
     // @ts-ignore
-    y(this, "options");
-    y(this, "isInitialized", !1);
-    y(this, "currentPage", "");
-    y(this, "currentVisitStartTime", 0);
+    v(this, "options");
+    v(this, "isInitialized", !1);
+    v(this, "currentPage", "");
+    v(this, "currentVisitStartTime", 0);
     /** Start of the current foreground segment; 0 while paused. */
-    y(this, "segmentStart", 0);
-    y(this, "data", { visits: [] });
-    y(this, "storageKey", "ei_enhanced_insights");
-    y(this, "popstateHandler");
+    v(this, "segmentStart", 0);
+    v(this, "data", { visits: [] });
+    v(this, "storageKey", "ei_enhanced_insights");
+    v(this, "popstateHandler");
     // private pushstateHandler?: () => void;
     // private replacestateHandler?: () => void;
-    y(this, "beforeunloadHandler");
-    y(this, "visibilityChangeHandler");
-    y(this, "originalPushState");
-    y(this, "originalReplaceState");
+    v(this, "beforeunloadHandler");
+    v(this, "visibilityChangeHandler");
+    v(this, "originalPushState");
+    v(this, "originalReplaceState");
     this.options = e;
   }
   async initialize() {
@@ -8057,7 +8127,7 @@ class Ci {
           e
         );
       }
-      hi();
+      pi();
     }
   }
   getData() {
@@ -8079,11 +8149,11 @@ class Ci {
     ), this.originalPushState && (history.pushState = this.originalPushState), this.originalReplaceState && (history.replaceState = this.originalReplaceState)), this.isInitialized = !1, this.currentPage = "", this.currentVisitStartTime = 0;
   }
 }
-const X = class X {
+const Y = class Y {
   constructor(e) {
-    y(this, "supabaseService");
-    y(this, "isInitialized", !1);
-    this.supabaseService = new ft(
+    v(this, "supabaseService");
+    v(this, "isInitialized", !1);
+    this.supabaseService = new vt(
       e.supabaseUrl,
       e.supabaseAnonKey
     );
@@ -8113,7 +8183,7 @@ const X = class X {
   getSubscriberShortId() {
     try {
       const e = new URLSearchParams(window.location.search).get(
-        X.URL_PARAM
+        Y.URL_PARAM
       );
       return e && e.trim() ? e.trim() : null;
     } catch {
@@ -8126,7 +8196,7 @@ const X = class X {
       return [];
     try {
       const e = sessionStorage.getItem(
-        X.STORAGE_KEY
+        Y.STORAGE_KEY
       );
       if (!e)
         return [];
@@ -8144,7 +8214,7 @@ const X = class X {
         if (t.includes(e))
           return;
         sessionStorage.setItem(
-          X.STORAGE_KEY,
+          Y.STORAGE_KEY,
           JSON.stringify([...t, e])
         );
       } catch (t) {
@@ -8156,14 +8226,14 @@ const X = class X {
   }
 };
 /** URL query parameter carrying the encoded funnel-subscriber id. */
-y(X, "URL_PARAM", "s"), /** sessionStorage key holding the short ids already tracked this session. */
-y(X, "STORAGE_KEY", "ei_tracked_subscriber_ids");
-let at = X;
-class Ii {
+v(Y, "URL_PARAM", "s"), /** sessionStorage key holding the short ids already tracked this session. */
+v(Y, "STORAGE_KEY", "ei_tracked_subscriber_ids");
+let ht = Y;
+class xi {
   constructor(e) {
-    y(this, "options");
-    y(this, "tools", /* @__PURE__ */ new Map());
-    y(this, "_isInitialized", !1);
+    v(this, "options");
+    v(this, "tools", /* @__PURE__ */ new Map());
+    v(this, "_isInitialized", !1);
     this.options = e;
   }
   async initialize() {
@@ -8171,18 +8241,18 @@ class Ii {
     if (this._isInitialized)
       return !0;
     try {
-      _i({
+      ki({
         cookieDomain: this.options.cookieDomain,
         requireConsent: this.options.requireConsent,
         shareInsightsAcrossSubdomains: this.options.shareInsightsAcrossSubdomains
       });
-      const r = new at(this.options);
+      const r = new ht(this.options);
       if (await r.initialize(), this.tools.set("linkTracking", r), (e = this.options.features) != null && e.abandonedCart) {
-        const n = new ki(this.options);
+        const n = new ut(this.options);
         await n.initialize(), this.tools.set("abandonedCart", n);
       }
       if ((t = this.options.features) != null && t.organizationPipeline) {
-        const n = new Ei(
+        const n = new Ii(
           this.options
         );
         await n.initialize(), this.tools.set(
@@ -8193,12 +8263,12 @@ class Ii {
       if ((s = this.options.features) != null && s.enhancedInsights) {
         const n = async () => {
           if (this.tools.has("enhancedInsights")) return;
-          const o = new Ci(
+          const o = new Ti(
             this.options
           );
           await o.initialize(), this.tools.set("enhancedInsights", o);
         };
-        gt() && await n(), this.options.requireConsent && gi((o) => {
+        bt() && await n(), this.options.requireConsent && yi((o) => {
           if (o)
             n();
           else {
@@ -8232,7 +8302,7 @@ class Ii {
    * Revoking clears the persisted payload and cookie.
    */
   setConsent(e) {
-    be(e);
+    _e(e);
   }
   destroy() {
     this.tools.forEach((e) => {
@@ -8243,7 +8313,7 @@ class Ii {
     return this._isInitialized;
   }
 }
-typeof window < "u" && (window.EkteIntelligensSDK = Ii);
+typeof window < "u" && (window.EkteIntelligensSDK = xi);
 export {
-  Ii as EkteIntelligensSDK
+  xi as EkteIntelligensSDK
 };

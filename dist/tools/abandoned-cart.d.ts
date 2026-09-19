@@ -25,6 +25,13 @@ export declare class AbandonedCartTool {
      */
     private debouncedHandleContentUpdate;
     private handleContentUpdate;
+    /**
+     * The submission lock is held while the basket is fetched, so a basket
+     * request that hangs must not hold it indefinitely. On timeout the update
+     * goes out without basket data — the same path as a failed basket fetch.
+     */
+    private withBasketTimeout;
+    private static readonly BASKET_FETCH_TIMEOUT_MS;
     private hasContentChanged;
     destroy(): void;
     getContent(): Record<string, any>;
@@ -174,6 +181,7 @@ export declare class AbandonedCartTool {
      * This is necessary because InputDetector might use specific selectors that don't match autofields
      */
     private addDirectAutofieldListeners;
+    private readonly boundHandleAutofieldBlur;
     /**
      * Handle blur event on autofield inputs
      * Manually triggers the content update callback to ensure autofields are detected
