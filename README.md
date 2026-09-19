@@ -83,6 +83,9 @@ The abandoned cart tool automatically tracks user input on your checkout forms a
     - If `input_mapping` is null: listens to all inputs
     - If `input_mapping.form_selector` is set: listens to inputs within that form
     - If `input_mapping.inputs` is set: listens to specific input selectors
+    - `input_mapping.excluded_inputs` (names or ids) are never observed
+    - Whatever the mapping says, credential, payment-card and national-id inputs are never observed or stored: `type="password"`, `autocomplete` of `cc-*` / `current-password` / `new-password` / `one-time-code`, and names or ids such as `password`, `cvc`, `cardNumber`, `ssn`. The `cart-checkout-session` endpoint drops the same keys server-side
+    - A checkbox or radio is only stored while it is checked
 3. **Product Detection**: Automatically detects products on the page using product mapping or common e-commerce patterns
 4. **Data Collection**: Collects input data on blur events
 5. **Session Management**: Creates and updates checkout sessions via Supabase edge function with content, products, and current page URL

@@ -154,11 +154,13 @@ export class AbandonedCartTool {
         // This batches rapid auto-fill events into a single update
         this.debounceTimer = setTimeout(() => {
             if (this.pendingContentUpdate) {
-                this.handleContentUpdate(
-                    this.pendingContentUpdate.content,
-                    this.pendingContentUpdate.sessionId,
-                );
+                // Clear BEFORE the call: when a submission is in flight,
+                // handleContentUpdate re-queues synchronously into
+                // pendingContentUpdate, and clearing afterwards dropped that
+                // re-queued update.
+                const pending = this.pendingContentUpdate;
                 this.pendingContentUpdate = undefined;
+                this.handleContentUpdate(pending.content, pending.sessionId);
             }
         }, 300); // 300ms debounce delay
     }
@@ -177,14 +179,22 @@ export class AbandonedCartTool {
             }
             this.debounceTimer = setTimeout(() => {
                 if (this.pendingContentUpdate) {
+                    const pending = this.pendingContentUpdate;
+                    this.pendingContentUpdate = undefined;
                     this.handleContentUpdate(
-                        this.pendingContentUpdate.content,
-                        this.pendingContentUpdate.sessionId,
+                        pending.content,
+                        pending.sessionId,
                     );
                 }
             }, 100); // Short retry delay
             return;
         }
+
+        // Take the lock BEFORE the first await. The basket fetches below are
+        // network calls; when the lock was only set after them, a second blur
+        // during the fetch passed the check above with no session id yet and
+        // both calls inserted a session (duplicate sessions and leads).
+        this.isSubmitting = true;
 
         try {
             // For bookvisit campaigns, fetch products and total from API
@@ -193,13 +203,17 @@ export class AbandonedCartTool {
             let total: number = this.totalAverage;
 
             if (this.campaign?.type === "bookvisit") {
-                const bookvisitData = await this.fetchBookVisitBasket();
+                const bookvisitData = await this.withBasketTimeout(
+                    this.fetchBookVisitBasket(),
+                );
                 if (bookvisitData) {
                     products = bookvisitData.products;
                     total = bookvisitData.total;
                 }
             } else if (this.campaign?.type === "synxis") {
-                const synxisData = await this.fetchSynxisBasket();
+                const synxisData = await this.withBasketTimeout(
+                    this.fetchSynxisBasket(),
+                );
                 if (synxisData) {
                     products = synxisData.products;
                     total = synxisData.total;
@@ -231,9 +245,6 @@ export class AbandonedCartTool {
                 return;
             }
 
-            // Set lock to prevent concurrent submissions
-            this.isSubmitting = true;
-
             // Get current page URL with query parameters
             const currentUrl =
                 typeof window !== "undefined" ? window.location.href : "";
@@ -247,10 +258,16 @@ export class AbandonedCartTool {
             // the column when a value is present.
             const analytics = collectAnalytics();
 
+            // Snapshot what is actually sent. `content` is the detector's
+            // live object: a field blurred while the request is in flight
+            // mutates it, and recording that as "previous" afterwards made
+            // the next update look unchanged — the field was never uploaded.
+            const sentContent = { ...content };
+
             const payload: CartSessionPayload = {
                 organization_id: this.options.organizationId,
                 checkout_campaign_id: this.options.checkoutCampaignId,
-                content: content,
+                content: sentContent,
                 products: products,
                 url: currentUrl,
                 total: total,
@@ -278,7 +295,7 @@ export class AbandonedCartTool {
                 this.saveSessionIdToStorage(response.id);
 
                 // Update previous content after successful upload
-                this.previousContent = { ...content };
+                this.previousContent = sentContent;
                 this.previousProducts = [...products];
                 this.previousTotal = total;
 
@@ -293,6 +310,30 @@ export class AbandonedCartTool {
             this.isSubmitting = false;
         }
     }
+
+    /**
+     * The submission lock is held while the basket is fetched, so a basket
+     * request that hangs must not hold it indefinitely. On timeout the update
+     * goes out without basket data — the same path as a failed basket fetch.
+     */
+    private async withBasketTimeout<T>(
+        work: Promise<T | null>,
+    ): Promise<T | null> {
+        let timer: ReturnType<typeof setTimeout> | undefined;
+        const timeout = new Promise<null>((resolve) => {
+            timer = setTimeout(() => {
+                console.warn("Basket fetch timed out, continuing without it");
+                resolve(null);
+            }, AbandonedCartTool.BASKET_FETCH_TIMEOUT_MS);
+        });
+        try {
+            return await Promise.race([work, timeout]);
+        } finally {
+            if (timer) clearTimeout(timer);
+        }
+    }
+
+    private static readonly BASKET_FETCH_TIMEOUT_MS = 8000;
 
     private hasContentChanged(
         content: Record<string, any>,
@@ -1589,13 +1630,15 @@ export class AbandonedCartTool {
 
         // Add blur listeners that manually trigger the content update
         autofieldInputs.forEach((input) => {
-            // Remove any existing listener to avoid duplicates
-            const boundHandler = this.handleAutofieldBlur.bind(this);
-            input.removeEventListener("blur", boundHandler);
-            // Add the listener
-            input.addEventListener("blur", boundHandler);
+            // Same function reference every time, so a repeated call cannot
+            // stack duplicate listeners (addEventListener ignores an
+            // identical listener).
+            input.addEventListener("blur", this.boundHandleAutofieldBlur);
         });
     }
+
+    private readonly boundHandleAutofieldBlur = (event: Event) =>
+        this.handleAutofieldBlur(event);
 
     /**
      * Handle blur event on autofield inputs

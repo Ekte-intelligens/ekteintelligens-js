@@ -306,11 +306,11 @@ function mergeInsights(
     for (const s of all) {
         visitCount += num(s.visit_count);
         totalTime += num(s.total_time_seconds);
-        String(s.pages ?? "")
-            .split(",")
-            .forEach((p) => {
+        if (typeof s.pages === "string") {
+            s.pages.split(",").forEach((p) => {
                 if (p && pages.indexOf(p) === -1) pages.push(p);
             });
+        }
         const tpp = s.time_per_page;
         if (tpp && typeof tpp === "object" && !Array.isArray(tpp)) {
             for (const [k, v] of Object.entries(

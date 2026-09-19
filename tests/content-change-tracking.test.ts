@@ -88,13 +88,20 @@ describe("Content Change Tracking", () => {
         abandonedCartTool = new AbandonedCartTool(mockSDKOptions);
     });
 
+    // The tool debounces content updates (300 ms) before uploading, so an
+    // update is only observable once the debounce and the upload have run.
+    const triggerContentUpdate = async (content: Record<string, any>) => {
+        mockContentUpdateCallback(content);
+        await new Promise((resolve) => setTimeout(resolve, 400));
+    };
+
     it("should upload when content changes for the first time", async () => {
         await abandonedCartTool.initialize();
 
         const testContent = { email: "test@example.com" };
 
         // Trigger content update
-        mockContentUpdateCallback(testContent);
+        await triggerContentUpdate(testContent);
 
         expect(mockSupabaseService.submitCartSession).toHaveBeenCalledTimes(1);
         expect(mockSupabaseService.submitCartSession).toHaveBeenCalledWith(
@@ -110,14 +117,14 @@ describe("Content Change Tracking", () => {
         const testContent = { email: "test@example.com" };
 
         // First update - should upload
-        mockContentUpdateCallback(testContent);
+        await triggerContentUpdate(testContent);
         expect(mockSupabaseService.submitCartSession).toHaveBeenCalledTimes(1);
 
         // Reset the mock to clear the call count
         mockSupabaseService.submitCartSession.mockClear();
 
         // Second update with same content - should not upload
-        mockContentUpdateCallback(testContent);
+        await triggerContentUpdate(testContent);
         expect(mockSupabaseService.submitCartSession).toHaveBeenCalledTimes(0);
     });
 
@@ -128,14 +135,14 @@ describe("Content Change Tracking", () => {
         const updatedContent = { email: "updated@example.com" };
 
         // First update
-        mockContentUpdateCallback(initialContent);
+        await triggerContentUpdate(initialContent);
         expect(mockSupabaseService.submitCartSession).toHaveBeenCalledTimes(1);
 
         // Reset the mock to clear the call count
         mockSupabaseService.submitCartSession.mockClear();
 
         // Second update with different content
-        mockContentUpdateCallback(updatedContent);
+        await triggerContentUpdate(updatedContent);
         expect(mockSupabaseService.submitCartSession).toHaveBeenCalledTimes(1);
     });
 
@@ -146,7 +153,7 @@ describe("Content Change Tracking", () => {
 
         // First update with no products
         mockProductDetector.detectProducts.mockReturnValue([]);
-        mockContentUpdateCallback(testContent);
+        await triggerContentUpdate(testContent);
         expect(mockSupabaseService.submitCartSession).toHaveBeenCalledTimes(1);
 
         // Reset the mock to clear the call count
@@ -156,7 +163,7 @@ describe("Content Change Tracking", () => {
         mockProductDetector.detectProducts.mockReturnValue([
             { id: "1", name: "Product 1", price: 10 },
         ]);
-        mockContentUpdateCallback(testContent);
+        await triggerContentUpdate(testContent);
         expect(mockSupabaseService.submitCartSession).toHaveBeenCalledTimes(1);
     });
 
@@ -167,7 +174,7 @@ describe("Content Change Tracking", () => {
 
         // First update with total 0
         mockTotalExtractor.extractTotal.mockReturnValue(0);
-        mockContentUpdateCallback(testContent);
+        await triggerContentUpdate(testContent);
         expect(mockSupabaseService.submitCartSession).toHaveBeenCalledTimes(1);
 
         // Reset the mock to clear the call count
@@ -175,7 +182,7 @@ describe("Content Change Tracking", () => {
 
         // Second update with total 100
         mockTotalExtractor.extractTotal.mockReturnValue(100);
-        mockContentUpdateCallback(testContent);
+        await triggerContentUpdate(testContent);
         expect(mockSupabaseService.submitCartSession).toHaveBeenCalledTimes(1);
     });
 
@@ -185,21 +192,21 @@ describe("Content Change Tracking", () => {
         const testContent = { email: "test@example.com" };
 
         // First update
-        mockContentUpdateCallback(testContent);
+        await triggerContentUpdate(testContent);
         expect(mockSupabaseService.submitCartSession).toHaveBeenCalledTimes(1);
 
         // Reset the mock to clear the call count
         mockSupabaseService.submitCartSession.mockClear();
 
         // Second update with same content - should not upload
-        mockContentUpdateCallback(testContent);
+        await triggerContentUpdate(testContent);
         expect(mockSupabaseService.submitCartSession).toHaveBeenCalledTimes(0);
 
         // Reset change tracking
         abandonedCartTool.resetChangeTracking();
 
         // Third update with same content - should upload because tracking was reset
-        mockContentUpdateCallback(testContent);
+        await triggerContentUpdate(testContent);
         expect(mockSupabaseService.submitCartSession).toHaveBeenCalledTimes(1);
     });
 });

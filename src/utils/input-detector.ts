@@ -54,11 +54,18 @@ export class InputDetector {
         this.sessionId = sessionId;
     }
 
+    // One stable reference: `.bind(this)` returns a new function on every
+    // call, so removeEventListener(this.handleInputBlur.bind(this)) never
+    // removed anything and a stop/start cycle stacked duplicate listeners.
+    // Adding the same reference twice is a no-op, so restarts are safe too.
+    private readonly boundHandleInputBlur = (event: Event) =>
+        this.handleInputBlur(event);
+
     public startListening() {
         const inputs = this.getTargetInputs();
 
         inputs.forEach((input) => {
-            input.addEventListener("blur", this.handleInputBlur.bind(this));
+            input.addEventListener("blur", this.boundHandleInputBlur);
         });
     }
 
@@ -66,13 +73,68 @@ export class InputDetector {
         const inputs = this.getTargetInputs();
 
         inputs.forEach((input) => {
-            input.removeEventListener("blur", this.handleInputBlur.bind(this));
+            input.removeEventListener("blur", this.boundHandleInputBlur);
         });
+    }
+
+    // Input types that never hold contact details worth recovering a cart
+    // with. `password` is the one that matters: checkouts with a login or
+    // create-account form had the password uploaded as session content.
+    private static readonly IGNORED_INPUT_TYPES = new Set([
+        "password",
+        "hidden",
+        "file",
+        "submit",
+        "button",
+        "reset",
+        "image",
+    ]);
+
+    // name/id fragments of credential, payment-card and national-id fields.
+    // Short fragments need boundaries so ordinary fields are not dropped:
+    // "businessName" contains "ssn", "accNumber" contains "ccnumber",
+    // "cardNotes" starts like "cardNo".
+    private static readonly SENSITIVE_NAME =
+        /passw|passord|pwd|cvc|cvv|card[-_ ]?(number|(num|no)([^a-z]|$))|security[-_ ]?code|kontonummer|account[-_ ]?number|personnummer|f[oø]dselsnummer|(^|[^a-z])(ssn|iban)([^a-z]|$)|(^|[^a-z])cc[-_]?(number|num|csc|exp)/i;
+
+    /**
+     * Credentials, payment-card and national-id inputs are never observed or
+     * stored, whatever the campaign's input mapping says. Detected by input
+     * type, the autocomplete hint (cc-*, *-password, one-time-code) and
+     * name/id.
+     */
+    private isSensitiveInput(input: HTMLInputElement): boolean {
+        const type = (
+            input.getAttribute("type") ||
+            input.type ||
+            ""
+        ).toLowerCase();
+        if (InputDetector.IGNORED_INPUT_TYPES.has(type)) return true;
+
+        const autocomplete = (
+            input.getAttribute("autocomplete") || ""
+        ).toLowerCase();
+        if (
+            /(^|\s)(cc-[a-z-]+|current-password|new-password|one-time-code)(\s|$)/.test(
+                autocomplete
+            )
+        ) {
+            return true;
+        }
+
+        return (
+            InputDetector.SENSITIVE_NAME.test(input.name || "") ||
+            InputDetector.SENSITIVE_NAME.test(input.id || "")
+        );
     }
 
     private getTargetInputs(): HTMLInputElement[] {
         const filterExcluded = (inputs: HTMLInputElement[]) =>
-            inputs.filter((input) => !this.isInputExcluded(input));
+            inputs.filter(
+                (input) =>
+                    !this.isInputExcluded(input) &&
+                    !this.isSensitiveInput(input)
+            );
 
         if (!this.inputMapping) {
             return filterExcluded(
@@ -119,9 +181,27 @@ export class InputDetector {
 
     private handleInputBlur(event: Event) {
         const input = event.target as HTMLInputElement;
-        if (this.isInputExcluded(input)) return;
+        // Re-checked at blur time: show/hide-password toggles change the
+        // input's type after the listeners were attached.
+        if (this.isInputExcluded(input) || this.isSensitiveInput(input)) return;
 
         const fieldName = this.getFieldName(input);
+
+        // A checkbox/radio has the same `value` ("on" by default) whether or
+        // not it is ticked, so only a checked one is stored and unticking a
+        // checkbox removes it again.
+        if (input.type === "checkbox" || input.type === "radio") {
+            if (!input.checked) {
+                if (input.type === "checkbox" && fieldName in this.content) {
+                    delete this.content[fieldName];
+                    if (this.hasEmailOrPhone && this.onContentUpdate) {
+                        this.onContentUpdate(this.content, this.sessionId);
+                    }
+                }
+                return;
+            }
+        }
+
         const value = input.value.trim();
 
         if (value) {
