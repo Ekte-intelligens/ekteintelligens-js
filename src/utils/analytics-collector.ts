@@ -30,6 +30,16 @@ const ANALYTICS_STORAGE_KEY = "assistantAnalyticsPayload";
 const INSIGHTS_STORAGE_KEY = "ei_enhanced_insights";
 const ANALYTICS_COOKIE_NAME = "ei_analytics";
 const INSIGHTS_COOKIE_NAME = "ei_insights";
+// Durable "the visitor said no" marker. Revoking used to only *delete* the
+// stored payload, which left nothing behind to distinguish "never consented"
+// from "consent withdrawn" — so the booking widget's boot (which shares the
+// `assistantAnalyticsPayload` key and has no CMP of its own) re-created the
+// payload on the very next page load and the revoke never stuck. Written on
+// the same domain as the data it gates so it travels with it across
+// subdomains, and session-lifetime like the rest: a CMP that is still present
+// re-signals on the next load anyway.
+// MUST stay in sync with frontends/booking/src/utilities/analyticsCookie.ts.
+const CONSENT_DENIED_COOKIE_NAME = "ei_analytics_consent";
 
 // Cookies cap at ~4KB and ride on every request to *.site.com — refuse to
 // write anything close to that.
@@ -48,10 +58,48 @@ const MAX_COOKIE_ORIGINS = 3;
 const MAX_VISITS = 50;
 const MAX_PAGES = 100;
 
+// Campaign touches kept in `attribution_history`. The first is always kept —
+// it is the touch that originally acquired the visitor — and the newest ones
+// fill the rest, so a long journey drops its middle rather than either end.
+const MAX_TOUCHES = 8;
+
+// Parameters that mark a URL as a new campaign touch. Anything else in the
+// query string (paging, filters, session ids) is still captured on the touch
+// it arrived with, but does not by itself start a new one.
+// MUST stay in sync with frontends/booking/src/utilities/attribution.ts.
+const CAMPAIGN_PARAMS = [
+    "utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term",
+    "utm_id", "gclid", "gbraid", "wbraid", "dclid", "gad_source",
+    "gad_campaign", "fbclid", "ttclid", "msclkid", "twclid", "li_fat_id",
+    "epik", "irclickid", "mc_cid", "ad_name",
+];
+
+// Keys composePayload derives; stripped when reading a stored payload back
+// into the touch it came from.
+const DERIVED_KEYS = [
+    "attribution_history", "touch_count", "first_utm_source",
+    "first_utm_medium", "first_utm_campaign", "first_landing_page",
+    "first_referrer", "first_date_visited", "enhanced_insights",
+];
+
 interface PageVisit {
     page: string;
     enteredAt: number;
     leftAt?: number;
+    /**
+     * Milliseconds the page was actually visible, summed across every
+     * foreground segment of the visit. Absent on histories recorded before
+     * segment tracking existed, where leftAt - enteredAt is the best estimate.
+     */
+    activeMs?: number;
+}
+
+/** Foreground time on a visit, tolerating both shapes of stored history. */
+function visitMs(v: PageVisit): number {
+    if (typeof v.activeMs === "number" && v.activeMs > 0) return v.activeMs;
+    return typeof v.leftAt === "number" && v.leftAt > v.enteredAt
+        ? v.leftAt - v.enteredAt
+        : 0;
 }
 
 export interface AnalyticsCollectorOptions {
@@ -65,8 +113,9 @@ export interface AnalyticsCollectorOptions {
      * When true, a compact per-origin summary of the enhanced-insights page
      * history (no raw visits) is also shared across subdomains via the
      * `ei_insights` cookie, and uploads merge the other origins' summaries
-     * into this origin's history. Defaults to false: insights stay
-     * per-origin, exactly as before.
+     * into this origin's history. Defaults to TRUE: a visitor who browses
+     * site.com and converts on booking.site.com should arrive with the
+     * history they actually have. Set explicitly to false to opt out.
      */
     shareInsightsAcrossSubdomains?: boolean;
     /**
@@ -90,12 +139,28 @@ const consentListeners: Array<(granted: boolean) => void> = [];
 // Cookie helpers
 // ---------------------------------------------------------------------------
 
-function readCookie(name: string): string | null {
-    if (typeof document === "undefined") return null;
-    const match = ("; " + document.cookie).split("; " + name + "=");
-    if (match.length !== 2) return null;
-    const value = match.pop()?.split(";").shift();
-    return value ? decodeURIComponent(value) : null;
+/**
+ * Every value the browser sends for `name` — normally one, but a host-only
+ * cookie and a domain-scoped one share a name and are BOTH sent (differing
+ * `cookieDomain` settings across a customer's properties, or a probe that
+ * fell through to host-only on one page). Reading only when there is exactly
+ * one silently dropped the visitor's first touch in that case.
+ */
+function readCookieValues(name: string): string[] {
+    if (typeof document === "undefined") return [];
+    const prefix = name + "=";
+    const values: string[] = [];
+    for (const part of ("; " + document.cookie).split("; ")) {
+        if (part.slice(0, prefix.length) !== prefix) continue;
+        const raw = part.slice(prefix.length).split(";")[0];
+        if (!raw) continue;
+        try {
+            values.push(decodeURIComponent(raw));
+        } catch {
+            /* malformed percent-encoding — skip this copy */
+        }
+    }
+    return values;
 }
 
 /**
@@ -166,21 +231,78 @@ function clearCookieValue(name: string): void {
     }
 }
 
-function readCookieObject(name: string): Record<string, unknown> | null {
-    try {
-        const raw = readCookie(name);
-        if (!raw) return null;
-        const parsed = JSON.parse(raw);
-        return parsed && typeof parsed === "object" && !Array.isArray(parsed)
-            ? parsed
-            : null;
-    } catch {
-        return null;
+/** Every copy of `name` that parses as a JSON object. */
+function readCookieObjects(name: string): Record<string, unknown>[] {
+    const objects: Record<string, unknown>[] = [];
+    for (const raw of readCookieValues(name)) {
+        try {
+            const parsed = JSON.parse(raw);
+            if (
+                parsed &&
+                typeof parsed === "object" &&
+                !Array.isArray(parsed)
+            ) {
+                objects.push(parsed as Record<string, unknown>);
+            }
+        } catch {
+            /* truncated or not ours — skip this copy */
+        }
     }
+    return objects;
 }
 
+/**
+ * Per-hostname insights summaries across every copy of the cookie. Each origin
+ * owns its own key, so copies are merged key-wise; if the same host appears
+ * twice the more recently active copy wins.
+ */
+function readInsightsCookieMap(): Record<string, unknown> {
+    const merged: Record<string, unknown> = {};
+    for (const map of readCookieObjects(INSIGHTS_COOKIE_NAME)) {
+        for (const [host, summary] of Object.entries(map)) {
+            if (!summary || typeof summary !== "object" || Array.isArray(summary)) {
+                continue;
+            }
+            const existing = merged[host] as
+                | { last_visit_at?: unknown }
+                | undefined;
+            if (
+                existing &&
+                String((summary as any).last_visit_at ?? "") <=
+                    String(existing.last_visit_at ?? "")
+            ) {
+                continue;
+            }
+            merged[host] = summary;
+        }
+    }
+    return merged;
+}
+
+/**
+ * Persist the payload to the cross-subdomain cookie, overwriting what is
+ * there — the merged payload always contains the cookie's own history, so it
+ * is never a downgrade. Drops the oldest middle touches when the value would
+ * exceed the cookie budget; the acquiring touch and the current one are the
+ * last things to go, and sessionStorage still holds the full history.
+ */
 function writeAnalyticsCookie(payload: Record<string, unknown>): void {
-    writeCookieValue(ANALYTICS_COOKIE_NAME, payload);
+    if (writeCookieValue(ANALYTICS_COOKIE_NAME, payload)) return;
+    const history = historyOf(payload);
+    for (let keep = history.length - 1; keep >= 2; keep--) {
+        const trimmed = [history[0]!, ...history.slice(-(keep - 1))];
+        if (
+            writeCookieValue(ANALYTICS_COOKIE_NAME, composePayload(trimmed))
+        ) {
+            return;
+        }
+    }
+    if (history.length > 1) {
+        writeCookieValue(
+            ANALYTICS_COOKIE_NAME,
+            composePayload([history[0]!, history[history.length - 1]!])
+        );
+    }
 }
 
 function clearAnalyticsCookie(): void {
@@ -188,11 +310,40 @@ function clearAnalyticsCookie(): void {
 }
 
 function readAnalyticsCookiePayload(): Record<string, unknown> | null {
-    return readCookieObject(ANALYTICS_COOKIE_NAME);
+    const candidates = readCookieObjects(ANALYTICS_COOKIE_NAME);
+    if (candidates.length === 0) return null;
+    // Duplicate copies (a host-only cookie alongside a domain-scoped one) are
+    // both sent. Prefer the most complete history; on a tie, the one whose
+    // acquiring touch is oldest. ISO-8601 sorts lexicographically, and a copy
+    // carrying no timestamp never displaces one that does.
+    const rank = (c: Record<string, unknown>) => {
+        const history = historyOf(c);
+        const first = history[0];
+        const at = first && typeof first.date_visited === "string"
+            ? first.date_visited
+            : "";
+        return { touches: history.length, at };
+    };
+    let best = candidates[0]!;
+    let bestRank = rank(best);
+    for (const candidate of candidates.slice(1)) {
+        const r = rank(candidate);
+        const better =
+            r.touches > bestRank.touches ||
+            (r.touches === bestRank.touches &&
+                !!r.at &&
+                (!bestRank.at || r.at < bestRank.at));
+        if (better) {
+            best = candidate;
+            bestRank = r;
+        }
+    }
+    return best;
 }
 
 // ---------------------------------------------------------------------------
-// Cross-subdomain insights summary (opt-in via shareInsightsAcrossSubdomains)
+// Cross-subdomain insights summary (on unless shareInsightsAcrossSubdomains
+// is explicitly false)
 // ---------------------------------------------------------------------------
 // The ei_insights cookie holds `{ [hostname]: summary }` — each origin only
 // ever updates its own key, and merge-on-read excludes the reader's own key,
@@ -229,7 +380,7 @@ export function updateInsightsSummaryCookie(): void {
     try {
         if (
             typeof window === "undefined" ||
-            !options.shareInsightsAcrossSubdomains ||
+            options.shareInsightsAcrossSubdomains === false ||
             !isAnalyticsConsentGranted()
         ) {
             return;
@@ -237,7 +388,7 @@ export function updateInsightsSummaryCookie(): void {
         const summary = buildLocalInsightsSummary();
         if (!summary) return;
         const hostname = window.location.hostname;
-        const existing = readCookieObject(INSIGHTS_COOKIE_NAME) ?? {};
+        const existing = readInsightsCookieMap();
         let foreign = Object.entries(existing)
             .filter(([h, s]) => h !== hostname && s && typeof s === "object")
             // Oldest last visit first, so shrinking drops stale origins.
@@ -264,6 +415,20 @@ export function updateInsightsSummaryCookie(): void {
                 own = rest;
                 continue;
             }
+            // `pages` is the only remaining unbounded field, and letting it
+            // win meant the write failed and the cookie kept a STALE summary
+            // forever — history that looked present but had silently stopped
+            // counting. Drop the oldest half instead; the scalars still cover
+            // the full history.
+            const pages = typeof own.pages === "string" ? own.pages : "";
+            if (pages) {
+                const parts = pages.split(",");
+                own = {
+                    ...own,
+                    pages: parts.slice(Math.ceil(parts.length / 2)).join(","),
+                };
+                continue;
+            }
             return; // even the bare scalars don't fit — give up
         }
     } catch {
@@ -273,8 +438,8 @@ export function updateInsightsSummaryCookie(): void {
 
 /** Summaries the *other* origins stored in the ei_insights cookie. */
 function readForeignInsightsSummaries(): Record<string, unknown>[] {
-    const map = readCookieObject(INSIGHTS_COOKIE_NAME);
-    if (!map || typeof window === "undefined") return [];
+    if (typeof window === "undefined") return [];
+    const map = readInsightsCookieMap();
     const hostname = window.location.hostname;
     return Object.entries(map)
         .filter(
@@ -409,7 +574,18 @@ function attachCmpListeners(): void {
  * not (yet) been granted.
  */
 export function isAnalyticsConsentGranted(): boolean {
+    if (isAnalyticsConsentDenied()) return false;
     return !options.requireConsent || consentGranted;
+}
+
+/**
+ * Whether analytics consent was explicitly refused on this device — by this
+ * page or by an earlier one on another subdomain. Distinct from "not granted
+ * yet": absence of the marker means no answer, which leaves the persist-by-
+ * default behaviour untouched for customers who never wire up consent at all.
+ */
+export function isAnalyticsConsentDenied(): boolean {
+    return readCookieValues(CONSENT_DENIED_COOKIE_NAME).indexOf("0") !== -1;
 }
 
 /**
@@ -432,8 +608,12 @@ export function setAnalyticsConsent(granted: boolean): void {
     const changed = granted !== consentGranted;
     consentGranted = granted;
     if (granted) {
+        clearCookieValue(CONSENT_DENIED_COOKIE_NAME);
         persistAnalyticsPayload();
     } else {
+        // Marker first: every other consumer of these cookies keys off it, and
+        // a write that fails silently must not look like "no answer yet".
+        writeCookieValue(CONSENT_DENIED_COOKIE_NAME, 0);
         clearAnalyticsCookie();
         // Device-wide revoke: the shared insights cookie goes too, including
         // other origins' summaries — consent is per device, not per origin.
@@ -459,7 +639,9 @@ export function setAnalyticsConsent(granted: boolean): void {
 // Capture & persistence
 // ---------------------------------------------------------------------------
 
-function captureCurrentPage(): Record<string, unknown> {
+type Touch = Record<string, unknown>;
+
+function captureCurrentPage(): Touch {
     const params: Record<string, string> = {};
     for (const [key, value] of new URL(
         window.location.href
@@ -474,23 +656,119 @@ function captureCurrentPage(): Record<string, unknown> {
     };
 }
 
+/** Stable key of a touch's campaign parameters, for equality comparison. */
+function touchSignature(touch: Touch): string {
+    return CAMPAIGN_PARAMS.filter((k) => touch[k] !== undefined)
+        .map((k) => k + "=" + String(touch[k]))
+        .join("&");
+}
+
+/**
+ * The touch history a stored payload carries. Payloads written before
+ * attribution history existed are a single touch in their own right, so they
+ * become history[0] rather than being discarded.
+ */
+function historyOf(payload: Touch | null | undefined): Touch[] {
+    if (!payload) return [];
+    const stored = payload.attribution_history;
+    if (Array.isArray(stored)) {
+        return stored.filter(
+            (t): t is Touch =>
+                !!t && typeof t === "object" && !Array.isArray(t)
+        );
+    }
+    const legacy: Touch = {};
+    for (const [k, v] of Object.entries(payload)) {
+        if (DERIVED_KEYS.indexOf(k) === -1) legacy[k] = v;
+    }
+    return Object.keys(legacy).length > 0 ? [legacy] : [];
+}
+
+/**
+ * Union of touch lists seen in different places (this tab's sessionStorage and
+ * the cross-subdomain cookie), oldest first. Deduplicated on timestamp +
+ * campaign signature so the same touch recorded on two subdomains counts once.
+ */
+function mergeHistories(...lists: Touch[][]): Touch[] {
+    const seen = new Set<string>();
+    const all: Touch[] = [];
+    for (const list of lists) {
+        for (const touch of list) {
+            const key = String(touch.date_visited ?? "") + "|" + touchSignature(touch);
+            if (seen.has(key)) continue;
+            seen.add(key);
+            all.push(touch);
+        }
+    }
+    return all.sort((a, b) =>
+        String(a.date_visited ?? "").localeCompare(String(b.date_visited ?? ""))
+    );
+}
+
+/** Keep the acquiring touch and the most recent ones; drop the middle. */
+function capHistory(history: Touch[]): Touch[] {
+    if (history.length <= MAX_TOUCHES) return history;
+    return [history[0]!, ...history.slice(-(MAX_TOUCHES - 1))];
+}
+
+/**
+ * Fold this page view into the history. The very first page view is always a
+ * touch (direct and organic arrivals matter too); after that only a URL
+ * carrying campaign parameters that differ from the latest touch starts a new
+ * one, so ordinary navigation never displaces the campaign that is running.
+ */
+function applyTouch(history: Touch[], current: Touch): Touch[] {
+    if (history.length === 0) return [current];
+    const signature = touchSignature(current);
+    if (!signature) return history;
+    if (signature === touchSignature(history[history.length - 1]!)) {
+        return history;
+    }
+    return capHistory([...history, current]);
+}
+
+/**
+ * The stored payload: the LATEST touch at the top level (so `utm_source` is
+ * the campaign that most recently brought the visitor back), the acquiring
+ * touch mirrored into `first_*` scalars, and the whole ordered history under
+ * `attribution_history`. The scalars exist because funnel conditions address
+ * JSON-path scalars and cannot read into an array.
+ */
+function composePayload(history: Touch[]): Touch {
+    if (history.length === 0) return {};
+    const first = history[0]!;
+    const latest = history[history.length - 1]!;
+    const payload: Touch = { ...latest };
+    const carry = (to: string, from: string) => {
+        if (first[from] !== undefined) payload[to] = first[from];
+    };
+    carry("first_utm_source", "utm_source");
+    carry("first_utm_medium", "utm_medium");
+    carry("first_utm_campaign", "utm_campaign");
+    carry("first_landing_page", "landing_page");
+    carry("first_referrer", "referrer");
+    carry("first_date_visited", "date_visited");
+    payload.touch_count = history.length;
+    payload.attribution_history = history;
+    return payload;
+}
+
 function persistAnalyticsPayload(): void {
     if (typeof window === "undefined" || !memoryPayload) return;
+    // An explicit refusal outranks the persist-by-default behaviour, and may
+    // have been recorded by an earlier page on another subdomain.
+    if (isAnalyticsConsentDenied()) return;
     try {
-        if (
-            window.sessionStorage &&
-            !sessionStorage.getItem(ANALYTICS_STORAGE_KEY)
-        ) {
+        // Both are overwritten rather than written once: memoryPayload was
+        // built by folding whatever they already held into the current page,
+        // so it is always a superset of what it replaces.
+        if (window.sessionStorage) {
             sessionStorage.setItem(
                 ANALYTICS_STORAGE_KEY,
                 JSON.stringify(memoryPayload)
             );
         }
-        // First touch wins across the whole site: never overwrite a cookie an
-        // earlier page already set.
-        if (!readAnalyticsCookiePayload()) {
-            writeAnalyticsCookie(memoryPayload);
-        }
+        writeAnalyticsCookie(memoryPayload);
     } catch {
         /* privacy mode / quota — attribution is best-effort */
     }
@@ -512,28 +790,43 @@ export function ensureAnalyticsPayload(
         // cross-subdomain cookie (merged over this page's own params so
         // anything new in the URL is kept but the original touch wins), then
         // a fresh capture.
-        const stored = window.sessionStorage
+        // Fold this page view into every history already on the device: this
+        // tab's own, and the cross-subdomain cookie's (which may carry touches
+        // from another subdomain this tab has never seen).
+        const raw = window.sessionStorage
             ? sessionStorage.getItem(ANALYTICS_STORAGE_KEY)
             : null;
-        if (stored) {
-            const parsed = JSON.parse(stored);
-            if (parsed && typeof parsed === "object") memoryPayload = parsed;
+        let stored: Touch | null = null;
+        if (raw) {
+            const parsed = JSON.parse(raw);
+            if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+                stored = parsed as Touch;
+            }
         }
-        if (!memoryPayload) {
-            const fromCookie = readAnalyticsCookiePayload();
-            const current = captureCurrentPage();
-            memoryPayload = fromCookie
-                ? { ...current, ...fromCookie }
-                : current;
-        }
+        const history = applyTouch(
+            mergeHistories(
+                historyOf(stored),
+                historyOf(readAnalyticsCookiePayload())
+            ),
+            captureCurrentPage()
+        );
+        memoryPayload = composePayload(history);
 
         if (options.requireConsent) {
+            attachCmpListeners();
             const state = cmpConsentState();
-            consentGranted = state === true;
-            if (consentGranted) {
-                persistAnalyticsPayload();
+            if (state === null) {
+                // No CMP, or one that has not answered yet. Waiting is not a
+                // refusal, so no denial marker is recorded — other consumers
+                // must not read "no answer yet" as "the visitor said no".
+                consentGranted = false;
             } else {
-                attachCmpListeners();
+                // A CMP that has already answered by the time we boot. Route
+                // it through the same path as a runtime change rather than
+                // just setting the flag, so a refusal is written to the
+                // shared marker where the booking widget's boot can see it —
+                // that CMP fires no event for an answer it gave earlier.
+                setAnalyticsConsent(state);
             }
         } else {
             consentGranted = true;
@@ -557,14 +850,22 @@ export function ensureAnalyticsPayload(
  * Rules: pathname only (no query/hash), leading slash, no trailing slash
  * (except root), dots replaced with underscores.
  */
-function normalizePagePath(path: string): string {
+function pagePathOnly(path: string): string {
     let p = path.trim();
     if (!p) return "";
     const cutAt = p.search(/[?#]/);
     if (cutAt >= 0) p = p.slice(0, cutAt);
     if (!p.startsWith("/")) p = "/" + p;
     if (p.length > 1 && p.endsWith("/")) p = p.slice(0, -1);
-    return p.replace(/\./g, "_");
+    return p;
+}
+
+function normalizePagePath(path: string): string {
+    // Dots only have to go in `time_per_page`, where the path becomes a JSON
+    // key that the backend splits on dots. `pages` is a value matched with
+    // ilike, so it keeps them — mangling `/om-oss.html` there would break
+    // existing funnel conditions.
+    return pagePathOnly(path).replace(/\./g, "_");
 }
 
 /**
@@ -593,18 +894,15 @@ export function readEnhancedInsights(): Record<string, unknown> | null {
         const lastVisit = visits[visits.length - 1];
         if (!firstVisit || !lastVisit) return null;
 
+        // Query strings are stripped here as well as at write time, so
+        // histories recorded before that change stop counting one page as
+        // several.
         const uniquePages: string[] = [];
         for (const v of visits) {
-            if (uniquePages.indexOf(v.page) === -1) uniquePages.push(v.page);
+            const page = pagePathOnly(v.page);
+            if (page && uniquePages.indexOf(page) === -1) uniquePages.push(page);
         }
-        const totalTimeMs = visits.reduce(
-            (sum, v) =>
-                sum +
-                (typeof v.leftAt === "number" && v.leftAt > v.enteredAt
-                    ? v.leftAt - v.enteredAt
-                    : 0),
-            0
-        );
+        const totalTimeMs = visits.reduce((sum, v) => sum + visitMs(v), 0);
 
         // Total dwell time per normalized page path, in whole seconds — the
         // basis for "visited page X (for more than Y seconds)" funnel entry
@@ -613,11 +911,7 @@ export function readEnhancedInsights(): Record<string, unknown> | null {
         for (const v of visits) {
             const key = normalizePagePath(v.page);
             if (!key) continue;
-            const ms =
-                typeof v.leftAt === "number" && v.leftAt > v.enteredAt
-                    ? v.leftAt - v.enteredAt
-                    : 0;
-            msPerPage[key] = (msPerPage[key] ?? 0) + ms;
+            msPerPage[key] = (msPerPage[key] ?? 0) + visitMs(v);
         }
         const timePerPage: Record<string, number> = {};
         Object.entries(msPerPage)
@@ -650,7 +944,7 @@ export function readEnhancedInsights(): Record<string, unknown> | null {
  */
 export function collectAnalytics(): string | null {
     try {
-        if (options.requireConsent && !consentGranted) return null;
+        if (!isAnalyticsConsentGranted()) return null;
         let payload: Record<string, unknown> = {};
         if (typeof window !== "undefined" && window.sessionStorage) {
             const base = sessionStorage.getItem(ANALYTICS_STORAGE_KEY);
@@ -665,7 +959,7 @@ export function collectAnalytics(): string | null {
             payload = { ...memoryPayload };
         }
         let enhancedInsights = readEnhancedInsights();
-        if (options.shareInsightsAcrossSubdomains) {
+        if (options.shareInsightsAcrossSubdomains !== false) {
             enhancedInsights = mergeInsights(
                 enhancedInsights,
                 readForeignInsightsSummaries()

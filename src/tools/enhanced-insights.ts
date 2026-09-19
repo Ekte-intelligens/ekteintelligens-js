@@ -5,6 +5,13 @@ interface PageVisit {
     page: string;
     enteredAt: number;
     leftAt?: number;
+    /**
+     * Milliseconds the page was actually in the foreground, summed across
+     * every visible segment of the visit. A visit is paused when the tab goes
+     * hidden and resumed when it comes back, so time after a tab switch is
+     * still counted — leftAt - enteredAt alone stopped at the first blur.
+     */
+    activeMs?: number;
 }
 
 interface EnhancedInsightsData {
@@ -17,6 +24,8 @@ export class EnhancedInsightsTool {
     private isInitialized = false;
     private currentPage: string = "";
     private currentVisitStartTime: number = 0;
+    /** Start of the current foreground segment; 0 while paused. */
+    private segmentStart: number = 0;
     private data: EnhancedInsightsData = { visits: [] };
     private storageKey = "ei_enhanced_insights";
     private popstateHandler?: () => void;
@@ -60,13 +69,35 @@ export class EnhancedInsightsTool {
         }
     }
 
+    /**
+     * The visit currently being recorded. Looked up by identity rather than
+     * held as a reference because getData()/getVisits() reload `this.data`
+     * from storage and would orphan a stored reference. Deliberately does NOT
+     * filter on `!leftAt`: a paused visit has one, and skipping it was what
+     * dropped every second after the first tab switch.
+     */
+    private currentVisitRef(): PageVisit | undefined {
+        if (!this.currentPage || this.currentVisitStartTime === 0) {
+            return undefined;
+        }
+        return this.data.visits.find(
+            (visit) =>
+                visit.page === this.currentPage &&
+                visit.enteredAt === this.currentVisitStartTime
+        );
+    }
+
     private trackPageEntry(): void {
         if (typeof window === "undefined") {
             return;
         }
 
-        // const currentUrl = window.location.href;
-        const currentPath = window.location.pathname + window.location.search;
+        // Pathname only: the query string is not part of the page's identity,
+        // and keeping it counted /priser and /priser?utm_source=fb as two
+        // different pages (and wrote campaign parameters into the lead). The
+        // visitor's landing parameters are captured separately and in full by
+        // the first-touch payload, which is unaffected by this.
+        const currentPath = window.location.pathname;
 
         // If we're already on a page, mark the previous page as exited
         if (this.currentPage && this.currentVisitStartTime > 0) {
@@ -76,33 +107,43 @@ export class EnhancedInsightsTool {
         // Track new page entry
         this.currentPage = currentPath;
         this.currentVisitStartTime = Date.now();
+        this.segmentStart = this.currentVisitStartTime;
 
         const visit: PageVisit = {
             page: currentPath,
             enteredAt: this.currentVisitStartTime,
+            activeMs: 0,
         };
 
         this.data.visits.push(visit);
         this.saveDataToStorage();
     }
 
-    private trackPageExit(): void {
-        if (!this.currentPage || this.currentVisitStartTime === 0) {
-            return;
-        }
-
-        // Find the current visit and update it with exit time
-        const currentVisit = this.data.visits.find(
-            (visit) =>
-                visit.page === this.currentPage &&
-                visit.enteredAt === this.currentVisitStartTime &&
-                !visit.leftAt
-        );
-
+    /** Bank the foreground segment so far; the visit can still be resumed. */
+    private pauseCurrentVisit(): void {
+        if (this.segmentStart === 0) return;
+        const currentVisit = this.currentVisitRef();
+        const now = Date.now();
         if (currentVisit) {
-            currentVisit.leftAt = Date.now();
+            currentVisit.activeMs =
+                (currentVisit.activeMs ?? 0) +
+                Math.max(0, now - this.segmentStart);
+            currentVisit.leftAt = now;
             this.saveDataToStorage();
         }
+        this.segmentStart = 0;
+    }
+
+    /** Start a new foreground segment after the tab became visible again. */
+    private resumeCurrentVisit(): void {
+        if (this.segmentStart !== 0 || this.currentVisitStartTime === 0) return;
+        this.segmentStart = Date.now();
+    }
+
+    private trackPageExit(): void {
+        this.pauseCurrentVisit();
+        this.currentPage = "";
+        this.currentVisitStartTime = 0;
     }
 
     private setupNavigationListeners(): void {
@@ -160,14 +201,18 @@ export class EnhancedInsightsTool {
         // Track page exit when tab becomes hidden (more reliable for mobile)
         this.visibilityChangeHandler = () => {
             if (document.visibilityState === "hidden") {
-                this.trackPageExit();
+                // Pause, not exit: the visitor may well come back to this same
+                // page, and the time they spend after that still counts.
+                this.pauseCurrentVisit();
             } else if (document.visibilityState === "visible") {
-                // Page became visible again - only track entry if page actually changed
-                // (user might have switched tabs and come back to same page)
-                const currentPath =
-                    window.location.pathname + window.location.search;
+                // Only a real page change starts a new visit; coming back to
+                // the same page resumes the one already in progress rather
+                // than inflating visit_count with every tab switch.
+                const currentPath = window.location.pathname;
                 if (currentPath !== this.currentPage) {
                     this.trackPageEntry();
+                } else {
+                    this.resumeCurrentVisit();
                 }
             }
         };
