@@ -71,6 +71,15 @@ export declare class AbandonedCartTool {
      */
     private injectBookVisitAutofields;
     /**
+     * Selectors that identify each autofield, whether rendered by BookVisit
+     * itself or injected by us.
+     */
+    private static readonly AUTOFIELD_SELECTORS;
+    /**
+     * Check whether an input for the given autofield already exists in the DOM
+     */
+    private autofieldExists;
+    /**
      * Determine which fields to include based on input_mapping
      */
     private getFieldsToInclude;

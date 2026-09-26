@@ -698,11 +698,32 @@ export class AbandonedCartTool {
         }
 
         // Determine which fields to include based on input_mapping
-        const fieldsToInclude = this.getFieldsToInclude(inputMapping);
-        if (fieldsToInclude.length === 0) {
+        const wantedFields = this.getFieldsToInclude(inputMapping);
+        if (wantedFields.length === 0) {
             console.log(
                 "No relevant fields found in input_mapping for autofields",
             );
+            return;
+        }
+
+        // BookVisit sometimes renders these fields itself. Only inject the
+        // ones that are actually missing so we never end up with duplicates.
+        const existingFields = wantedFields.filter((field) =>
+            this.autofieldExists(field),
+        );
+        const fieldsToInclude = wantedFields.filter(
+            (field) => !existingFields.includes(field),
+        );
+
+        if (existingFields.length > 0) {
+            console.log(
+                `Autofields already present on page, skipping: ${existingFields.join(", ")}`,
+            );
+        }
+
+        if (fieldsToInclude.length === 0) {
+            // Nothing to inject, but still attach listeners to the native fields
+            this.setupAutofieldListenersWithRetry();
             return;
         }
 
@@ -715,6 +736,28 @@ export class AbandonedCartTool {
         // Set up listeners for autofields (both for InputDetector and sessionStorage)
         // Use a retry mechanism to ensure fields are found
         this.setupAutofieldListenersWithRetry();
+    }
+
+    /**
+     * Selectors that identify each autofield, whether rendered by BookVisit
+     * itself or injected by us.
+     */
+    private static readonly AUTOFIELD_SELECTORS: Record<string, string> = {
+        firstName: '#customer-firstName, input[name="firstName"]',
+        lastName: '#customer-lastName, input[name="lastName"]',
+        email: '#customer-emailAddress, input[name="emailAddress"]',
+        phoneNumber: '#customer-phoneNumber, input[name="phoneNumber"]',
+    };
+
+    /**
+     * Check whether an input for the given autofield already exists in the DOM
+     */
+    private autofieldExists(field: string): boolean {
+        const selector = AbandonedCartTool.AUTOFIELD_SELECTORS[field];
+        if (!selector || typeof document === "undefined") {
+            return false;
+        }
+        return document.querySelector(selector) !== null;
     }
 
     /**
