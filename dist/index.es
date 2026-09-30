@@ -1,18 +1,18 @@
 var Ns = Object.defineProperty;
 var Us = (n, e, t) => e in n ? Ns(n, e, { enumerable: !0, configurable: !0, writable: !0, value: t }) : n[e] = t;
-var v = (n, e, t) => Us(n, typeof e != "symbol" ? e + "" : e, t);
-const X = class X {
+var m = (n, e, t) => Us(n, typeof e != "symbol" ? e + "" : e, t);
+const Y = class Y {
   constructor(e) {
-    v(this, "inputMapping");
-    v(this, "content", {});
-    v(this, "sessionId");
-    v(this, "hasEmailOrPhone", !1);
-    v(this, "onContentUpdate");
+    m(this, "inputMapping");
+    m(this, "content", {});
+    m(this, "sessionId");
+    m(this, "hasEmailOrPhone", !1);
+    m(this, "onContentUpdate");
     // One stable reference: `.bind(this)` returns a new function on every
     // call, so removeEventListener(this.handleInputBlur.bind(this)) never
     // removed anything and a stop/start cycle stacked duplicate listeners.
     // Adding the same reference twice is a no-op, so restarts are safe too.
-    v(this, "boundHandleInputBlur", (e) => this.handleInputBlur(e));
+    m(this, "boundHandleInputBlur", (e) => this.handleInputBlur(e));
     this.inputMapping = this.cleanInputMapping(e);
   }
   cleanInputMapping(e) {
@@ -51,11 +51,11 @@ const X = class X {
    */
   isSensitiveInput(e) {
     const t = (e.getAttribute("type") || e.type || "").toLowerCase();
-    if (X.IGNORED_INPUT_TYPES.has(t)) return !0;
+    if (Y.IGNORED_INPUT_TYPES.has(t)) return !0;
     const s = (e.getAttribute("autocomplete") || "").toLowerCase();
     return /(^|\s)(cc-[a-z-]+|current-password|new-password|one-time-code)(\s|$)/.test(
       s
-    ) ? !0 : X.SENSITIVE_NAME.test(e.name || "") || X.SENSITIVE_NAME.test(e.id || "");
+    ) ? !0 : Y.SENSITIVE_NAME.test(e.name || "") || Y.SENSITIVE_NAME.test(e.id || "");
   }
   getTargetInputs() {
     const e = (t) => t.filter(
@@ -132,7 +132,7 @@ const X = class X {
 // Input types that never hold contact details worth recovering a cart
 // with. `password` is the one that matters: checkouts with a login or
 // create-account form had the password uploaded as session content.
-v(X, "IGNORED_INPUT_TYPES", /* @__PURE__ */ new Set([
+m(Y, "IGNORED_INPUT_TYPES", /* @__PURE__ */ new Set([
   "password",
   "hidden",
   "file",
@@ -144,11 +144,11 @@ v(X, "IGNORED_INPUT_TYPES", /* @__PURE__ */ new Set([
 // Short fragments need boundaries so ordinary fields are not dropped:
 // "businessName" contains "ssn", "accNumber" contains "ccnumber",
 // "cardNotes" starts like "cardNo".
-v(X, "SENSITIVE_NAME", /passw|passord|pwd|cvc|cvv|card[-_ ]?(number|(num|no)([^a-z]|$))|security[-_ ]?code|kontonummer|account[-_ ]?number|personnummer|f[oø]dselsnummer|(^|[^a-z])(ssn|iban)([^a-z]|$)|(^|[^a-z])cc[-_]?(number|num|csc|exp)/i);
-let Ge = X;
+m(Y, "SENSITIVE_NAME", /passw|passord|pwd|cvc|cvv|card[-_ ]?(number|(num|no)([^a-z]|$))|security[-_ ]?code|kontonummer|account[-_ ]?number|personnummer|f[oø]dselsnummer|(^|[^a-z])(ssn|iban)([^a-z]|$)|(^|[^a-z])cc[-_]?(number|num|csc|exp)/i);
+let Ge = Y;
 class Fs {
   constructor(e) {
-    v(this, "productMapping");
+    m(this, "productMapping");
     this.productMapping = this.cleanProductMapping(e);
   }
   cleanProductMapping(e) {
@@ -358,7 +358,7 @@ class Fs {
 }
 class Ms {
   constructor(e) {
-    v(this, "totalSelector");
+    m(this, "totalSelector");
     this.totalSelector = e ? this.cleanSelector(e) : void 0;
   }
   cleanSelector(e) {
@@ -467,7 +467,7 @@ var zs = function(n, e, t, s) {
     u((s = s.apply(n, e || [])).next());
   });
 };
-class Hs {
+class Vs {
   constructor(e, { headers: t = {}, customFetch: s, region: r = Qe.Any } = {}) {
     this.url = e, this.headers = t, this.region = r, this.fetch = Bs(s);
   }
@@ -522,7 +522,7 @@ class Hs {
   }
 }
 var L = typeof globalThis < "u" ? globalThis : typeof window < "u" ? window : typeof global < "u" ? global : typeof self < "u" ? self : {};
-function Vs(n) {
+function Hs(n) {
   if (n.__esModule) return n;
   var e = n.default;
   if (typeof e == "function") {
@@ -557,7 +557,7 @@ const Ks = de.fetch, ss = de.fetch.bind(de), rs = de.Headers, Js = de.Request, G
   Response: Gs,
   default: ss,
   fetch: Ks
-}, Symbol.toStringTag, { value: "Module" })), Qs = /* @__PURE__ */ Vs(fe);
+}, Symbol.toStringTag, { value: "Module" })), Qs = /* @__PURE__ */ Hs(fe);
 var De = {};
 Object.defineProperty(De, "__esModule", { value: !0 });
 let Xs = class extends Error {
@@ -1528,10 +1528,10 @@ var Xe;
 (function(n) {
   n.websocket = "websocket";
 })(Xe || (Xe = {}));
-var Q;
+var X;
 (function(n) {
   n.Connecting = "connecting", n.Open = "open", n.Closing = "closing", n.Closed = "closed";
-})(Q || (Q = {}));
+})(X || (X = {}));
 class Sr {
   constructor() {
     this.HEADER_LENGTH = 1;
@@ -1582,7 +1582,7 @@ const Nt = (n, e, t = {}) => {
 }, gs = (n, e) => {
   if (n.charAt(0) === "_") {
     const t = n.slice(1, n.length);
-    return Tr(e, t);
+    return Ir(e, t);
   }
   switch (n) {
     case E.bool:
@@ -1597,7 +1597,7 @@ const Nt = (n, e, t = {}) => {
       return Cr(e);
     case E.json:
     case E.jsonb:
-      return Ir(e);
+      return Tr(e);
     case E.timestamp:
       return Ar(e);
     case E.abstime:
@@ -1633,7 +1633,7 @@ const Nt = (n, e, t = {}) => {
       return e;
   }
   return n;
-}, Ir = (n) => {
+}, Tr = (n) => {
   if (typeof n == "string")
     try {
       return JSON.parse(n);
@@ -1641,7 +1641,7 @@ const Nt = (n, e, t = {}) => {
       return console.log(`JSON parse error: ${e}`), n;
     }
   return n;
-}, Tr = (n, e) => {
+}, Ir = (n, e) => {
   if (typeof n != "string")
     return n;
   const t = n.length - 1, s = n[t];
@@ -1932,8 +1932,8 @@ class pt {
         } else {
           const d = this.bindings.postgres_changes, f = (h = d == null ? void 0 : d.length) !== null && h !== void 0 ? h : 0, p = [];
           for (let y = 0; y < f; y++) {
-            const g = d[y], { filter: { event: w, schema: k, table: m, filter: b } } = g, A = c && c[y];
-            if (A && A.event === w && A.schema === k && A.table === m && A.filter === b)
+            const g = d[y], { filter: { event: w, schema: k, table: v, filter: b } } = g, A = c && c[y];
+            if (A && A.event === w && A.schema === k && A.table === v && A.filter === b)
               p.push(Object.assign(Object.assign({}, g), { id: A.id }));
             else {
               this.unsubscribe(), this.state = j.errored, e == null || e(M.CHANNEL_ERROR, new Error("mismatch between server and client bindings for postgres changes"));
@@ -2096,20 +2096,20 @@ class pt {
       var p, y, g;
       return ((p = f.filter) === null || p === void 0 ? void 0 : p.event) === "*" || ((g = (y = f.filter) === null || y === void 0 ? void 0 : y.event) === null || g === void 0 ? void 0 : g.toLocaleLowerCase()) === o;
     }).map((f) => f.callback(d, s)) : (i = this.bindings[o]) === null || i === void 0 || i.filter((f) => {
-      var p, y, g, w, k, m;
+      var p, y, g, w, k, v;
       if (["broadcast", "presence", "postgres_changes"].includes(o))
         if ("id" in f) {
           const b = f.id, A = (p = f.filter) === null || p === void 0 ? void 0 : p.event;
           return b && ((y = t.ids) === null || y === void 0 ? void 0 : y.includes(b)) && (A === "*" || (A == null ? void 0 : A.toLocaleLowerCase()) === ((g = t.data) === null || g === void 0 ? void 0 : g.type.toLocaleLowerCase()));
         } else {
           const b = (k = (w = f == null ? void 0 : f.filter) === null || w === void 0 ? void 0 : w.event) === null || k === void 0 ? void 0 : k.toLocaleLowerCase();
-          return b === "*" || b === ((m = t == null ? void 0 : t.event) === null || m === void 0 ? void 0 : m.toLocaleLowerCase());
+          return b === "*" || b === ((v = t == null ? void 0 : t.event) === null || v === void 0 ? void 0 : v.toLocaleLowerCase());
         }
       else
         return f.type.toLocaleLowerCase() === o;
     }).map((f) => {
       if (typeof d == "object" && "ids" in d) {
-        const p = d.data, { schema: y, table: g, commit_timestamp: w, type: k, errors: m } = p;
+        const p = d.data, { schema: y, table: g, commit_timestamp: w, type: k, errors: v } = p;
         d = Object.assign(Object.assign({}, {
           schema: y,
           table: g,
@@ -2117,7 +2117,7 @@ class pt {
           eventType: k,
           new: {},
           old: {},
-          errors: m
+          errors: v
         }), this._getPayloadRecords(p));
       }
       f.callback(d, s);
@@ -2319,20 +2319,20 @@ class xr {
   connectionState() {
     switch (this.conn && this.conn.readyState) {
       case ve.connecting:
-        return Q.Connecting;
+        return X.Connecting;
       case ve.open:
-        return Q.Open;
+        return X.Open;
       case ve.closing:
-        return Q.Closing;
+        return X.Closing;
       default:
-        return Q.Closed;
+        return X.Closed;
     }
   }
   /**
    * Returns `true` is the connection is open.
    */
   isConnected() {
-    return this.connectionState() === Q.Open;
+    return this.connectionState() === X.Open;
   }
   channel(e, t = { config: {} }) {
     const s = `realtime:${e}`, r = this.getChannels().find((i) => i.topic === s);
@@ -2575,7 +2575,7 @@ const vs = (n) => {
   const e = Object.getPrototypeOf(n);
   return (e === null || e === Object.prototype || Object.getPrototypeOf(e) === null) && !(Symbol.toStringTag in n) && !(Symbol.iterator in n);
 };
-var ee = function(n, e, t, s) {
+var te = function(n, e, t, s) {
   function r(i) {
     return i instanceof t ? i : new t(function(o) {
       o(i);
@@ -2602,7 +2602,7 @@ var ee = function(n, e, t, s) {
     u((s = s.apply(n, e || [])).next());
   });
 };
-const ze = (n) => n.msg || n.message || n.error_description || n.error || JSON.stringify(n), Lr = (n, e, t) => ee(void 0, void 0, void 0, function* () {
+const ze = (n) => n.msg || n.message || n.error_description || n.error || JSON.stringify(n), Lr = (n, e, t) => te(void 0, void 0, void 0, function* () {
   const s = yield $r();
   n instanceof s && !(t != null && t.noResolveJson) ? n.json().then((r) => {
     const i = n.status || 500, o = (r == null ? void 0 : r.statusCode) || i + "";
@@ -2615,7 +2615,7 @@ const ze = (n) => n.msg || n.message || n.error_description || n.error || JSON.s
   return n === "GET" || !s ? r : (Rr(s) ? (r.headers = Object.assign({ "Content-Type": "application/json" }, e == null ? void 0 : e.headers), r.body = JSON.stringify(s)) : r.body = s, Object.assign(Object.assign({}, r), t));
 };
 function Ce(n, e, t, s, r, i) {
-  return ee(this, void 0, void 0, function* () {
+  return te(this, void 0, void 0, function* () {
     return new Promise((o, a) => {
       n(t, Dr(e, s, r, i)).then((l) => {
         if (!l.ok)
@@ -2626,27 +2626,27 @@ function Ce(n, e, t, s, r, i) {
   });
 }
 function xe(n, e, t, s) {
-  return ee(this, void 0, void 0, function* () {
+  return te(this, void 0, void 0, function* () {
     return Ce(n, "GET", e, t, s);
   });
 }
 function B(n, e, t, s, r) {
-  return ee(this, void 0, void 0, function* () {
+  return te(this, void 0, void 0, function* () {
     return Ce(n, "POST", e, s, r, t);
   });
 }
 function tt(n, e, t, s, r) {
-  return ee(this, void 0, void 0, function* () {
+  return te(this, void 0, void 0, function* () {
     return Ce(n, "PUT", e, s, r, t);
   });
 }
 function Nr(n, e, t, s) {
-  return ee(this, void 0, void 0, function* () {
+  return te(this, void 0, void 0, function* () {
     return Ce(n, "HEAD", e, Object.assign(Object.assign({}, t), { noResolveJson: !0 }), s);
   });
 }
 function ys(n, e, t, s, r) {
-  return ee(this, void 0, void 0, function* () {
+  return te(this, void 0, void 0, function* () {
     return Ce(n, "DELETE", e, s, r, t);
   });
 }
@@ -3071,7 +3071,7 @@ class Fr {
   }
 }
 const Mr = "2.10.4", Br = { "X-Client-Info": `storage-js/${Mr}` };
-var re = function(n, e, t, s) {
+var ie = function(n, e, t, s) {
   function r(i) {
     return i instanceof t ? i : new t(function(o) {
       o(i);
@@ -3107,7 +3107,7 @@ class qr {
    * Retrieves the details of all Storage buckets within an existing project.
    */
   listBuckets() {
-    return re(this, void 0, void 0, function* () {
+    return ie(this, void 0, void 0, function* () {
       try {
         return { data: yield xe(this.fetch, `${this.url}/bucket`, { headers: this.headers }), error: null };
       } catch (e) {
@@ -3123,7 +3123,7 @@ class qr {
    * @param id The unique identifier of the bucket you would like to retrieve.
    */
   getBucket(e) {
-    return re(this, void 0, void 0, function* () {
+    return ie(this, void 0, void 0, function* () {
       try {
         return { data: yield xe(this.fetch, `${this.url}/bucket/${e}`, { headers: this.headers }), error: null };
       } catch (t) {
@@ -3151,7 +3151,7 @@ class qr {
   createBucket(e, t = {
     public: !1
   }) {
-    return re(this, void 0, void 0, function* () {
+    return ie(this, void 0, void 0, function* () {
       try {
         return { data: yield B(this.fetch, `${this.url}/bucket`, {
           id: e,
@@ -3181,7 +3181,7 @@ class qr {
    * Each mime type specified can be a wildcard, e.g. image/*, or a specific mime type, e.g. image/png.
    */
   updateBucket(e, t) {
-    return re(this, void 0, void 0, function* () {
+    return ie(this, void 0, void 0, function* () {
       try {
         return { data: yield tt(this.fetch, `${this.url}/bucket/${e}`, {
           id: e,
@@ -3203,7 +3203,7 @@ class qr {
    * @param id The unique identifier of the bucket you would like to empty.
    */
   emptyBucket(e) {
-    return re(this, void 0, void 0, function* () {
+    return ie(this, void 0, void 0, function* () {
       try {
         return { data: yield B(this.fetch, `${this.url}/bucket/${e}/empty`, {}, { headers: this.headers }), error: null };
       } catch (t) {
@@ -3220,7 +3220,7 @@ class qr {
    * @param id The unique identifier of the bucket you would like to delete.
    */
   deleteBucket(e) {
-    return re(this, void 0, void 0, function* () {
+    return ie(this, void 0, void 0, function* () {
       try {
         return { data: yield ys(this.fetch, `${this.url}/bucket/${e}`, {}, { headers: this.headers }), error: null };
       } catch (t) {
@@ -3244,11 +3244,11 @@ class zr extends qr {
     return new Fr(this.url, this.headers, e, this.fetch);
   }
 }
-const Hr = "2.53.0";
+const Vr = "2.53.0";
 let me = "";
 typeof Deno < "u" ? me = "deno" : typeof document < "u" ? me = "web" : typeof navigator < "u" && navigator.product === "ReactNative" ? me = "react-native" : me = "node";
-const Vr = { "X-Client-Info": `supabase-js-${me}/${Hr}` }, Wr = {
-  headers: Vr
+const Hr = { "X-Client-Info": `supabase-js-${me}/${Vr}` }, Wr = {
+  headers: Hr
 }, Kr = {
   schema: "public"
 }, Jr = {
@@ -3340,7 +3340,7 @@ function si(n, e) {
   };
   return n.accessToken ? d.accessToken = n.accessToken : delete d.accessToken, d;
 }
-const bs = "2.71.1", le = 30 * 1e3, st = 3, He = st * le, ri = "http://localhost:9999", ii = "supabase.auth.token", ni = { "X-Client-Info": `gotrue-js/${bs}` }, rt = "X-Supabase-Api-Version", _s = {
+const bs = "2.71.1", ce = 30 * 1e3, st = 3, Ve = st * ce, ri = "http://localhost:9999", ii = "supabase.auth.token", ni = { "X-Client-Info": `gotrue-js/${bs}` }, rt = "X-Supabase-Api-Version", _s = {
   "2024-01-01": {
     timestamp: Date.parse("2024-01-01T00:00:00.0Z"),
     name: "2024-01-01"
@@ -3367,12 +3367,12 @@ class ws extends mt {
     super(e), this.name = "AuthUnknownError", this.originalError = t;
   }
 }
-class W extends mt {
+class K extends mt {
   constructor(e, t, s, r) {
     super(e, s, r), this.name = t, this.status = s;
   }
 }
-class H extends W {
+class V extends K {
   constructor() {
     super("Auth session missing!", "AuthSessionMissingError", 400, void 0);
   }
@@ -3380,17 +3380,17 @@ class H extends W {
 function ui(n) {
   return _(n) && n.name === "AuthSessionMissingError";
 }
-class Te extends W {
+class Ie extends K {
   constructor() {
     super("Auth session or user missing", "AuthInvalidTokenResponseError", 500, void 0);
   }
 }
-class Ae extends W {
+class Ae extends K {
   constructor(e) {
     super(e, "AuthInvalidCredentialsError", 400, void 0);
   }
 }
-class Pe extends W {
+class Pe extends K {
   constructor(e, t = null) {
     super(e, "AuthImplicitGrantRedirectError", 500, void 0), this.details = null, this.details = t;
   }
@@ -3406,7 +3406,7 @@ class Pe extends W {
 function hi(n) {
   return _(n) && n.name === "AuthImplicitGrantRedirectError";
 }
-class zt extends W {
+class zt extends K {
   constructor(e, t = null) {
     super(e, "AuthPKCEGrantCodeExchangeError", 500, void 0), this.details = null, this.details = t;
   }
@@ -3419,31 +3419,31 @@ class zt extends W {
     };
   }
 }
-class it extends W {
+class it extends K {
   constructor(e, t) {
     super(e, "AuthRetryableFetchError", t, void 0);
   }
 }
-function Ve(n) {
+function He(n) {
   return _(n) && n.name === "AuthRetryableFetchError";
 }
-class Ht extends W {
+class Vt extends K {
   constructor(e, t, s) {
     super(e, "AuthWeakPasswordError", t, "weak_password"), this.reasons = s;
   }
 }
-class nt extends W {
+class nt extends K {
   constructor(e) {
     super(e, "AuthInvalidJwtError", 400, "invalid_jwt");
   }
 }
-const Oe = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_".split(""), Vt = ` 	
+const Oe = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_".split(""), Ht = ` 	
 \r=`.split(""), di = (() => {
   const n = new Array(128);
   for (let e = 0; e < n.length; e += 1)
     n[e] = -1;
-  for (let e = 0; e < Vt.length; e += 1)
-    n[Vt[e].charCodeAt(0)] = -2;
+  for (let e = 0; e < Ht.length; e += 1)
+    n[Ht[e].charCodeAt(0)] = -2;
   for (let e = 0; e < Oe.length; e += 1)
     n[Oe[e].charCodeAt(0)] = e;
   return n;
@@ -3563,7 +3563,7 @@ function _i() {
     return (n == "x" ? e : e & 3 | 8).toString(16);
   });
 }
-const D = () => typeof window < "u" && typeof document < "u", K = {
+const D = () => typeof window < "u" && typeof document < "u", J = {
   tested: !1,
   writable: !1
 }, ks = () => {
@@ -3575,15 +3575,15 @@ const D = () => typeof window < "u" && typeof document < "u", K = {
   } catch {
     return !1;
   }
-  if (K.tested)
-    return K.writable;
+  if (J.tested)
+    return J.writable;
   const n = `lswt-${Math.random()}${Math.random()}`;
   try {
-    globalThis.localStorage.setItem(n, n), globalThis.localStorage.removeItem(n), K.tested = !0, K.writable = !0;
+    globalThis.localStorage.setItem(n, n), globalThis.localStorage.removeItem(n), J.tested = !0, J.writable = !0;
   } catch {
-    K.tested = !0, K.writable = !1;
+    J.tested = !0, J.writable = !1;
   }
-  return K.writable;
+  return J.writable;
 };
 function wi(n) {
   const e = {}, t = new URL(n);
@@ -3601,9 +3601,9 @@ function wi(n) {
 const Es = (n) => {
   let e;
   return n ? e = n : typeof fetch > "u" ? e = (...t) => Promise.resolve().then(() => fe).then(({ default: s }) => s(...t)) : e = fetch, (...t) => e(...t);
-}, Si = (n) => typeof n == "object" && n !== null && "status" in n && "ok" in n && "json" in n && typeof n.json == "function", ce = async (n, e, t) => {
+}, Si = (n) => typeof n == "object" && n !== null && "status" in n && "ok" in n && "json" in n && typeof n.json == "function", ue = async (n, e, t) => {
   await n.setItem(e, JSON.stringify(t));
-}, J = async (n, e) => {
+}, G = async (n, e) => {
   const t = await n.getItem(e);
   if (!t)
     return null;
@@ -3668,7 +3668,7 @@ function Ei(n, e) {
 function Ci(n) {
   return ("0" + n.toString(16)).substr(-2);
 }
-function Ii() {
+function Ti() {
   const e = new Uint32Array(56);
   if (typeof crypto > "u") {
     const t = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~", s = t.length;
@@ -3679,20 +3679,20 @@ function Ii() {
   }
   return crypto.getRandomValues(e), Array.from(e, Ci).join("");
 }
-async function Ti(n) {
+async function Ii(n) {
   const t = new TextEncoder().encode(n), s = await crypto.subtle.digest("SHA-256", t), r = new Uint8Array(s);
   return Array.from(r).map((i) => String.fromCharCode(i)).join("");
 }
 async function Ai(n) {
   if (!(typeof crypto < "u" && typeof crypto.subtle < "u" && typeof TextEncoder < "u"))
     return console.warn("WebCrypto API is not supported. Code challenge method will default to use plain instead of sha256."), n;
-  const t = await Ti(n);
+  const t = await Ii(n);
   return btoa(t).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 }
-async function ie(n, e, t = !1) {
-  const s = Ii();
+async function ne(n, e, t = !1) {
+  const s = Ti();
   let r = s;
-  t && (r += "/PASSWORD_RECOVERY"), await ce(n, `${e}-code-verifier`, r);
+  t && (r += "/PASSWORD_RECOVERY"), await ue(n, `${e}-code-verifier`, r);
   const i = await Ai(s);
   return [i, s === i ? "plain" : "s256"];
 }
@@ -3732,7 +3732,7 @@ function ji(n) {
   }
 }
 const $i = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
-function ne(n) {
+function oe(n) {
   if (!$i.test(n))
     throw new Error("@supabase/auth-js: Expected parameter to be UUID but is not");
 }
@@ -3768,29 +3768,29 @@ var Ri = function(n, e) {
       e.indexOf(s[r]) < 0 && Object.prototype.propertyIsEnumerable.call(n, s[r]) && (t[s[r]] = n[s[r]]);
   return t;
 };
-const G = (n) => n.msg || n.message || n.error_description || n.error || JSON.stringify(n), Li = [502, 503, 504];
+const Q = (n) => n.msg || n.message || n.error_description || n.error || JSON.stringify(n), Li = [502, 503, 504];
 async function Gt(n) {
   var e;
   if (!Si(n))
-    throw new it(G(n), 0);
+    throw new it(Q(n), 0);
   if (Li.includes(n.status))
-    throw new it(G(n), n.status);
+    throw new it(Q(n), n.status);
   let t;
   try {
     t = await n.json();
   } catch (i) {
-    throw new ws(G(i), i);
+    throw new ws(Q(i), i);
   }
   let s;
   const r = xi(n);
   if (r && r.getTime() >= _s["2024-01-01"].timestamp && typeof t == "object" && t && typeof t.code == "string" ? s = t.code : typeof t == "object" && t && typeof t.error_code == "string" && (s = t.error_code), s) {
     if (s === "weak_password")
-      throw new Ht(G(t), n.status, ((e = t.weak_password) === null || e === void 0 ? void 0 : e.reasons) || []);
+      throw new Vt(Q(t), n.status, ((e = t.weak_password) === null || e === void 0 ? void 0 : e.reasons) || []);
     if (s === "session_not_found")
-      throw new H();
+      throw new V();
   } else if (typeof t == "object" && t && typeof t.weak_password == "object" && t.weak_password && Array.isArray(t.weak_password.reasons) && t.weak_password.reasons.length && t.weak_password.reasons.reduce((i, o) => i && typeof o == "string", !0))
-    throw new Ht(G(t), n.status, t.weak_password.reasons);
-  throw new li(G(t), n.status || 500, s);
+    throw new Vt(Q(t), n.status, t.weak_password.reasons);
+  throw new li(Q(t), n.status || 500, s);
 }
 const Di = (n, e, t, s) => {
   const r = { method: n, headers: (e == null ? void 0 : e.headers) || {} };
@@ -3814,7 +3814,7 @@ async function Ni(n, e, t, s, r, i) {
   try {
     a = await n(t, Object.assign({}, o));
   } catch (l) {
-    throw console.error(l), new it(G(l), 0);
+    throw console.error(l), new it(Q(l), 0);
   }
   if (a.ok || await Gt(a), s != null && s.noResolveJson)
     return a;
@@ -3835,7 +3835,7 @@ function Qt(n) {
   const e = U(n);
   return !e.error && n.weak_password && typeof n.weak_password == "object" && Array.isArray(n.weak_password.reasons) && n.weak_password.reasons.length && n.weak_password.message && typeof n.weak_password.message == "string" && n.weak_password.reasons.reduce((t, s) => t && typeof s == "string", !0) && (e.data.weak_password = n.weak_password), e;
 }
-function V(n) {
+function W(n) {
   var e;
   return { data: { user: (e = n.user) !== null && e !== void 0 ? e : n }, error: null };
 }
@@ -3911,7 +3911,7 @@ class zi {
         body: { email: e, data: t.data },
         headers: this.headers,
         redirectTo: t.redirectTo,
-        xform: V
+        xform: W
       });
     } catch (s) {
       if (_(s))
@@ -3957,7 +3957,7 @@ class zi {
       return await S(this.fetch, "POST", `${this.url}/admin/users`, {
         body: e,
         headers: this.headers,
-        xform: V
+        xform: W
       });
     } catch (t) {
       if (_(t))
@@ -4004,11 +4004,11 @@ class zi {
    * This function should only be called on a server. Never expose your `service_role` key in the browser.
    */
   async getUserById(e) {
-    ne(e);
+    oe(e);
     try {
       return await S(this.fetch, "GET", `${this.url}/admin/users/${e}`, {
         headers: this.headers,
-        xform: V
+        xform: W
       });
     } catch (t) {
       if (_(t))
@@ -4024,12 +4024,12 @@ class zi {
    * This function should only be called on a server. Never expose your `service_role` key in the browser.
    */
   async updateUserById(e, t) {
-    ne(e);
+    oe(e);
     try {
       return await S(this.fetch, "PUT", `${this.url}/admin/users/${e}`, {
         body: t,
         headers: this.headers,
-        xform: V
+        xform: W
       });
     } catch (s) {
       if (_(s))
@@ -4047,14 +4047,14 @@ class zi {
    * This function should only be called on a server. Never expose your `service_role` key in the browser.
    */
   async deleteUser(e, t = !1) {
-    ne(e);
+    oe(e);
     try {
       return await S(this.fetch, "DELETE", `${this.url}/admin/users/${e}`, {
         headers: this.headers,
         body: {
           should_soft_delete: t
         },
-        xform: V
+        xform: W
       });
     } catch (s) {
       if (_(s))
@@ -4063,7 +4063,7 @@ class zi {
     }
   }
   async _listFactors(e) {
-    ne(e.userId);
+    oe(e.userId);
     try {
       const { data: t, error: s } = await S(this.fetch, "GET", `${this.url}/admin/users/${e.userId}/factors`, {
         headers: this.headers,
@@ -4077,7 +4077,7 @@ class zi {
     }
   }
   async _deleteFactor(e) {
-    ne(e.userId), ne(e.id);
+    oe(e.userId), oe(e.id);
     try {
       return { data: await S(this.fetch, "DELETE", `${this.url}/admin/users/${e.userId}/factors/${e.id}`, {
         headers: this.headers
@@ -4100,7 +4100,7 @@ function Xt(n = {}) {
     }
   };
 }
-function Hi() {
+function Vi() {
   if (typeof globalThis != "object")
     try {
       Object.defineProperty(Object.prototype, "__magic__", {
@@ -4113,7 +4113,7 @@ function Hi() {
       typeof self < "u" && (self.globalThis = self);
     }
 }
-const oe = {
+const ae = {
   /**
    * @experimental
    */
@@ -4124,13 +4124,13 @@ class Cs extends Error {
     super(e), this.isAcquireTimeout = !0;
   }
 }
-class Vi extends Cs {
+class Hi extends Cs {
 }
 async function Wi(n, e, t) {
-  oe.debug && console.log("@supabase/gotrue-js: navigatorLock: acquire lock", n, e);
+  ae.debug && console.log("@supabase/gotrue-js: navigatorLock: acquire lock", n, e);
   const s = new globalThis.AbortController();
   return e > 0 && setTimeout(() => {
-    s.abort(), oe.debug && console.log("@supabase/gotrue-js: navigatorLock acquire timed out", n);
+    s.abort(), ae.debug && console.log("@supabase/gotrue-js: navigatorLock acquire timed out", n);
   }, e), await Promise.resolve().then(() => globalThis.navigator.locks.request(n, e === 0 ? {
     mode: "exclusive",
     ifAvailable: !0
@@ -4139,16 +4139,16 @@ async function Wi(n, e, t) {
     signal: s.signal
   }, async (r) => {
     if (r) {
-      oe.debug && console.log("@supabase/gotrue-js: navigatorLock: acquired", n, r.name);
+      ae.debug && console.log("@supabase/gotrue-js: navigatorLock: acquired", n, r.name);
       try {
         return await t();
       } finally {
-        oe.debug && console.log("@supabase/gotrue-js: navigatorLock: released", n, r.name);
+        ae.debug && console.log("@supabase/gotrue-js: navigatorLock: released", n, r.name);
       }
     } else {
       if (e === 0)
-        throw oe.debug && console.log("@supabase/gotrue-js: navigatorLock: not immediately available", n), new Vi(`Acquiring an exclusive Navigator LockManager lock "${n}" immediately failed`);
-      if (oe.debug)
+        throw ae.debug && console.log("@supabase/gotrue-js: navigatorLock: not immediately available", n), new Hi(`Acquiring an exclusive Navigator LockManager lock "${n}" immediately failed`);
+      if (ae.debug)
         try {
           const i = await globalThis.navigator.locks.query();
           console.log("@supabase/gotrue-js: Navigator LockManager state", JSON.stringify(i, null, "  "));
@@ -4159,7 +4159,7 @@ async function Wi(n, e, t) {
     }
   }));
 }
-Hi();
+Vi();
 const Ki = {
   url: ri,
   storageKey: ii,
@@ -4174,7 +4174,7 @@ const Ki = {
 async function Yt(n, e, t) {
   return await t();
 }
-const ae = {};
+const le = {};
 class Se {
   /**
    * Create a new client for use in the browser.
@@ -4212,17 +4212,17 @@ class Se {
    */
   get jwks() {
     var e, t;
-    return (t = (e = ae[this.storageKey]) === null || e === void 0 ? void 0 : e.jwks) !== null && t !== void 0 ? t : { keys: [] };
+    return (t = (e = le[this.storageKey]) === null || e === void 0 ? void 0 : e.jwks) !== null && t !== void 0 ? t : { keys: [] };
   }
   set jwks(e) {
-    ae[this.storageKey] = Object.assign(Object.assign({}, ae[this.storageKey]), { jwks: e });
+    le[this.storageKey] = Object.assign(Object.assign({}, le[this.storageKey]), { jwks: e });
   }
   get jwks_cached_at() {
     var e, t;
-    return (t = (e = ae[this.storageKey]) === null || e === void 0 ? void 0 : e.cachedAt) !== null && t !== void 0 ? t : Number.MIN_SAFE_INTEGER;
+    return (t = (e = le[this.storageKey]) === null || e === void 0 ? void 0 : e.cachedAt) !== null && t !== void 0 ? t : Number.MIN_SAFE_INTEGER;
   }
   set jwks_cached_at(e) {
-    ae[this.storageKey] = Object.assign(Object.assign({}, ae[this.storageKey]), { cachedAt: e });
+    le[this.storageKey] = Object.assign(Object.assign({}, le[this.storageKey]), { cachedAt: e });
   }
   _debug(...e) {
     return this.logDebugMessages && this.logger(`GoTrueClient@${this.instanceID} (${bs}) ${(/* @__PURE__ */ new Date()).toISOString()}`, ...e), this;
@@ -4313,7 +4313,7 @@ class Se {
       if ("email" in e) {
         const { email: c, password: h, options: d } = e;
         let f = null, p = null;
-        this.flowType === "pkce" && ([f, p] = await ie(this.storage, this.storageKey)), i = await S(this.fetch, "POST", `${this.url}/signup`, {
+        this.flowType === "pkce" && ([f, p] = await ne(this.storage, this.storageKey)), i = await S(this.fetch, "POST", `${this.url}/signup`, {
           headers: this.headers,
           redirectTo: d == null ? void 0 : d.emailRedirectTo,
           body: {
@@ -4388,7 +4388,7 @@ class Se {
       } else
         throw new Ae("You must provide either an email or phone number and a password");
       const { data: s, error: r } = t;
-      return r ? { data: { user: null, session: null }, error: r } : !s || !s.session || !s.user ? { data: { user: null, session: null }, error: new Te() } : (s.session && (await this._saveSession(s.session), await this._notifyAllSubscribers("SIGNED_IN", s.session)), {
+      return r ? { data: { user: null, session: null }, error: r } : !s || !s.session || !s.user ? { data: { user: null, session: null }, error: new Ie() } : (s.session && (await this._saveSession(s.session), await this._notifyAllSubscribers("SIGNED_IN", s.session)), {
         data: Object.assign({ user: s.user, session: s.session }, s.weak_password ? { weakPassword: s.weak_password } : null),
         error: r
       });
@@ -4433,7 +4433,7 @@ class Se {
     if ("message" in e)
       p = e.message, y = e.signature;
     else {
-      const { chain: g, wallet: w, statement: k, options: m } = e;
+      const { chain: g, wallet: w, statement: k, options: v } = e;
       let b;
       if (D())
         if (typeof w == "object")
@@ -4446,13 +4446,13 @@ class Se {
             throw new Error("@supabase/auth-js: No compatible Solana wallet interface on the window object (window.solana) detected. Make sure the user already has a wallet installed and connected for this app. Prefer passing the wallet interface object directly to signInWithWeb3({ chain: 'solana', wallet: resolvedUserWallet }) instead.");
         }
       else {
-        if (typeof w != "object" || !(m != null && m.url))
+        if (typeof w != "object" || !(v != null && v.url))
           throw new Error("@supabase/auth-js: Both wallet and url must be specified in non-browser environments.");
         b = w;
       }
-      const A = new URL((t = m == null ? void 0 : m.url) !== null && t !== void 0 ? t : window.location.href);
+      const A = new URL((t = v == null ? void 0 : v.url) !== null && t !== void 0 ? t : window.location.href);
       if ("signIn" in b && b.signIn) {
-        const C = await b.signIn(Object.assign(Object.assign(Object.assign({ issuedAt: (/* @__PURE__ */ new Date()).toISOString() }, m == null ? void 0 : m.signInWithSolana), {
+        const C = await b.signIn(Object.assign(Object.assign(Object.assign({ issuedAt: (/* @__PURE__ */ new Date()).toISOString() }, v == null ? void 0 : v.signInWithSolana), {
           // non-overridable properties
           version: "1",
           domain: A.host,
@@ -4478,15 +4478,15 @@ class Se {
           ...k ? ["", k, ""] : [""],
           "Version: 1",
           `URI: ${A.href}`,
-          `Issued At: ${(r = (s = m == null ? void 0 : m.signInWithSolana) === null || s === void 0 ? void 0 : s.issuedAt) !== null && r !== void 0 ? r : (/* @__PURE__ */ new Date()).toISOString()}`,
-          ...!((i = m == null ? void 0 : m.signInWithSolana) === null || i === void 0) && i.notBefore ? [`Not Before: ${m.signInWithSolana.notBefore}`] : [],
-          ...!((o = m == null ? void 0 : m.signInWithSolana) === null || o === void 0) && o.expirationTime ? [`Expiration Time: ${m.signInWithSolana.expirationTime}`] : [],
-          ...!((a = m == null ? void 0 : m.signInWithSolana) === null || a === void 0) && a.chainId ? [`Chain ID: ${m.signInWithSolana.chainId}`] : [],
-          ...!((l = m == null ? void 0 : m.signInWithSolana) === null || l === void 0) && l.nonce ? [`Nonce: ${m.signInWithSolana.nonce}`] : [],
-          ...!((u = m == null ? void 0 : m.signInWithSolana) === null || u === void 0) && u.requestId ? [`Request ID: ${m.signInWithSolana.requestId}`] : [],
-          ...!((h = (c = m == null ? void 0 : m.signInWithSolana) === null || c === void 0 ? void 0 : c.resources) === null || h === void 0) && h.length ? [
+          `Issued At: ${(r = (s = v == null ? void 0 : v.signInWithSolana) === null || s === void 0 ? void 0 : s.issuedAt) !== null && r !== void 0 ? r : (/* @__PURE__ */ new Date()).toISOString()}`,
+          ...!((i = v == null ? void 0 : v.signInWithSolana) === null || i === void 0) && i.notBefore ? [`Not Before: ${v.signInWithSolana.notBefore}`] : [],
+          ...!((o = v == null ? void 0 : v.signInWithSolana) === null || o === void 0) && o.expirationTime ? [`Expiration Time: ${v.signInWithSolana.expirationTime}`] : [],
+          ...!((a = v == null ? void 0 : v.signInWithSolana) === null || a === void 0) && a.chainId ? [`Chain ID: ${v.signInWithSolana.chainId}`] : [],
+          ...!((l = v == null ? void 0 : v.signInWithSolana) === null || l === void 0) && l.nonce ? [`Nonce: ${v.signInWithSolana.nonce}`] : [],
+          ...!((u = v == null ? void 0 : v.signInWithSolana) === null || u === void 0) && u.requestId ? [`Request ID: ${v.signInWithSolana.requestId}`] : [],
+          ...!((h = (c = v == null ? void 0 : v.signInWithSolana) === null || c === void 0 ? void 0 : c.resources) === null || h === void 0) && h.length ? [
             "Resources",
-            ...m.signInWithSolana.resources.map((O) => `- ${O}`)
+            ...v.signInWithSolana.resources.map((O) => `- ${O}`)
           ] : []
         ].join(`
 `);
@@ -4506,7 +4506,7 @@ class Se {
         throw w;
       return !g || !g.session || !g.user ? {
         data: { user: null, session: null },
-        error: new Te()
+        error: new Ie()
       } : (g.session && (await this._saveSession(g.session), await this._notifyAllSubscribers("SIGNED_IN", g.session)), { data: Object.assign({}, g), error: w });
     } catch (g) {
       if (_(g))
@@ -4515,7 +4515,7 @@ class Se {
     }
   }
   async _exchangeCodeForSession(e) {
-    const t = await J(this.storage, `${this.storageKey}-code-verifier`), [s, r] = (t ?? "").split("/");
+    const t = await G(this.storage, `${this.storageKey}-code-verifier`), [s, r] = (t ?? "").split("/");
     try {
       const { data: i, error: o } = await S(this.fetch, "POST", `${this.url}/token?grant_type=pkce`, {
         headers: this.headers,
@@ -4529,7 +4529,7 @@ class Se {
         throw o;
       return !i || !i.session || !i.user ? {
         data: { user: null, session: null, redirectType: null },
-        error: new Te()
+        error: new Ie()
       } : (i.session && (await this._saveSession(i.session), await this._notifyAllSubscribers("SIGNED_IN", i.session)), { data: Object.assign(Object.assign({}, i), { redirectType: r ?? null }), error: o });
     } catch (i) {
       if (_(i))
@@ -4556,7 +4556,7 @@ class Se {
       }), { data: l, error: u } = a;
       return u ? { data: { user: null, session: null }, error: u } : !l || !l.session || !l.user ? {
         data: { user: null, session: null },
-        error: new Te()
+        error: new Ie()
       } : (l.session && (await this._saveSession(l.session), await this._notifyAllSubscribers("SIGNED_IN", l.session)), { data: l, error: u });
     } catch (t) {
       if (_(t))
@@ -4587,7 +4587,7 @@ class Se {
       if ("email" in e) {
         const { email: a, options: l } = e;
         let u = null, c = null;
-        this.flowType === "pkce" && ([u, c] = await ie(this.storage, this.storageKey));
+        this.flowType === "pkce" && ([u, c] = await ne(this.storage, this.storageKey));
         const { error: h } = await S(this.fetch, "POST", `${this.url}/otp`, {
           headers: this.headers,
           body: {
@@ -4666,7 +4666,7 @@ class Se {
     var t, s, r;
     try {
       let i = null, o = null;
-      return this.flowType === "pkce" && ([i, o] = await ie(this.storage, this.storageKey)), await S(this.fetch, "POST", `${this.url}/sso`, {
+      return this.flowType === "pkce" && ([i, o] = await ne(this.storage, this.storageKey)), await S(this.fetch, "POST", `${this.url}/sso`, {
         body: Object.assign(Object.assign(Object.assign(Object.assign(Object.assign({}, "providerId" in e ? { provider_id: e.providerId } : null), "domain" in e ? { domain: e.domain } : null), { redirect_to: (s = (t = e.options) === null || t === void 0 ? void 0 : t.redirectTo) !== null && s !== void 0 ? s : void 0 }), !((r = e == null ? void 0 : e.options) === null || r === void 0) && r.captchaToken ? { gotrue_meta_security: { captcha_token: e.options.captchaToken } } : null), { skip_http_redirect: !0, code_challenge: i, code_challenge_method: o }),
         headers: this.headers,
         xform: Ui
@@ -4691,7 +4691,7 @@ class Se {
         if (s)
           throw s;
         if (!t)
-          throw new H();
+          throw new V();
         const { error: r } = await S(this.fetch, "GET", `${this.url}/reauthenticate`, {
           headers: this.headers,
           jwt: t.access_token
@@ -4815,13 +4815,13 @@ class Se {
     this._debug("#__loadSession()", "begin"), this.lockAcquired || this._debug("#__loadSession()", "used outside of an acquired lock!", new Error().stack);
     try {
       let e = null;
-      const t = await J(this.storage, this.storageKey);
+      const t = await G(this.storage, this.storageKey);
       if (this._debug("#getSession()", "session from storage", t), t !== null && (this._isValidSession(t) ? e = t : (this._debug("#getSession()", "session from storage is not valid"), await this._removeSession())), !e)
         return { data: { session: null }, error: null };
-      const s = e.expires_at ? e.expires_at * 1e3 - Date.now() < He : !1;
+      const s = e.expires_at ? e.expires_at * 1e3 - Date.now() < Ve : !1;
       if (this._debug("#__loadSession()", `session has${s ? "" : " not"} expired`, "expires_at", e.expires_at), !s) {
         if (this.userStorage) {
-          const o = await J(this.userStorage, this.storageKey + "-user");
+          const o = await G(this.userStorage, this.storageKey + "-user");
           o != null && o.user ? e.user = o.user : e.user = Ke();
         }
         if (this.storage.isServer && e.user) {
@@ -4853,16 +4853,16 @@ class Se {
       return e ? await S(this.fetch, "GET", `${this.url}/user`, {
         headers: this.headers,
         jwt: e,
-        xform: V
+        xform: W
       }) : await this._useSession(async (t) => {
         var s, r, i;
         const { data: o, error: a } = t;
         if (a)
           throw a;
-        return !(!((s = o.session) === null || s === void 0) && s.access_token) && !this.hasCustomAuthorizationHeader ? { data: { user: null }, error: new H() } : await S(this.fetch, "GET", `${this.url}/user`, {
+        return !(!((s = o.session) === null || s === void 0) && s.access_token) && !this.hasCustomAuthorizationHeader ? { data: { user: null }, error: new V() } : await S(this.fetch, "GET", `${this.url}/user`, {
           headers: this.headers,
           jwt: (i = (r = o.session) === null || r === void 0 ? void 0 : r.access_token) !== null && i !== void 0 ? i : void 0,
-          xform: V
+          xform: W
         });
       });
     } catch (t) {
@@ -4884,16 +4884,16 @@ class Se {
         if (i)
           throw i;
         if (!r.session)
-          throw new H();
+          throw new V();
         const o = r.session;
         let a = null, l = null;
-        this.flowType === "pkce" && e.email != null && ([a, l] = await ie(this.storage, this.storageKey));
+        this.flowType === "pkce" && e.email != null && ([a, l] = await ne(this.storage, this.storageKey));
         const { data: u, error: c } = await S(this.fetch, "PUT", `${this.url}/user`, {
           headers: this.headers,
           redirectTo: t == null ? void 0 : t.emailRedirectTo,
           body: Object.assign(Object.assign({}, e), { code_challenge: a, code_challenge_method: l }),
           jwt: o.access_token,
-          xform: V
+          xform: W
         });
         if (c)
           throw c;
@@ -4916,7 +4916,7 @@ class Se {
   async _setSession(e) {
     try {
       if (!e.access_token || !e.refresh_token)
-        throw new H();
+        throw new V();
       const t = Date.now() / 1e3;
       let s = t, r = !0, i = null;
       const { payload: o } = We(e.access_token);
@@ -4967,7 +4967,7 @@ class Se {
           e = (s = o.session) !== null && s !== void 0 ? s : void 0;
         }
         if (!(e != null && e.refresh_token))
-          throw new H();
+          throw new V();
         const { session: r, error: i } = await this._callRefreshToken(e.refresh_token);
         return i ? { data: { user: null, session: null }, error: i } : r ? { data: { user: r.user, session: r }, error: null } : { data: { user: null, session: null }, error: null };
       });
@@ -5003,9 +5003,9 @@ class Se {
       if (t === "pkce") {
         if (this._debug("#_initialize()", "begin", "is PKCE flow", !0), !e.code)
           throw new zt("No code detected.");
-        const { data: k, error: m } = await this._exchangeCodeForSession(e.code);
-        if (m)
-          throw m;
+        const { data: k, error: v } = await this._exchangeCodeForSession(e.code);
+        if (v)
+          throw v;
         const b = new URL(window.location.href);
         return b.searchParams.delete("code"), window.history.replaceState(window.history.state, "", b.toString()), { data: { session: k.session, redirectType: null }, error: null };
       }
@@ -5016,7 +5016,7 @@ class Se {
       let d = c + h;
       l && (d = parseInt(l));
       const f = d - c;
-      f * 1e3 <= le && console.warn(`@supabase/gotrue-js: Session as retrieved from URL expires in ${f}s, should have been closer to ${h}s`);
+      f * 1e3 <= ce && console.warn(`@supabase/gotrue-js: Session as retrieved from URL expires in ${f}s, should have been closer to ${h}s`);
       const p = d - h;
       c - p >= 120 ? console.warn("@supabase/gotrue-js: Session as retrieved from URL was issued over 120s ago, URL could be stale", p, d, c) : c - p < 0 && console.warn("@supabase/gotrue-js: Session as retrieved from URL was issued in the future? Check the device clock for skew", p, d, c);
       const { data: y, error: g } = await this._getUser(i);
@@ -5049,7 +5049,7 @@ class Se {
    * Checks if the current URL and backing storage contain parameters given by a PKCE flow
    */
   async _isPKCECallback(e) {
-    const t = await J(this.storage, `${this.storageKey}-code-verifier`);
+    const t = await G(this.storage, `${this.storageKey}-code-verifier`);
     return !!(e.code && t);
   }
   /**
@@ -5116,7 +5116,7 @@ class Se {
    */
   async resetPasswordForEmail(e, t = {}) {
     let s = null, r = null;
-    this.flowType === "pkce" && ([s, r] = await ie(
+    this.flowType === "pkce" && ([s, r] = await ne(
       this.storage,
       this.storageKey,
       !0
@@ -5223,8 +5223,8 @@ class Se {
         xform: U
       })), (r, i) => {
         const o = 200 * Math.pow(2, r);
-        return i && Ve(i) && // retryable only if the request can be sent before the backoff overflows the tick duration
-        Date.now() + o - s < le;
+        return i && He(i) && // retryable only if the request can be sent before the backoff overflows the tick duration
+        Date.now() + o - s < ce;
       });
     } catch (s) {
       if (this._debug(t, "error", s), _(s))
@@ -5254,23 +5254,23 @@ class Se {
     const s = "#_recoverAndRefresh()";
     this._debug(s, "begin");
     try {
-      const r = await J(this.storage, this.storageKey);
+      const r = await G(this.storage, this.storageKey);
       if (r && this.userStorage) {
-        let o = await J(this.userStorage, this.storageKey + "-user");
-        !this.storage.isServer && Object.is(this.storage, this.userStorage) && !o && (o = { user: r.user }, await ce(this.userStorage, this.storageKey + "-user", o)), r.user = (e = o == null ? void 0 : o.user) !== null && e !== void 0 ? e : Ke();
+        let o = await G(this.userStorage, this.storageKey + "-user");
+        !this.storage.isServer && Object.is(this.storage, this.userStorage) && !o && (o = { user: r.user }, await ue(this.userStorage, this.storageKey + "-user", o)), r.user = (e = o == null ? void 0 : o.user) !== null && e !== void 0 ? e : Ke();
       } else if (r && !r.user && !r.user) {
-        const o = await J(this.storage, this.storageKey + "-user");
-        o && (o != null && o.user) ? (r.user = o.user, await z(this.storage, this.storageKey + "-user"), await ce(this.storage, this.storageKey, r)) : r.user = Ke();
+        const o = await G(this.storage, this.storageKey + "-user");
+        o && (o != null && o.user) ? (r.user = o.user, await z(this.storage, this.storageKey + "-user"), await ue(this.storage, this.storageKey, r)) : r.user = Ke();
       }
       if (this._debug(s, "session from storage", r), !this._isValidSession(r)) {
         this._debug(s, "session is not valid"), r !== null && await this._removeSession();
         return;
       }
-      const i = ((t = r.expires_at) !== null && t !== void 0 ? t : 1 / 0) * 1e3 - Date.now() < He;
-      if (this._debug(s, `session has${i ? "" : " not"} expired with margin of ${He}s`), i) {
+      const i = ((t = r.expires_at) !== null && t !== void 0 ? t : 1 / 0) * 1e3 - Date.now() < Ve;
+      if (this._debug(s, `session has${i ? "" : " not"} expired with margin of ${Ve}s`), i) {
         if (this.autoRefreshToken && r.refresh_token) {
           const { error: o } = await this._callRefreshToken(r.refresh_token);
-          o && (console.error(o), Ve(o) || (this._debug(s, "refresh failed with a non-retryable error, removing the session", o), await this._removeSession()));
+          o && (console.error(o), He(o) || (this._debug(s, "refresh failed with a non-retryable error, removing the session", o), await this._removeSession()));
         }
       } else if (r.user && r.user.__isUserNotAvailableProxy === !0)
         try {
@@ -5291,7 +5291,7 @@ class Se {
   async _callRefreshToken(e) {
     var t, s;
     if (!e)
-      throw new H();
+      throw new V();
     if (this.refreshingDeferred)
       return this.refreshingDeferred.promise;
     const r = `#_callRefreshToken(${e.substring(0, 5)}...)`;
@@ -5302,14 +5302,14 @@ class Se {
       if (o)
         throw o;
       if (!i.session)
-        throw new H();
+        throw new V();
       await this._saveSession(i.session), await this._notifyAllSubscribers("TOKEN_REFRESHED", i.session);
       const a = { session: i.session, error: null };
       return this.refreshingDeferred.resolve(a), a;
     } catch (i) {
       if (this._debug(r, "error", i), _(i)) {
         const o = { session: null, error: i };
-        return Ve(i) || await this._removeSession(), (t = this.refreshingDeferred) === null || t === void 0 || t.resolve(o), o;
+        return He(i) || await this._removeSession(), (t = this.refreshingDeferred) === null || t === void 0 || t.resolve(o), o;
       }
       throw (s = this.refreshingDeferred) === null || s === void 0 || s.reject(i), i;
     } finally {
@@ -5345,16 +5345,16 @@ class Se {
     this._debug("#_saveSession()", e), this.suppressGetSessionWarning = !0;
     const t = Object.assign({}, e), s = t.user && t.user.__isUserNotAvailableProxy === !0;
     if (this.userStorage) {
-      !s && t.user && await ce(this.userStorage, this.storageKey + "-user", {
+      !s && t.user && await ue(this.userStorage, this.storageKey + "-user", {
         user: t.user
       });
       const r = Object.assign({}, t);
       delete r.user;
       const i = Jt(r);
-      await ce(this.storage, this.storageKey, i);
+      await ue(this.storage, this.storageKey, i);
     } else {
       const r = Jt(t);
-      await ce(this.storage, this.storageKey, r);
+      await ue(this.storage, this.storageKey, r);
     }
   }
   async _removeSession() {
@@ -5382,7 +5382,7 @@ class Se {
    */
   async _startAutoRefresh() {
     await this._stopAutoRefresh(), this._debug("#_startAutoRefresh()");
-    const e = setInterval(() => this._autoRefreshTokenTick(), le);
+    const e = setInterval(() => this._autoRefreshTokenTick(), ce);
     this.autoRefreshTicker = e, e && typeof e == "object" && typeof e.unref == "function" ? e.unref() : typeof Deno < "u" && typeof Deno.unrefTimer == "function" && Deno.unrefTimer(e), setTimeout(async () => {
       await this.initializePromise, await this._autoRefreshTokenTick();
     }, 0);
@@ -5448,8 +5448,8 @@ class Se {
                 this._debug("#_autoRefreshTokenTick()", "no session");
                 return;
               }
-              const r = Math.floor((s.expires_at * 1e3 - e) / le);
-              this._debug("#_autoRefreshTokenTick()", `access token expires in ${r} ticks, a tick lasts ${le}ms, refresh threshold is ${st} ticks`), r <= st && await this._callRefreshToken(s.refresh_token);
+              const r = Math.floor((s.expires_at * 1e3 - e) / ce);
+              this._debug("#_autoRefreshTokenTick()", `access token expires in ${r} ticks, a tick lasts ${ce}ms, refresh threshold is ${st} ticks`), r <= st && await this._callRefreshToken(s.refresh_token);
             });
           } catch (t) {
             console.error("Auto refresh tick failed with error. This is likely a transient error.", t);
@@ -5501,7 +5501,7 @@ class Se {
   async _getUrlForProvider(e, t, s) {
     const r = [`provider=${encodeURIComponent(t)}`];
     if (s != null && s.redirectTo && r.push(`redirect_to=${encodeURIComponent(s.redirectTo)}`), s != null && s.scopes && r.push(`scopes=${encodeURIComponent(s.scopes)}`), this.flowType === "pkce") {
-      const [i, o] = await ie(this.storage, this.storageKey), a = new URLSearchParams({
+      const [i, o] = await ne(this.storage, this.storageKey), a = new URLSearchParams({
         code_challenge: `${encodeURIComponent(i)}`,
         code_challenge_method: `${encodeURIComponent(o)}`
       });
@@ -5800,7 +5800,7 @@ class Xi {
    * Supabase Functions allows you to deploy and invoke edge functions.
    */
   get functions() {
-    return new Hs(this.functionsUrl.href, {
+    return new Vs(this.functionsUrl.href, {
       headers: this.headers,
       customFetch: this.fetch
     });
@@ -5935,7 +5935,7 @@ function Zi() {
 Zi() && console.warn("⚠️  Node.js 18 and below are deprecated and will no longer be supported in future versions of @supabase/supabase-js. Please upgrade to Node.js 20 or later. For more information, visit: https://github.com/orgs/supabase/discussions/37217");
 class vt {
   constructor(e, t) {
-    v(this, "client");
+    m(this, "client");
     const s = e || "https://yoflhmaayrceswiwvxba.supabase.co", r = t || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlvZmxobWFheXJjZXN3aXd2eGJhIiwicm9sZSI6ImFub24iLCJpYXQiOjE2NzI5MzQ4MzUsImV4cCI6MTk4ODUxMDgzNX0.dq8OdZylVnB1Gwa_nYLALxUHk2NOPmRlhS_YbA7E8pg";
     this.client = Yi(s, r);
   }
@@ -6068,9 +6068,9 @@ const Me = "assistantAnalyticsPayload", en = "ei_enhanced_insights", be = "ei_an
 function Zt(n) {
   return typeof n.activeMs == "number" && n.activeMs > 0 ? n.activeMs : typeof n.leftAt == "number" && n.leftAt > n.enteredAt ? n.leftAt - n.enteredAt : 0;
 }
-let Z = {}, he = null, ke = !0, es = !1, F;
-const Is = [];
-function Ts(n) {
+let ee = {}, he = null, ke = !0, es = !1, F;
+const Ts = [];
+function Is(n) {
   if (typeof document > "u") return [];
   const e = n + "=", t = [];
   for (const s of ("; " + document.cookie).split("; ")) {
@@ -6088,8 +6088,8 @@ function As() {
   if (F !== void 0) return F;
   F = null;
   try {
-    if (Z.cookieDomain)
-      return F = Z.cookieDomain.replace(/^\./, ""), F;
+    if (ee.cookieDomain)
+      return F = ee.cookieDomain.replace(/^\./, ""), F;
     const n = window.location.hostname;
     if (!n || /^[\d.]+$/.test(n) || n === "localhost")
       return null;
@@ -6122,7 +6122,7 @@ function at(n) {
 }
 function Ps(n) {
   const e = [];
-  for (const t of Ts(n))
+  for (const t of Is(n))
     try {
       const s = JSON.parse(t);
       s && typeof s == "object" && !Array.isArray(s) && e.push(s);
@@ -6181,7 +6181,7 @@ function fn() {
 }
 function pn() {
   try {
-    if (typeof window > "u" || Z.shareInsightsAcrossSubdomains === !1 || !bt())
+    if (typeof window > "u" || ee.shareInsightsAcrossSubdomains === !1 || !bt())
       return;
     const n = fn();
     if (!n) return;
@@ -6289,13 +6289,13 @@ function vn() {
   }
 }
 function bt() {
-  return js() ? !1 : !Z.requireConsent || ke;
+  return js() ? !1 : !ee.requireConsent || ke;
 }
 function js() {
-  return Ts(ot).indexOf("0") !== -1;
+  return Is(ot).indexOf("0") !== -1;
 }
 function yn(n) {
-  Is.push(n);
+  Ts.push(n);
 }
 function we(n) {
   const e = n !== ke;
@@ -6309,7 +6309,7 @@ function we(n) {
     }
   }
   if (e)
-    for (const t of Is)
+    for (const t of Ts)
       try {
         t(n);
       } catch {
@@ -6381,7 +6381,7 @@ function $s() {
 }
 function kn(n) {
   if (!(typeof window > "u")) {
-    Z = n ?? {}, F = void 0;
+    ee = n ?? {}, F = void 0;
     try {
       const e = window.sessionStorage ? sessionStorage.getItem(Me) : null;
       let t = null;
@@ -6396,7 +6396,7 @@ function kn(n) {
         ),
         bn()
       );
-      if (he = ct(s), Z.requireConsent) {
+      if (he = ct(s), ee.requireConsent) {
         vn();
         const r = Os();
         r === null ? ke = !1 : we(r);
@@ -6464,7 +6464,7 @@ function Cn() {
     }
     Object.keys(n).length === 0 && he && (n = { ...he });
     let e = Ls();
-    return Z.shareInsightsAcrossSubdomains !== !1 && (e = mn(
+    return ee.shareInsightsAcrossSubdomains !== !1 && (e = mn(
       e,
       gn()
     )), e && (n.enhanced_insights = e), Object.keys(n).length > 0 ? JSON.stringify(n) : null;
@@ -6473,27 +6473,29 @@ function Cn() {
   }
 }
 let ts = !1;
-const ue = class ue {
-  // Flag to prevent duplicate storage listeners
+const H = class H {
   constructor(e) {
-    v(this, "options");
-    v(this, "supabaseService");
-    v(this, "inputDetector");
-    v(this, "productDetector");
-    v(this, "totalExtractor");
-    v(this, "campaign");
-    v(this, "totalAverage", 0);
-    v(this, "_sessionId");
-    v(this, "isInitialized", !1);
-    v(this, "previousContent", {});
-    v(this, "previousProducts", []);
-    v(this, "previousTotal", 0);
-    v(this, "debounceTimer");
-    v(this, "pendingContentUpdate");
-    v(this, "isSubmitting", !1);
+    m(this, "options");
+    m(this, "supabaseService");
+    m(this, "inputDetector");
+    m(this, "productDetector");
+    m(this, "totalExtractor");
+    m(this, "campaign");
+    m(this, "totalAverage", 0);
+    m(this, "_sessionId");
+    m(this, "isInitialized", !1);
+    m(this, "previousContent", {});
+    m(this, "previousProducts", []);
+    m(this, "previousTotal", 0);
+    m(this, "debounceTimer");
+    m(this, "pendingContentUpdate");
+    m(this, "isSubmitting", !1);
     // Lock to prevent concurrent submissions
-    v(this, "autofieldStorageListenersSetup", !1);
-    v(this, "boundHandleAutofieldBlur", (e) => this.handleAutofieldBlur(e));
+    m(this, "autofieldStorageListenersSetup", !1);
+    // Flag to prevent duplicate storage listeners
+    m(this, "autofieldSettleTimer");
+    m(this, "autofieldObserver");
+    m(this, "boundHandleAutofieldBlur", (e) => this.handleAutofieldBlur(e));
     this.options = e, this.supabaseService = new vt(
       e.supabaseUrl,
       e.supabaseAnonKey
@@ -6583,8 +6585,8 @@ const ue = class ue {
         ...g ? { analytics: g } : {},
         ...((l = this.campaign) == null ? void 0 : l.type) === "synxis" && this._synxisSessionIds ? { metadata: this._synxisSessionIds } : {},
         ...((u = this.campaign) == null ? void 0 : u.type) === "elinapms" && this._elinapmsSessionIds ? { metadata: this._elinapmsSessionIds } : {}
-      }, m = await this.supabaseService.submitCartSession(k);
-      m && m.id ? (this._sessionId = m.id, (c = this.inputDetector) == null || c.setSessionId(m.id), this.saveSessionIdToStorage(m.id), this.previousContent = w, this.previousProducts = [...h], this.previousTotal = d, console.log("Cart session updated successfully:", m.id)) : console.error("Failed to submit cart session");
+      }, v = await this.supabaseService.submitCartSession(k);
+      v && v.id ? (this._sessionId = v.id, (c = this.inputDetector) == null || c.setSessionId(v.id), this.saveSessionIdToStorage(v.id), this.previousContent = w, this.previousProducts = [...h], this.previousTotal = d, console.log("Cart session updated successfully:", v.id)) : console.error("Failed to submit cart session");
     } catch (h) {
       console.error("Error handling content update:", h);
     } finally {
@@ -6601,7 +6603,7 @@ const ue = class ue {
     const s = new Promise((r) => {
       t = setTimeout(() => {
         console.warn("Basket fetch timed out, continuing without it"), r(null);
-      }, ue.BASKET_FETCH_TIMEOUT_MS);
+      }, H.BASKET_FETCH_TIMEOUT_MS);
     });
     try {
       return await Promise.race([e, s]);
@@ -6616,7 +6618,8 @@ const ue = class ue {
     return r || i || o;
   }
   destroy() {
-    this.debounceTimer && (clearTimeout(this.debounceTimer), this.debounceTimer = void 0), this._urlCheckInterval && (clearInterval(this._urlCheckInterval), this._urlCheckInterval = void 0), this._iframeObserver && (this._iframeObserver.disconnect(), this._iframeObserver = void 0), this.pendingContentUpdate && (this.handleContentUpdate(
+    var e;
+    this.debounceTimer && (clearTimeout(this.debounceTimer), this.debounceTimer = void 0), this._urlCheckInterval && (clearInterval(this._urlCheckInterval), this._urlCheckInterval = void 0), this.autofieldSettleTimer && (clearTimeout(this.autofieldSettleTimer), this.autofieldSettleTimer = void 0), (e = this.autofieldObserver) == null || e.disconnect(), this.autofieldObserver = void 0, this._iframeObserver && (this._iframeObserver.disconnect(), this._iframeObserver = void 0), this.pendingContentUpdate && (this.handleContentUpdate(
       this.pendingContentUpdate.content,
       this.pendingContentUpdate.sessionId
     ), this.pendingContentUpdate = void 0), this.inputDetector && this.inputDetector.stopListening(), this.isInitialized = !1, this._sessionId = void 0, this.isSubmitting = !1, this.clearSessionIdFromStorage();
@@ -6775,7 +6778,7 @@ const ue = class ue {
           const w = g.totalPrice || 0;
           if (w > 0) {
             const k = l.find(
-              (m) => m.id === g.addOnId
+              (v) => v.id === g.addOnId
             );
             t.push({
               id: g.addOnId,
@@ -6833,26 +6836,57 @@ const ue = class ue {
       );
       return;
     }
-    const r = s.filter(
-      (a) => this.autofieldExists(a)
-    ), i = s.filter(
-      (a) => !r.includes(a)
-    );
-    if (r.length > 0 && console.log(
-      `Autofields already present on page, skipping: ${r.join(", ")}`
-    ), i.length === 0) {
-      this.setupAutofieldListenersWithRetry();
-      return;
-    }
-    const o = this.createBookVisitFormSection(i);
-    t.insertAdjacentHTML("afterbegin", o), this.setupAutofieldListenersWithRetry();
+    const r = this.createBookVisitFormSection(s);
+    t.insertAdjacentHTML("afterbegin", r), this.syncAutofieldVisibility(), typeof MutationObserver < "u" && (this.autofieldObserver = new MutationObserver(
+      () => this.syncAutofieldVisibility()
+    ), this.autofieldObserver.observe(document.body, {
+      childList: !0,
+      subtree: !0
+    })), this.autofieldSettleTimer = setTimeout(() => {
+      var i;
+      this.autofieldSettleTimer = void 0, (i = this.autofieldObserver) == null || i.disconnect(), this.autofieldObserver = void 0, this.removeDuplicateAutofields(), this.autofieldStorageListenersSetup = !1, this.setupAutofieldListenersWithRetry();
+    }, H.AUTOFIELD_SETTLE_MS), this.setupAutofieldListenersWithRetry();
   }
   /**
-   * Check whether an input for the given autofield already exists in the DOM
+   * Check whether BookVisit itself renders an input for the given autofield,
+   * ignoring the ones we injected
    */
-  autofieldExists(e) {
-    const t = ue.AUTOFIELD_SELECTORS[e];
-    return !t || typeof document > "u" ? !1 : document.querySelector(t) !== null;
+  nativeAutofieldExists(e) {
+    const t = H.AUTOFIELD_SELECTORS[e];
+    return !t || typeof document > "u" ? !1 : Array.from(document.querySelectorAll(t)).some(
+      (s) => !s.closest("[data-ei-autofields]")
+    );
+  }
+  /**
+   * Hide each injected autofield while BookVisit renders its own version,
+   * and hide the whole section when none of ours are visible
+   */
+  syncAutofieldVisibility() {
+    const e = document.querySelector("[data-ei-autofields]");
+    if (!e)
+      return;
+    let t = !1;
+    e.querySelectorAll("[data-ei-autofield]").forEach((s) => {
+      const r = this.nativeAutofieldExists(
+        s.dataset.eiAutofield ?? ""
+      );
+      s.style.display = r ? "none" : "contents", t = t || !r;
+    }), e.style.display = t ? "" : "none";
+  }
+  /**
+   * Remove injected autofields that BookVisit also renders itself
+   */
+  removeDuplicateAutofields() {
+    const e = document.querySelector("[data-ei-autofields]");
+    if (!e)
+      return;
+    const t = [];
+    e.querySelectorAll("[data-ei-autofield]").forEach((s) => {
+      const r = s.dataset.eiAutofield ?? "";
+      this.nativeAutofieldExists(r) && (s.remove(), t.push(r));
+    }), e.querySelector("[data-ei-autofield]") || e.remove(), t.length > 0 && console.log(
+      `Autofields already present on page, removed ours: ${t.join(", ")}`
+    );
   }
   /**
    * Determine which fields to include based on input_mapping
@@ -6983,21 +7017,28 @@ const ue = class ue {
     const t = e.includes("firstName"), s = e.includes("lastName"), r = e.includes("email"), i = e.includes("phoneNumber"), o = this.getLocalizedText("email"), a = this.getLocalizedText("phoneNumber"), l = "bv:box-border bv:flex bv:h-[40px] bv:w-full bv:pl-[14px] bv:rounded-bv_inputRoundedCorners bv:border-solid bv:bv_inputBorder bv:disabled:cursor-not-allowed bv:disabled:opacity-50 bv:font-bv_bodyFontFamily bv:text-bv_bodyFontSize bv:placeholder:text-bv_inputColor/70 bv:focus:outline-hidden! bv:focus:ring-2 bv:bg-bv_inputBackground bv:text-bv_inputColor";
     let u = '<div class="bv:m-0 bv:grid bv:gap-[10px] bv:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] bv:mt-[20px] bv:bv_small:grid-cols-1">';
     return t && (u += `
+                <div data-ei-autofield="firstName" style="display: contents;">
                 <label for="customer-firstName" class="bv:sr-only">Fornavn</label>
                 <div class="bv:relative bv:w-full">
                     <input id="customer-firstName" autocomplete="given-name" class="${l}" data-testid="customer_info_form_firstname" placeholder="Fornavn *" name="firstName">
                 </div>
+                </div>
             `), s && (u += `
+                <div data-ei-autofield="lastName" style="display: contents;">
                 <label for="customer-lastName" class="bv:sr-only">Etternavn</label>
                 <div class="bv:relative bv:w-full">
                     <input id="customer-lastName" autocomplete="family-name" class="${l}" data-testid="customer_info_form_lastname" placeholder="Etternavn *" name="lastName">
                 </div>
+                </div>
             `), r && (u += `
+                <div data-ei-autofield="email" style="display: contents;">
                 <label for="customer-emailAddress" class="bv:sr-only">${o}</label>
                 <div class="bv:relative bv:w-full">
                     <input id="customer-emailAddress" autocomplete="email" class="${l}" data-testid="customer_info_form_email" placeholder="${o} *" type="email" name="emailAddress">
                 </div>
+                </div>
             `), i && (u += `
+                <div data-ei-autofield="phoneNumber" style="display: contents;">
                 <div class="bv:relative" data-testid="customer_info_form_phone_number">
                     <div class="bv:flex bv:flex-col bv:justify-start">
                         <div class="bv:flex bv:flex-row bv:flex-nowrap bv:items-center bv:justify-start bv:gap-[8px]">
@@ -7019,8 +7060,9 @@ const ue = class ue {
                         </div>
                     </div>
                 </div>
+                </div>
             `), u += "</div>", `
-            <div data-testid="checkout_responsible_for_booking_section" class="bv:mx-0 bv:px-0 bv:pt-0 bv:pb-[40px] bv:w-full" aria-label="Ansvarlig for bestilling" role="group" style="scroll-margin-top: 20px;">
+            <div data-ei-autofields data-testid="checkout_responsible_for_booking_section" class="bv:mx-0 bv:px-0 bv:pt-0 bv:pb-[40px] bv:w-full" aria-label="Ansvarlig for bestilling" role="group" style="scroll-margin-top: 20px;">
                 <div class="bv:mb-[15px] bv:flex bv:items-center bv:justify-between bv:gap-[15px]">
                     <div data-orientation="horizontal" role="none" class="bv:bg-bv_dividerBorderColor bv:h-bv_dividerBorderWidth bv:w-full bv:flex-1"></div>
                     <p class="bv:bv_text bv:font-bv_bodyBoldFontWeight bv:opacity-bv_bodyMutedOpacity bv:text-bv_bodyFontSize bv:font-bv_bodyFontFamily" role="group" tabindex="-1">Ansvarlig for bestilling</p>
@@ -7097,36 +7139,36 @@ const ue = class ue {
    * it per-product as `actualTotal` for reference.
    */
   extractSynxisCartApiData(e) {
-    var o, a, l, u, c, h, d, f, p, y, g, w, k, m, b, A, C, O, _t, wt;
+    var o, a, l, u, c, h, d, f, p, y, g, w, k, v, b, A, C, O, _t, wt;
     const t = [];
     let s = 0;
     const r = this.getSynxisActualTotal(), i = this._synxisSessionIds;
     try {
-      const Be = (e == null ? void 0 : e.ShoppingCart) || [], te = [];
-      for (const I of Be) {
-        const T = ((a = (o = I == null ? void 0 : I.UpdatedData) == null ? void 0 : o.itinerary) == null ? void 0 : a.reservations) || [];
-        for (const se of T)
-          te.push({
-            resv: se,
-            itineraryNumber: (I == null ? void 0 : I.Itemid) || ""
+      const Be = (e == null ? void 0 : e.ShoppingCart) || [], se = [];
+      for (const T of Be) {
+        const I = ((a = (o = T == null ? void 0 : T.UpdatedData) == null ? void 0 : o.itinerary) == null ? void 0 : a.reservations) || [];
+        for (const re of I)
+          se.push({
+            resv: re,
+            itineraryNumber: (T == null ? void 0 : T.Itemid) || ""
           });
       }
-      let Ie = te;
+      let Te = se;
       if (i != null && i.sbeRcDecoded) {
-        const I = te.filter(
-          ({ resv: T }) => T.id === i.sbeRcDecoded
+        const T = se.filter(
+          ({ resv: I }) => I.id === i.sbeRcDecoded
         );
-        I.length > 0 && (Ie = I);
+        T.length > 0 && (Te = T);
       }
-      Ie === te && te.length > 1 && (Ie = [...te].sort(
-        (I, T) => T.itineraryNumber.localeCompare(I.itineraryNumber)
+      Te === se && se.length > 1 && (Te = [...se].sort(
+        (T, I) => I.itineraryNumber.localeCompare(T.itineraryNumber)
       ).slice(0, 1));
-      for (const { resv: I } of Ie) {
-        const T = I.extrasFromShopping || {}, se = I.stayCriteria || {}, St = I.guestCriteria || {}, P = T.prices || {}, kt = ((c = (u = (l = P == null ? void 0 : P.Total) == null ? void 0 : l.Price) == null ? void 0 : u.Total) == null ? void 0 : c.AmountWithTaxesFees) || ((f = (d = (h = P == null ? void 0 : P.Total) == null ? void 0 : h.Price) == null ? void 0 : d.Total) == null ? void 0 : f.Amount) || ((y = (p = P == null ? void 0 : P.Total) == null ? void 0 : p.Price) == null ? void 0 : y.Amount) || 0, Et = ((P == null ? void 0 : P.Daily) || []).map((q) => {
-          var Ct, It, Tt, At, Pt, xt, Ot, jt, $t, Rt;
+      for (const { resv: T } of Te) {
+        const I = T.extrasFromShopping || {}, re = T.stayCriteria || {}, St = T.guestCriteria || {}, P = I.prices || {}, kt = ((c = (u = (l = P == null ? void 0 : P.Total) == null ? void 0 : l.Price) == null ? void 0 : u.Total) == null ? void 0 : c.AmountWithTaxesFees) || ((f = (d = (h = P == null ? void 0 : P.Total) == null ? void 0 : h.Price) == null ? void 0 : d.Total) == null ? void 0 : f.Amount) || ((y = (p = P == null ? void 0 : P.Total) == null ? void 0 : p.Price) == null ? void 0 : y.Amount) || 0, Et = ((P == null ? void 0 : P.Daily) || []).map((q) => {
+          var Ct, Tt, It, At, Pt, xt, Ot, jt, $t, Rt;
           return {
             date: q.Date,
-            amount: ((It = (Ct = q.Price) == null ? void 0 : Ct.Total) == null ? void 0 : It.Amount) || ((Tt = q.Price) == null ? void 0 : Tt.Amount) || 0,
+            amount: ((Tt = (Ct = q.Price) == null ? void 0 : Ct.Total) == null ? void 0 : Tt.Amount) || ((It = q.Price) == null ? void 0 : It.Amount) || 0,
             amountWithTax: ((Pt = (At = q.Price) == null ? void 0 : At.Total) == null ? void 0 : Pt.AmountWithTaxesFees) || 0,
             tax: ((Ot = (xt = q.Price) == null ? void 0 : xt.Tax) == null ? void 0 : Ot.Amount) || 0,
             fees: (($t = (jt = q.Price) == null ? void 0 : jt.Fees) == null ? void 0 : $t.Amount) || 0,
@@ -7134,40 +7176,40 @@ const ue = class ue {
             inventory: q.AvailableInventory
           };
         }), Ds = {
-          id: I.id,
-          confirmationNumber: I.confirmationNumber,
-          itineraryNumber: I.itineraryNumber,
-          name: T.displayname || "Room",
-          roomCode: se.roomCode,
-          rateCode: se.rateCode,
+          id: T.id,
+          confirmationNumber: T.confirmationNumber,
+          itineraryNumber: T.itineraryNumber,
+          name: I.displayname || "Room",
+          roomCode: re.roomCode,
+          rateCode: re.rateCode,
           price: kt,
           actualTotal: r,
-          dailyRate: T.amount || T.amountWithTaxesFees,
-          currency: T.currencyCode,
+          dailyRate: I.amount || I.amountWithTaxesFees,
+          currency: I.currencyCode,
           dailyPrices: Et,
           taxes: ((k = (w = (g = P == null ? void 0 : P.Total) == null ? void 0 : g.Price) == null ? void 0 : w.Tax) == null ? void 0 : k.Amount) || 0,
-          fees: ((A = (b = (m = P == null ? void 0 : P.Total) == null ? void 0 : m.Price) == null ? void 0 : b.Fees) == null ? void 0 : A.Amount) || 0,
-          startDate: (C = se.startDate) == null ? void 0 : C.split("T")[0],
-          endDate: (O = se.endDate) == null ? void 0 : O.split("T")[0],
+          fees: ((A = (b = (v = P == null ? void 0 : P.Total) == null ? void 0 : v.Price) == null ? void 0 : b.Fees) == null ? void 0 : A.Amount) || 0,
+          startDate: (C = re.startDate) == null ? void 0 : C.split("T")[0],
+          endDate: (O = re.endDate) == null ? void 0 : O.split("T")[0],
           nights: Et.length || null,
           adults: St.numAdults || 1,
           children: St.numChildren || 0,
-          hotelId: String(I.hotelId),
-          chainId: String(I.chainId),
-          bedDescription: T.bedDescription,
-          bedType: T.bedType,
-          bedQuantity: T.bedQuantity,
-          maxRoomSize: T.maxRoomSize,
-          minRoomSize: T.minRoomSize,
-          guestLimit: T.guestLimit,
-          inventory: T.inventory,
-          bookingPolicyCode: T.bookingPolicyCode,
-          cancelPolicyCode: T.cancelPolicyCode,
-          status: I.status,
+          hotelId: String(T.hotelId),
+          chainId: String(T.chainId),
+          bedDescription: I.bedDescription,
+          bedType: I.bedType,
+          bedQuantity: I.bedQuantity,
+          maxRoomSize: I.maxRoomSize,
+          minRoomSize: I.minRoomSize,
+          guestLimit: I.guestLimit,
+          inventory: I.inventory,
+          bookingPolicyCode: I.bookingPolicyCode,
+          cancelPolicyCode: I.cancelPolicyCode,
+          status: T.status,
           type: "room",
           quantity: 1,
-          addons: I.addOns || [],
-          image: T.coverImage || ((wt = (_t = T.imageUrls) == null ? void 0 : _t[0]) == null ? void 0 : wt.Path) || null
+          addons: T.addOns || [],
+          image: I.coverImage || ((wt = (_t = I.imageUrls) == null ? void 0 : _t[0]) == null ? void 0 : wt.Path) || null
         };
         t.push(Ds), s += kt;
       }
@@ -7795,27 +7837,31 @@ const ue = class ue {
     this._urlCheckInterval = t;
   }
 };
-v(ue, "BASKET_FETCH_TIMEOUT_MS", 8e3), /**
+m(H, "BASKET_FETCH_TIMEOUT_MS", 8e3), /**
+ * How long to wait for BookVisit to settle before deciding whether its
+ * own fields are there to stay
+ */
+m(H, "AUTOFIELD_SETTLE_MS", 1e3), /**
  * Selectors that identify each autofield, whether rendered by BookVisit
  * itself or injected by us.
  */
-v(ue, "AUTOFIELD_SELECTORS", {
+m(H, "AUTOFIELD_SELECTORS", {
   firstName: '#customer-firstName, input[name="firstName"]',
   lastName: '#customer-lastName, input[name="lastName"]',
   email: '#customer-emailAddress, input[name="emailAddress"]',
   phoneNumber: '#customer-phoneNumber, input[name="phoneNumber"]'
 });
-let ut = ue;
-class In {
+let ut = H;
+class Tn {
   constructor(e) {
-    v(this, "options");
-    v(this, "supabaseService");
-    v(this, "campaign");
-    v(this, "formData", {});
-    v(this, "inputListeners", []);
-    v(this, "buttonListeners", []);
-    v(this, "submitListener");
-    v(this, "isInitialized", !1);
+    m(this, "options");
+    m(this, "supabaseService");
+    m(this, "campaign");
+    m(this, "formData", {});
+    m(this, "inputListeners", []);
+    m(this, "buttonListeners", []);
+    m(this, "submitListener");
+    m(this, "isInitialized", !1);
     this.options = e, this.supabaseService = new vt(
       e.supabaseUrl,
       e.supabaseAnonKey
@@ -8036,24 +8082,24 @@ class In {
     return { ...this.formData };
   }
 }
-class Tn {
+class In {
   constructor(e) {
     // @ts-ignore
-    v(this, "options");
-    v(this, "isInitialized", !1);
-    v(this, "currentPage", "");
-    v(this, "currentVisitStartTime", 0);
+    m(this, "options");
+    m(this, "isInitialized", !1);
+    m(this, "currentPage", "");
+    m(this, "currentVisitStartTime", 0);
     /** Start of the current foreground segment; 0 while paused. */
-    v(this, "segmentStart", 0);
-    v(this, "data", { visits: [] });
-    v(this, "storageKey", "ei_enhanced_insights");
-    v(this, "popstateHandler");
+    m(this, "segmentStart", 0);
+    m(this, "data", { visits: [] });
+    m(this, "storageKey", "ei_enhanced_insights");
+    m(this, "popstateHandler");
     // private pushstateHandler?: () => void;
     // private replacestateHandler?: () => void;
-    v(this, "beforeunloadHandler");
-    v(this, "visibilityChangeHandler");
-    v(this, "originalPushState");
-    v(this, "originalReplaceState");
+    m(this, "beforeunloadHandler");
+    m(this, "visibilityChangeHandler");
+    m(this, "originalPushState");
+    m(this, "originalReplaceState");
     this.options = e;
   }
   async initialize() {
@@ -8181,10 +8227,10 @@ class Tn {
     ), this.originalPushState && (history.pushState = this.originalPushState), this.originalReplaceState && (history.replaceState = this.originalReplaceState)), this.isInitialized = !1, this.currentPage = "", this.currentVisitStartTime = 0;
   }
 }
-const Y = class Y {
+const Z = class Z {
   constructor(e) {
-    v(this, "supabaseService");
-    v(this, "isInitialized", !1);
+    m(this, "supabaseService");
+    m(this, "isInitialized", !1);
     this.supabaseService = new vt(
       e.supabaseUrl,
       e.supabaseAnonKey
@@ -8215,7 +8261,7 @@ const Y = class Y {
   getSubscriberShortId() {
     try {
       const e = new URLSearchParams(window.location.search).get(
-        Y.URL_PARAM
+        Z.URL_PARAM
       );
       return e && e.trim() ? e.trim() : null;
     } catch {
@@ -8228,7 +8274,7 @@ const Y = class Y {
       return [];
     try {
       const e = sessionStorage.getItem(
-        Y.STORAGE_KEY
+        Z.STORAGE_KEY
       );
       if (!e)
         return [];
@@ -8246,7 +8292,7 @@ const Y = class Y {
         if (t.includes(e))
           return;
         sessionStorage.setItem(
-          Y.STORAGE_KEY,
+          Z.STORAGE_KEY,
           JSON.stringify([...t, e])
         );
       } catch (t) {
@@ -8258,14 +8304,14 @@ const Y = class Y {
   }
 };
 /** URL query parameter carrying the encoded funnel-subscriber id. */
-v(Y, "URL_PARAM", "s"), /** sessionStorage key holding the short ids already tracked this session. */
-v(Y, "STORAGE_KEY", "ei_tracked_subscriber_ids");
-let ht = Y;
+m(Z, "URL_PARAM", "s"), /** sessionStorage key holding the short ids already tracked this session. */
+m(Z, "STORAGE_KEY", "ei_tracked_subscriber_ids");
+let ht = Z;
 class An {
   constructor(e) {
-    v(this, "options");
-    v(this, "tools", /* @__PURE__ */ new Map());
-    v(this, "_isInitialized", !1);
+    m(this, "options");
+    m(this, "tools", /* @__PURE__ */ new Map());
+    m(this, "_isInitialized", !1);
     this.options = e;
   }
   async initialize() {
@@ -8284,7 +8330,7 @@ class An {
         await i.initialize(), this.tools.set("abandonedCart", i);
       }
       if ((t = this.options.features) != null && t.organizationPipeline) {
-        const i = new In(
+        const i = new Tn(
           this.options
         );
         await i.initialize(), this.tools.set(
@@ -8295,7 +8341,7 @@ class An {
       if ((s = this.options.features) != null && s.enhancedInsights) {
         const i = async () => {
           if (this.tools.has("enhancedInsights")) return;
-          const o = new Tn(
+          const o = new In(
             this.options
           );
           await o.initialize(), this.tools.set("enhancedInsights", o);

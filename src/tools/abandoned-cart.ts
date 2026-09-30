@@ -32,6 +32,8 @@ export class AbandonedCartTool {
     };
     private isSubmitting = false; // Lock to prevent concurrent submissions
     private autofieldStorageListenersSetup = false; // Flag to prevent duplicate storage listeners
+    private autofieldSettleTimer?: ReturnType<typeof setTimeout>;
+    private autofieldObserver?: MutationObserver;
 
     constructor(options: SDKOptions) {
         this.options = options;
@@ -376,6 +378,14 @@ export class AbandonedCartTool {
             (this as any)._urlCheckInterval = undefined;
         }
 
+        // Stop the autofield settle check so it does not re-attach listeners
+        if (this.autofieldSettleTimer) {
+            clearTimeout(this.autofieldSettleTimer);
+            this.autofieldSettleTimer = undefined;
+        }
+        this.autofieldObserver?.disconnect();
+        this.autofieldObserver = undefined;
+
         // Disconnect iframe observer if it exists
         if ((this as any)._iframeObserver) {
             (this as any)._iframeObserver.disconnect();
@@ -698,45 +708,57 @@ export class AbandonedCartTool {
         }
 
         // Determine which fields to include based on input_mapping
-        const wantedFields = this.getFieldsToInclude(inputMapping);
-        if (wantedFields.length === 0) {
+        const fieldsToInclude = this.getFieldsToInclude(inputMapping);
+        if (fieldsToInclude.length === 0) {
             console.log(
                 "No relevant fields found in input_mapping for autofields",
             );
             return;
         }
 
-        // BookVisit sometimes renders these fields itself. Only inject the
-        // ones that are actually missing so we never end up with duplicates.
-        const existingFields = wantedFields.filter((field) =>
-            this.autofieldExists(field),
-        );
-        const fieldsToInclude = wantedFields.filter(
-            (field) => !existingFields.includes(field),
-        );
-
-        if (existingFields.length > 0) {
-            console.log(
-                `Autofields already present on page, skipping: ${existingFields.join(", ")}`,
-            );
-        }
-
-        if (fieldsToInclude.length === 0) {
-            // Nothing to inject, but still attach listeners to the native fields
-            this.setupAutofieldListenersWithRetry();
-            return;
-        }
-
-        // Create the form section HTML
+        // BookVisit sometimes renders these fields itself, but on some pages it
+        // only renders them for a split second before removing them again, so
+        // checking for them up front is unreliable. Instead we always inject
+        // ours, keep each one hidden while BookVisit's own version is on the
+        // page, and once the page has settled drop the ones BookVisit kept.
         const formSection = this.createBookVisitFormSection(fieldsToInclude);
 
         // Insert at the top of the container
         container.insertAdjacentHTML("afterbegin", formSection);
+        this.syncAutofieldVisibility();
+
+        if (typeof MutationObserver !== "undefined") {
+            this.autofieldObserver = new MutationObserver(() =>
+                this.syncAutofieldVisibility(),
+            );
+            this.autofieldObserver.observe(document.body, {
+                childList: true,
+                subtree: true,
+            });
+        }
+
+        this.autofieldSettleTimer = setTimeout(() => {
+            this.autofieldSettleTimer = undefined;
+            this.autofieldObserver?.disconnect();
+            this.autofieldObserver = undefined;
+            this.removeDuplicateAutofields();
+            // Listeners may have been attached to inputs that are gone now,
+            // either ours that we just removed or BookVisit's that it only
+            // rendered briefly, so attach them to the inputs left on the page
+            this.autofieldStorageListenersSetup = false;
+            this.setupAutofieldListenersWithRetry();
+        }, AbandonedCartTool.AUTOFIELD_SETTLE_MS);
 
         // Set up listeners for autofields (both for InputDetector and sessionStorage)
         // Use a retry mechanism to ensure fields are found
         this.setupAutofieldListenersWithRetry();
     }
+
+    /**
+     * How long to wait for BookVisit to settle before deciding whether its
+     * own fields are there to stay
+     */
+    private static readonly AUTOFIELD_SETTLE_MS = 1000;
 
     /**
      * Selectors that identify each autofield, whether rendered by BookVisit
@@ -750,14 +772,73 @@ export class AbandonedCartTool {
     };
 
     /**
-     * Check whether an input for the given autofield already exists in the DOM
+     * Check whether BookVisit itself renders an input for the given autofield,
+     * ignoring the ones we injected
      */
-    private autofieldExists(field: string): boolean {
+    private nativeAutofieldExists(field: string): boolean {
         const selector = AbandonedCartTool.AUTOFIELD_SELECTORS[field];
         if (!selector || typeof document === "undefined") {
             return false;
         }
-        return document.querySelector(selector) !== null;
+        return Array.from(document.querySelectorAll(selector)).some(
+            (element) => !element.closest("[data-ei-autofields]"),
+        );
+    }
+
+    /**
+     * Hide each injected autofield while BookVisit renders its own version,
+     * and hide the whole section when none of ours are visible
+     */
+    private syncAutofieldVisibility(): void {
+        const section =
+            document.querySelector<HTMLElement>("[data-ei-autofields]");
+        if (!section) {
+            return;
+        }
+
+        let anyVisible = false;
+        section
+            .querySelectorAll<HTMLElement>("[data-ei-autofield]")
+            .forEach((wrapper) => {
+                const hidden = this.nativeAutofieldExists(
+                    wrapper.dataset.eiAutofield ?? "",
+                );
+                wrapper.style.display = hidden ? "none" : "contents";
+                anyVisible = anyVisible || !hidden;
+            });
+        section.style.display = anyVisible ? "" : "none";
+    }
+
+    /**
+     * Remove injected autofields that BookVisit also renders itself
+     */
+    private removeDuplicateAutofields(): void {
+        const section =
+            document.querySelector<HTMLElement>("[data-ei-autofields]");
+        if (!section) {
+            return;
+        }
+
+        const removed: string[] = [];
+        section
+            .querySelectorAll<HTMLElement>("[data-ei-autofield]")
+            .forEach((wrapper) => {
+                const field = wrapper.dataset.eiAutofield ?? "";
+                if (this.nativeAutofieldExists(field)) {
+                    wrapper.remove();
+                    removed.push(field);
+                }
+            });
+
+        if (!section.querySelector("[data-ei-autofield]")) {
+            section.remove();
+        }
+
+        if (removed.length > 0) {
+            console.log(
+                `Autofields already present on page, removed ours: ${removed.join(", ")}`,
+            );
+        }
     }
 
     /**
@@ -965,33 +1046,40 @@ export class AbandonedCartTool {
 
         if (hasFirstName) {
             inputFieldsHtml += `
+                <div data-ei-autofield="firstName" style="display: contents;">
                 <label for="customer-firstName" class="bv:sr-only">Fornavn</label>
                 <div class="bv:relative bv:w-full">
                     <input id="customer-firstName" autocomplete="given-name" class="${inputClass}" data-testid="customer_info_form_firstname" placeholder="Fornavn *" name="firstName">
+                </div>
                 </div>
             `;
         }
 
         if (hasLastName) {
             inputFieldsHtml += `
+                <div data-ei-autofield="lastName" style="display: contents;">
                 <label for="customer-lastName" class="bv:sr-only">Etternavn</label>
                 <div class="bv:relative bv:w-full">
                     <input id="customer-lastName" autocomplete="family-name" class="${inputClass}" data-testid="customer_info_form_lastname" placeholder="Etternavn *" name="lastName">
+                </div>
                 </div>
             `;
         }
 
         if (hasEmail) {
             inputFieldsHtml += `
+                <div data-ei-autofield="email" style="display: contents;">
                 <label for="customer-emailAddress" class="bv:sr-only">${emailLabel}</label>
                 <div class="bv:relative bv:w-full">
                     <input id="customer-emailAddress" autocomplete="email" class="${inputClass}" data-testid="customer_info_form_email" placeholder="${emailLabel} *" type="email" name="emailAddress">
+                </div>
                 </div>
             `;
         }
 
         if (hasPhone) {
             inputFieldsHtml += `
+                <div data-ei-autofield="phoneNumber" style="display: contents;">
                 <div class="bv:relative" data-testid="customer_info_form_phone_number">
                     <div class="bv:flex bv:flex-col bv:justify-start">
                         <div class="bv:flex bv:flex-row bv:flex-nowrap bv:items-center bv:justify-start bv:gap-[8px]">
@@ -1013,6 +1101,7 @@ export class AbandonedCartTool {
                         </div>
                     </div>
                 </div>
+                </div>
             `;
         }
 
@@ -1020,7 +1109,7 @@ export class AbandonedCartTool {
 
         // Build the complete section HTML
         const sectionHtml = `
-            <div data-testid="checkout_responsible_for_booking_section" class="bv:mx-0 bv:px-0 bv:pt-0 bv:pb-[40px] bv:w-full" aria-label="Ansvarlig for bestilling" role="group" style="scroll-margin-top: 20px;">
+            <div data-ei-autofields data-testid="checkout_responsible_for_booking_section" class="bv:mx-0 bv:px-0 bv:pt-0 bv:pb-[40px] bv:w-full" aria-label="Ansvarlig for bestilling" role="group" style="scroll-margin-top: 20px;">
                 <div class="bv:mb-[15px] bv:flex bv:items-center bv:justify-between bv:gap-[15px]">
                     <div data-orientation="horizontal" role="none" class="bv:bg-bv_dividerBorderColor bv:h-bv_dividerBorderWidth bv:w-full bv:flex-1"></div>
                     <p class="bv:bv_text bv:font-bv_bodyBoldFontWeight bv:opacity-bv_bodyMutedOpacity bv:text-bv_bodyFontSize bv:font-bv_bodyFontFamily" role="group" tabindex="-1">Ansvarlig for bestilling</p>

@@ -17,6 +17,8 @@ export declare class AbandonedCartTool {
     private pendingContentUpdate?;
     private isSubmitting;
     private autofieldStorageListenersSetup;
+    private autofieldSettleTimer?;
+    private autofieldObserver?;
     constructor(options: SDKOptions);
     initialize(): Promise<boolean>;
     /**
@@ -71,14 +73,29 @@ export declare class AbandonedCartTool {
      */
     private injectBookVisitAutofields;
     /**
+     * How long to wait for BookVisit to settle before deciding whether its
+     * own fields are there to stay
+     */
+    private static readonly AUTOFIELD_SETTLE_MS;
+    /**
      * Selectors that identify each autofield, whether rendered by BookVisit
      * itself or injected by us.
      */
     private static readonly AUTOFIELD_SELECTORS;
     /**
-     * Check whether an input for the given autofield already exists in the DOM
+     * Check whether BookVisit itself renders an input for the given autofield,
+     * ignoring the ones we injected
      */
-    private autofieldExists;
+    private nativeAutofieldExists;
+    /**
+     * Hide each injected autofield while BookVisit renders its own version,
+     * and hide the whole section when none of ours are visible
+     */
+    private syncAutofieldVisibility;
+    /**
+     * Remove injected autofields that BookVisit also renders itself
+     */
+    private removeDuplicateAutofields;
     /**
      * Determine which fields to include based on input_mapping
      */
