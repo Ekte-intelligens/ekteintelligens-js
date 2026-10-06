@@ -31,8 +31,10 @@ export class AbandonedCartTool {
         sessionId?: string;
     };
     private isSubmitting = false; // Lock to prevent concurrent submissions
-    private autofieldStorageListenersSetup = false; // Flag to prevent duplicate storage listeners
-    private autofieldSettleTimer?: ReturnType<typeof setTimeout>;
+    // Our injected autofield section and its per-field wrappers. Kept in
+    // memory while off the page so typed values survive being re-added.
+    private autofieldSection?: HTMLElement;
+    private autofieldWrappers: HTMLElement[] = [];
     private autofieldObserver?: MutationObserver;
 
     constructor(options: SDKOptions) {
@@ -378,13 +380,8 @@ export class AbandonedCartTool {
             (this as any)._urlCheckInterval = undefined;
         }
 
-        // Stop the autofield settle check so it does not re-attach listeners
-        if (this.autofieldSettleTimer) {
-            clearTimeout(this.autofieldSettleTimer);
-            this.autofieldSettleTimer = undefined;
-        }
-        this.autofieldObserver?.disconnect();
-        this.autofieldObserver = undefined;
+        // Stop syncing autofields so they are not re-added or re-attached
+        this.stopSyncingAutofields();
 
         // Disconnect iframe observer if it exists
         if ((this as any)._iframeObserver) {
@@ -698,15 +695,6 @@ export class AbandonedCartTool {
             return;
         }
 
-        // Find the target container
-        const container = document.getElementById("main_content_container");
-        if (!container) {
-            console.warn(
-                "main_content_container not found, cannot inject autofields",
-            );
-            return;
-        }
-
         // Determine which fields to include based on input_mapping
         const fieldsToInclude = this.getFieldsToInclude(inputMapping);
         if (fieldsToInclude.length === 0) {
@@ -716,20 +704,27 @@ export class AbandonedCartTool {
             return;
         }
 
-        // BookVisit sometimes renders these fields itself, but on some pages it
-        // only renders them for a split second before removing them again, so
-        // checking for them up front is unreliable. Instead we always inject
-        // ours, keep each one hidden while BookVisit's own version is on the
-        // page, and once the page has settled drop the ones BookVisit kept.
-        const formSection = this.createBookVisitFormSection(fieldsToInclude);
-
-        // Insert at the top of the container
-        container.insertAdjacentHTML("afterbegin", formSection);
-        this.syncAutofieldVisibility();
+        // BookVisit sometimes renders these fields itself, but on some pages
+        // it only renders them for a moment before removing them again, and
+        // how long that takes varies a lot between devices. It can also
+        // render main_content_container late, or re-render it and wipe out
+        // our section. So instead of deciding once, we keep watching the page
+        // while on checkout: each of our fields is on the page exactly when
+        // BookVisit's own version of it is not.
+        const template = document.createElement("template");
+        template.innerHTML = this.createBookVisitFormSection(fieldsToInclude);
+        this.autofieldSection = template.content.querySelector<HTMLElement>(
+            "[data-ei-autofields]",
+        )!;
+        this.autofieldWrappers = Array.from(
+            this.autofieldSection.querySelectorAll<HTMLElement>(
+                "[data-ei-autofield]",
+            ),
+        );
 
         if (typeof MutationObserver !== "undefined") {
             this.autofieldObserver = new MutationObserver(() =>
-                this.syncAutofieldVisibility(),
+                this.syncAutofields(),
             );
             this.autofieldObserver.observe(document.body, {
                 childList: true,
@@ -737,28 +732,80 @@ export class AbandonedCartTool {
             });
         }
 
-        this.autofieldSettleTimer = setTimeout(() => {
-            this.autofieldSettleTimer = undefined;
-            this.autofieldObserver?.disconnect();
-            this.autofieldObserver = undefined;
-            this.removeDuplicateAutofields();
-            // Listeners may have been attached to inputs that are gone now,
-            // either ours that we just removed or BookVisit's that it only
-            // rendered briefly, so attach them to the inputs left on the page
-            this.autofieldStorageListenersSetup = false;
-            this.setupAutofieldListenersWithRetry();
-        }, AbandonedCartTool.AUTOFIELD_SETTLE_MS);
-
-        // Set up listeners for autofields (both for InputDetector and sessionStorage)
-        // Use a retry mechanism to ensure fields are found
-        this.setupAutofieldListenersWithRetry();
+        this.syncAutofields();
     }
 
     /**
-     * How long to wait for BookVisit to settle before deciding whether its
-     * own fields are there to stay
+     * Stop keeping our autofields in sync with the page
      */
-    private static readonly AUTOFIELD_SETTLE_MS = 1000;
+    private stopSyncingAutofields(): void {
+        this.autofieldObserver?.disconnect();
+        this.autofieldObserver = undefined;
+    }
+
+    /**
+     * Put each of our autofields on the page when BookVisit does not render
+     * its own version of it, and take it off when BookVisit does
+     */
+    private syncAutofields(): void {
+        const section = this.autofieldSection;
+        if (!section) {
+            return;
+        }
+
+        // Only relevant on checkout. Leaving it (SPA navigation) ends syncing.
+        if (window.location.pathname !== "/checkout") {
+            this.stopSyncingAutofields();
+            section.remove();
+            return;
+        }
+
+        // Not rendered yet (or being re-rendered), try again on the next change
+        const container = document.getElementById("main_content_container");
+        if (!container) {
+            return;
+        }
+
+        let changed = false;
+        const grid = section.querySelector<HTMLElement>(
+            "[data-ei-autofield-grid]",
+        )!;
+        let previous: HTMLElement | null = null;
+        for (const wrapper of this.autofieldWrappers) {
+            const show = !this.nativeAutofieldExists(
+                wrapper.dataset.eiAutofield ?? "",
+            );
+            if (show && wrapper.parentElement !== grid) {
+                // Keep the original field order
+                grid.insertBefore(
+                    wrapper,
+                    previous ? previous.nextSibling : grid.firstChild,
+                );
+                changed = true;
+            } else if (!show && wrapper.parentElement === grid) {
+                wrapper.remove();
+                changed = true;
+            }
+            if (show) {
+                previous = wrapper;
+            }
+        }
+
+        if (previous && section.parentElement !== container) {
+            // Insert at the top of the container
+            container.insertAdjacentElement("afterbegin", section);
+            changed = true;
+        } else if (!previous && section.parentElement) {
+            section.remove();
+            changed = true;
+        }
+
+        if (changed) {
+            // The inputs on the page changed, so attach listeners to the
+            // current ones (both for InputDetector and sessionStorage)
+            this.setupAutofieldListenersWithRetry();
+        }
+    }
 
     /**
      * Selectors that identify each autofield, whether rendered by BookVisit
@@ -783,62 +830,6 @@ export class AbandonedCartTool {
         return Array.from(document.querySelectorAll(selector)).some(
             (element) => !element.closest("[data-ei-autofields]"),
         );
-    }
-
-    /**
-     * Hide each injected autofield while BookVisit renders its own version,
-     * and hide the whole section when none of ours are visible
-     */
-    private syncAutofieldVisibility(): void {
-        const section =
-            document.querySelector<HTMLElement>("[data-ei-autofields]");
-        if (!section) {
-            return;
-        }
-
-        let anyVisible = false;
-        section
-            .querySelectorAll<HTMLElement>("[data-ei-autofield]")
-            .forEach((wrapper) => {
-                const hidden = this.nativeAutofieldExists(
-                    wrapper.dataset.eiAutofield ?? "",
-                );
-                wrapper.style.display = hidden ? "none" : "contents";
-                anyVisible = anyVisible || !hidden;
-            });
-        section.style.display = anyVisible ? "" : "none";
-    }
-
-    /**
-     * Remove injected autofields that BookVisit also renders itself
-     */
-    private removeDuplicateAutofields(): void {
-        const section =
-            document.querySelector<HTMLElement>("[data-ei-autofields]");
-        if (!section) {
-            return;
-        }
-
-        const removed: string[] = [];
-        section
-            .querySelectorAll<HTMLElement>("[data-ei-autofield]")
-            .forEach((wrapper) => {
-                const field = wrapper.dataset.eiAutofield ?? "";
-                if (this.nativeAutofieldExists(field)) {
-                    wrapper.remove();
-                    removed.push(field);
-                }
-            });
-
-        if (!section.querySelector("[data-ei-autofield]")) {
-            section.remove();
-        }
-
-        if (removed.length > 0) {
-            console.log(
-                `Autofields already present on page, removed ours: ${removed.join(", ")}`,
-            );
-        }
     }
 
     /**
@@ -1042,7 +1033,7 @@ export class AbandonedCartTool {
 
         // Build the input fields HTML - all in one grid
         let inputFieldsHtml =
-            '<div class="bv:m-0 bv:grid bv:gap-[10px] bv:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] bv:mt-[20px] bv:bv_small:grid-cols-1">';
+            '<div data-ei-autofield-grid class="bv:m-0 bv:grid bv:gap-[10px] bv:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] bv:mt-[20px] bv:bv_small:grid-cols-1">';
 
         if (hasFirstName) {
             inputFieldsHtml += `
@@ -1842,89 +1833,40 @@ export class AbandonedCartTool {
     }
 
     /**
+     * sessionStorage key for each autofield input name
+     */
+    private static readonly AUTOFIELD_STORAGE_KEYS: Record<string, string> = {
+        emailAddress: "autofield_email",
+        phoneCountryCode: "autofield_phoneCountryCode",
+        phoneNumber: "autofield_phoneNumber",
+    };
+
+    private readonly boundSaveAutofieldToStorage = (event: Event) => {
+        const target = event.target as HTMLInputElement;
+        const key = AbandonedCartTool.AUTOFIELD_STORAGE_KEYS[target.name];
+        if (key && target.value) {
+            this.saveToSessionStorage(key, target.value);
+        }
+    };
+
+    /**
      * Set up event listeners on autofield inputs to store values in sessionStorage
      */
     private setupAutofieldStorageListeners(): void {
-        if (
-            typeof document === "undefined" ||
-            this.autofieldStorageListenersSetup
-        ) {
+        if (typeof document === "undefined") {
             return;
         }
 
-        // Email field
-        const emailInput = document.querySelector<HTMLInputElement>(
-            'input[name="emailAddress"]',
-        );
-        if (emailInput) {
-            emailInput.addEventListener("input", (e) => {
-                const target = e.target as HTMLInputElement;
-                if (target.value) {
-                    this.saveToSessionStorage("autofield_email", target.value);
-                }
-            });
-            emailInput.addEventListener("blur", (e) => {
-                const target = e.target as HTMLInputElement;
-                if (target.value) {
-                    this.saveToSessionStorage("autofield_email", target.value);
-                }
-            });
-        }
-
-        // Phone country code field
-        const phoneCountryCodeInput = document.querySelector<HTMLInputElement>(
-            'input[name="phoneCountryCode"]',
-        );
-        if (phoneCountryCodeInput) {
-            phoneCountryCodeInput.addEventListener("input", (e) => {
-                const target = e.target as HTMLInputElement;
-                if (target.value) {
-                    this.saveToSessionStorage(
-                        "autofield_phoneCountryCode",
-                        target.value,
-                    );
-                }
-            });
-            phoneCountryCodeInput.addEventListener("blur", (e) => {
-                const target = e.target as HTMLInputElement;
-                if (target.value) {
-                    this.saveToSessionStorage(
-                        "autofield_phoneCountryCode",
-                        target.value,
-                    );
-                }
-            });
-        }
-
-        // Phone number field
-        const phoneNumberInput = document.querySelector<HTMLInputElement>(
-            'input[name="phoneNumber"]',
-        );
-        if (phoneNumberInput) {
-            phoneNumberInput.addEventListener("input", (e) => {
-                const target = e.target as HTMLInputElement;
-                if (target.value) {
-                    this.saveToSessionStorage(
-                        "autofield_phoneNumber",
-                        target.value,
-                    );
-                }
-            });
-            phoneNumberInput.addEventListener("blur", (e) => {
-                const target = e.target as HTMLInputElement;
-                if (target.value) {
-                    this.saveToSessionStorage(
-                        "autofield_phoneNumber",
-                        target.value,
-                    );
-                }
-            });
-        }
-
-        // Mark as set up if at least one field was found
-        if (emailInput || phoneCountryCodeInput || phoneNumberInput) {
-            this.autofieldStorageListenersSetup = true;
-        }
+        // Same function reference every time, so calling this again when the
+        // inputs on the page change cannot stack duplicate listeners. Only the
+        // first match, so e.g. a guest's phone field cannot overwrite it.
+        Object.keys(AbandonedCartTool.AUTOFIELD_STORAGE_KEYS).forEach((name) => {
+            const input = document.querySelector<HTMLInputElement>(
+                `input[name="${name}"]`,
+            );
+            input?.addEventListener("input", this.boundSaveAutofieldToStorage);
+            input?.addEventListener("blur", this.boundSaveAutofieldToStorage);
+        });
     }
 
     /**

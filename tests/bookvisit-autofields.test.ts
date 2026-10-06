@@ -16,18 +16,7 @@ describe("BookVisit autofields injection", () => {
     };
 
     const SECTION = '[data-testid="checkout_responsible_for_booking_section"]';
-
-    const inject = () => {
-        const tool = new AbandonedCartTool(options);
-        (tool as any).injectBookVisitAutofields(null);
-    };
-
-    // Let MutationObserver callbacks run
-    const flushObservers = () => Promise.resolve();
-
-    const isShown = (field: string) =>
-        (document.querySelector(`[data-ei-autofield="${field}"]`) as HTMLElement)
-            .style.display !== "none";
+    const NATIVE_SECTION = `${SECTION}:not([data-ei-autofields])`;
 
     const NATIVE_FIELDS = `
         <div data-testid="checkout_responsible_for_booking_section">
@@ -38,45 +27,54 @@ describe("BookVisit autofields injection", () => {
             <input id="customer-phoneNumber" name="phoneNumber">
         </div>`;
 
+    let tool: AbandonedCartTool;
+
+    const inject = () => {
+        tool = new AbandonedCartTool(options);
+        (tool as any).injectBookVisitAutofields(null);
+    };
+
+    // Let MutationObserver callbacks run, including ones our own changes cause
+    const flushObservers = async () => {
+        for (let i = 0; i < 3; i++) await Promise.resolve();
+    };
+
+    const ours = () => document.querySelectorAll("[data-ei-autofields]");
+
+    const expectEachFieldOnce = () => {
+        expect(document.querySelectorAll("#customer-firstName")).toHaveLength(1);
+        expect(document.querySelectorAll("#customer-lastName")).toHaveLength(1);
+        expect(document.querySelectorAll("#customer-emailAddress")).toHaveLength(1);
+        expect(document.querySelectorAll("#customer-phoneNumber")).toHaveLength(1);
+    };
+
     beforeEach(() => {
-        jest.useFakeTimers();
+        window.history.replaceState({}, "", "/checkout");
         sessionStorage.clear();
     });
 
     afterEach(() => {
-        jest.useRealTimers();
+        tool?.destroy();
     });
 
     it("injects all fields when none exist on the page", () => {
         document.body.innerHTML = `<div id="main_content_container"></div>`;
 
         inject();
-        jest.advanceTimersByTime(1000);
 
         expect(document.querySelectorAll(SECTION)).toHaveLength(1);
-        expect(document.querySelectorAll("#customer-firstName")).toHaveLength(1);
-        expect(document.querySelectorAll("#customer-lastName")).toHaveLength(1);
-        expect(document.querySelectorAll("#customer-emailAddress")).toHaveLength(1);
-        expect(document.querySelectorAll("#customer-phoneNumber")).toHaveLength(1);
+        expect(ours()).toHaveLength(1);
+        expectEachFieldOnce();
     });
 
-    it("hides our fields and removes them after settling when BookVisit keeps rendering its own", () => {
+    it("does not inject anything while BookVisit renders the fields itself", () => {
         document.body.innerHTML = `<div id="main_content_container">${NATIVE_FIELDS}</div>`;
 
         inject();
 
-        // Injected up front, but hidden since BookVisit's own are on the page
-        const ours = document.querySelector("[data-ei-autofields]") as HTMLElement;
-        expect(ours).not.toBeNull();
-        expect(ours.style.display).toBe("none");
-
-        jest.advanceTimersByTime(1000);
-
         expect(document.querySelectorAll(SECTION)).toHaveLength(1);
-        expect(document.querySelectorAll("#customer-firstName")).toHaveLength(1);
-        expect(document.querySelectorAll("#customer-lastName")).toHaveLength(1);
-        expect(document.querySelectorAll("#customer-emailAddress")).toHaveLength(1);
-        expect(document.querySelectorAll("#customer-phoneNumber")).toHaveLength(1);
+        expect(ours()).toHaveLength(0);
+        expectEachFieldOnce();
         expect(document.querySelectorAll('[data-testid="customer_info_section"]')).toHaveLength(0);
     });
 
@@ -88,9 +86,6 @@ describe("BookVisit autofields injection", () => {
             </div>`;
 
         inject();
-        expect(isShown("firstName")).toBe(true);
-        expect(isShown("email")).toBe(false);
-        jest.advanceTimersByTime(1000);
 
         expect(document.querySelectorAll('input[name="emailAddress"]')).toHaveLength(1);
         expect(document.querySelectorAll('input[name="phoneNumber"]')).toHaveLength(1);
@@ -98,55 +93,139 @@ describe("BookVisit autofields injection", () => {
         expect(document.querySelectorAll("#customer-lastName")).toHaveLength(1);
     });
 
-    it("keeps our fields when BookVisit only renders its own for a split second", async () => {
-        document.body.innerHTML = `<div id="main_content_container">${NATIVE_FIELDS}</div>`;
+    it("adds our fields whenever BookVisit removes its own, however late", async () => {
+        jest.useFakeTimers();
+        try {
+            document.body.innerHTML = `<div id="main_content_container">${NATIVE_FIELDS}</div>`;
 
-        inject();
-        expect(isShown("email")).toBe(false);
+            inject();
+            expect(ours()).toHaveLength(0);
 
-        // BookVisit removes its fields again shortly after rendering them
-        document
-            .querySelector('[data-testid="checkout_responsible_for_booking_section"]:not([data-ei-autofields])')!
-            .remove();
-        await flushObservers();
+            // Slow devices can keep BookVisit's fields around for seconds
+            jest.advanceTimersByTime(5000);
+            document.querySelector(NATIVE_SECTION)!.remove();
+            await flushObservers();
 
-        expect(isShown("firstName")).toBe(true);
-        expect(isShown("email")).toBe(true);
-        expect((document.querySelector("[data-ei-autofields]") as HTMLElement).style.display).toBe("");
-
-        jest.advanceTimersByTime(1000);
-
-        expect(document.querySelectorAll(SECTION)).toHaveLength(1);
-        expect(document.querySelectorAll("#customer-firstName")).toHaveLength(1);
-        expect(document.querySelectorAll("#customer-lastName")).toHaveLength(1);
-        expect(document.querySelectorAll("#customer-emailAddress")).toHaveLength(1);
-        expect(document.querySelectorAll("#customer-phoneNumber")).toHaveLength(1);
+            expect(ours()).toHaveLength(1);
+            expectEachFieldOnce();
+        } finally {
+            jest.useRealTimers();
+        }
     });
 
-    it("attaches storage listeners to our fields when BookVisit's flash fields come first on the page", async () => {
+    it("takes our fields off the page when BookVisit renders its own later", async () => {
+        document.body.innerHTML = `<div id="main_content_container"></div>`;
+
+        inject();
+        expect(ours()).toHaveLength(1);
+
+        document
+            .getElementById("main_content_container")!
+            .insertAdjacentHTML("beforeend", NATIVE_FIELDS);
+        await flushObservers();
+
+        expect(ours()).toHaveLength(0);
+        expectEachFieldOnce();
+    });
+
+    it("injects once main_content_container is rendered", async () => {
+        document.body.innerHTML = `<div id="app"></div>`;
+
+        inject();
+        expect(ours()).toHaveLength(0);
+
+        document.getElementById("app")!.innerHTML =
+            `<div id="main_content_container"></div>`;
+        await flushObservers();
+
+        expect(ours()).toHaveLength(1);
+        expectEachFieldOnce();
+    });
+
+    it("re-adds our fields when the page re-renders the container, keeping typed values", async () => {
+        document.body.innerHTML = `<div id="app"><div id="main_content_container"></div></div>`;
+
+        inject();
+        document.querySelector<HTMLInputElement>("#customer-firstName")!.value = "Kari";
+
+        // Container replaced by a re-render
+        document.getElementById("app")!.innerHTML =
+            `<div id="main_content_container"></div>`;
+        await flushObservers();
+
+        expect(ours()).toHaveLength(1);
+        expect(document.querySelector<HTMLInputElement>("#customer-firstName")!.value).toBe("Kari");
+    });
+
+    it("saves to sessionStorage from our fields after BookVisit's are removed", async () => {
         document.body.innerHTML = `${NATIVE_FIELDS}<div id="main_content_container"></div>`;
 
         inject();
-        document.querySelector('[data-testid="checkout_responsible_for_booking_section"]:not([data-ei-autofields])')!.remove();
+        document.querySelector(NATIVE_SECTION)!.remove();
         await flushObservers();
-        jest.advanceTimersByTime(1000);
 
         const email = document.querySelector<HTMLInputElement>('input[name="emailAddress"]')!;
+        expect(email.closest("[data-ei-autofields]")).not.toBeNull();
         email.value = "test@example.com";
         email.dispatchEvent(new Event("input"));
 
         expect(sessionStorage.getItem("autofield_email")).toBe("test@example.com");
     });
 
-    it("does not touch the page after destroy", () => {
+    it("stops syncing after destroy", async () => {
         document.body.innerHTML = `<div id="main_content_container">${NATIVE_FIELDS}</div>`;
 
-        const tool = new AbandonedCartTool(options);
-        (tool as any).injectBookVisitAutofields(null);
+        inject();
         tool.destroy();
-        jest.advanceTimersByTime(1000);
+        document.querySelector(NATIVE_SECTION)!.remove();
+        await flushObservers();
 
-        // The settle check never ran, so our hidden section is still there
-        expect(document.querySelectorAll("[data-ei-autofields]")).toHaveLength(1);
+        expect(ours()).toHaveLength(0);
+    });
+
+    it("stops syncing and removes our fields when leaving checkout", async () => {
+        document.body.innerHTML = `<div id="main_content_container"></div>`;
+
+        inject();
+        expect(ours()).toHaveLength(1);
+
+        window.history.pushState({}, "", "/payment");
+        document.body.appendChild(document.createElement("div"));
+        await flushObservers();
+
+        expect(ours()).toHaveLength(0);
+        expect((tool as any).autofieldObserver).toBeUndefined();
+    });
+
+    it("does not let a later input with the same name overwrite the saved value", () => {
+        document.body.innerHTML = `
+            <div id="main_content_container">${NATIVE_FIELDS}</div>
+            <input name="phoneNumber" id="guest-phone">`;
+
+        inject();
+
+        const customerPhone = document.querySelector<HTMLInputElement>("#customer-phoneNumber")!;
+        customerPhone.value = "12345678";
+        customerPhone.dispatchEvent(new Event("input"));
+
+        const guestPhone = document.querySelector<HTMLInputElement>("#guest-phone")!;
+        guestPhone.value = "99999999";
+        guestPhone.dispatchEvent(new Event("input"));
+
+        expect(sessionStorage.getItem("autofield_phoneNumber")).toBe("12345678");
+    });
+
+    it("settles without looping after our own changes", async () => {
+        document.body.innerHTML = `<div id="main_content_container"></div>`;
+
+        inject();
+        const sync = jest.spyOn(tool as any, "syncAutofields");
+        const insert = jest.spyOn(Element.prototype, "insertAdjacentElement");
+        await flushObservers();
+        await flushObservers();
+
+        expect(sync.mock.calls.length).toBeLessThanOrEqual(1);
+        expect(insert).not.toHaveBeenCalled();
+        insert.mockRestore();
     });
 });

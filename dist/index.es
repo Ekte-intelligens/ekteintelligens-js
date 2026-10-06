@@ -467,7 +467,7 @@ var zs = function(n, e, t, s) {
     u((s = s.apply(n, e || [])).next());
   });
 };
-class Vs {
+class Hs {
   constructor(e, { headers: t = {}, customFetch: s, region: r = Qe.Any } = {}) {
     this.url = e, this.headers = t, this.region = r, this.fetch = Bs(s);
   }
@@ -522,7 +522,7 @@ class Vs {
   }
 }
 var L = typeof globalThis < "u" ? globalThis : typeof window < "u" ? window : typeof global < "u" ? global : typeof self < "u" ? self : {};
-function Hs(n) {
+function Vs(n) {
   if (n.__esModule) return n;
   var e = n.default;
   if (typeof e == "function") {
@@ -557,7 +557,7 @@ const Ks = de.fetch, ss = de.fetch.bind(de), rs = de.Headers, Js = de.Request, G
   Response: Gs,
   default: ss,
   fetch: Ks
-}, Symbol.toStringTag, { value: "Module" })), Qs = /* @__PURE__ */ Hs(fe);
+}, Symbol.toStringTag, { value: "Module" })), Qs = /* @__PURE__ */ Vs(fe);
 var De = {};
 Object.defineProperty(De, "__esModule", { value: !0 });
 let Xs = class extends Error {
@@ -1582,7 +1582,7 @@ const Nt = (n, e, t = {}) => {
 }, gs = (n, e) => {
   if (n.charAt(0) === "_") {
     const t = n.slice(1, n.length);
-    return Ir(e, t);
+    return Tr(e, t);
   }
   switch (n) {
     case E.bool:
@@ -1597,7 +1597,7 @@ const Nt = (n, e, t = {}) => {
       return Cr(e);
     case E.json:
     case E.jsonb:
-      return Tr(e);
+      return Ir(e);
     case E.timestamp:
       return Ar(e);
     case E.abstime:
@@ -1633,7 +1633,7 @@ const Nt = (n, e, t = {}) => {
       return e;
   }
   return n;
-}, Tr = (n) => {
+}, Ir = (n) => {
   if (typeof n == "string")
     try {
       return JSON.parse(n);
@@ -1641,7 +1641,7 @@ const Nt = (n, e, t = {}) => {
       return console.log(`JSON parse error: ${e}`), n;
     }
   return n;
-}, Ir = (n, e) => {
+}, Tr = (n, e) => {
   if (typeof n != "string")
     return n;
   const t = n.length - 1, s = n[t];
@@ -3244,11 +3244,11 @@ class zr extends qr {
     return new Fr(this.url, this.headers, e, this.fetch);
   }
 }
-const Vr = "2.53.0";
+const Hr = "2.53.0";
 let me = "";
 typeof Deno < "u" ? me = "deno" : typeof document < "u" ? me = "web" : typeof navigator < "u" && navigator.product === "ReactNative" ? me = "react-native" : me = "node";
-const Hr = { "X-Client-Info": `supabase-js-${me}/${Vr}` }, Wr = {
-  headers: Hr
+const Vr = { "X-Client-Info": `supabase-js-${me}/${Hr}` }, Wr = {
+  headers: Vr
 }, Kr = {
   schema: "public"
 }, Jr = {
@@ -3340,7 +3340,7 @@ function si(n, e) {
   };
   return n.accessToken ? d.accessToken = n.accessToken : delete d.accessToken, d;
 }
-const bs = "2.71.1", ce = 30 * 1e3, st = 3, Ve = st * ce, ri = "http://localhost:9999", ii = "supabase.auth.token", ni = { "X-Client-Info": `gotrue-js/${bs}` }, rt = "X-Supabase-Api-Version", _s = {
+const bs = "2.71.1", ce = 30 * 1e3, st = 3, He = st * ce, ri = "http://localhost:9999", ii = "supabase.auth.token", ni = { "X-Client-Info": `gotrue-js/${bs}` }, rt = "X-Supabase-Api-Version", _s = {
   "2024-01-01": {
     timestamp: Date.parse("2024-01-01T00:00:00.0Z"),
     name: "2024-01-01"
@@ -3380,7 +3380,7 @@ class V extends K {
 function ui(n) {
   return _(n) && n.name === "AuthSessionMissingError";
 }
-class Ie extends K {
+class Te extends K {
   constructor() {
     super("Auth session or user missing", "AuthInvalidTokenResponseError", 500, void 0);
   }
@@ -3424,10 +3424,10 @@ class it extends K {
     super(e, "AuthRetryableFetchError", t, void 0);
   }
 }
-function He(n) {
+function Ve(n) {
   return _(n) && n.name === "AuthRetryableFetchError";
 }
-class Vt extends K {
+class Ht extends K {
   constructor(e, t, s) {
     super(e, "AuthWeakPasswordError", t, "weak_password"), this.reasons = s;
   }
@@ -3437,13 +3437,13 @@ class nt extends K {
     super(e, "AuthInvalidJwtError", 400, "invalid_jwt");
   }
 }
-const Oe = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_".split(""), Ht = ` 	
+const Oe = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_".split(""), Vt = ` 	
 \r=`.split(""), di = (() => {
   const n = new Array(128);
   for (let e = 0; e < n.length; e += 1)
     n[e] = -1;
-  for (let e = 0; e < Ht.length; e += 1)
-    n[Ht[e].charCodeAt(0)] = -2;
+  for (let e = 0; e < Vt.length; e += 1)
+    n[Vt[e].charCodeAt(0)] = -2;
   for (let e = 0; e < Oe.length; e += 1)
     n[Oe[e].charCodeAt(0)] = e;
   return n;
@@ -3612,7 +3612,7 @@ const Es = (n) => {
   } catch {
     return t;
   }
-}, z = async (n, e) => {
+}, H = async (n, e) => {
   await n.removeItem(e);
 };
 class Fe {
@@ -3668,7 +3668,7 @@ function Ei(n, e) {
 function Ci(n) {
   return ("0" + n.toString(16)).substr(-2);
 }
-function Ti() {
+function Ii() {
   const e = new Uint32Array(56);
   if (typeof crypto > "u") {
     const t = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~", s = t.length;
@@ -3679,18 +3679,18 @@ function Ti() {
   }
   return crypto.getRandomValues(e), Array.from(e, Ci).join("");
 }
-async function Ii(n) {
+async function Ti(n) {
   const t = new TextEncoder().encode(n), s = await crypto.subtle.digest("SHA-256", t), r = new Uint8Array(s);
   return Array.from(r).map((i) => String.fromCharCode(i)).join("");
 }
 async function Ai(n) {
   if (!(typeof crypto < "u" && typeof crypto.subtle < "u" && typeof TextEncoder < "u"))
     return console.warn("WebCrypto API is not supported. Code challenge method will default to use plain instead of sha256."), n;
-  const t = await Ii(n);
+  const t = await Ti(n);
   return btoa(t).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 }
 async function ne(n, e, t = !1) {
-  const s = Ti();
+  const s = Ii();
   let r = s;
   t && (r += "/PASSWORD_RECOVERY"), await ue(n, `${e}-code-verifier`, r);
   const i = await Ai(s);
@@ -3785,11 +3785,11 @@ async function Gt(n) {
   const r = xi(n);
   if (r && r.getTime() >= _s["2024-01-01"].timestamp && typeof t == "object" && t && typeof t.code == "string" ? s = t.code : typeof t == "object" && t && typeof t.error_code == "string" && (s = t.error_code), s) {
     if (s === "weak_password")
-      throw new Vt(Q(t), n.status, ((e = t.weak_password) === null || e === void 0 ? void 0 : e.reasons) || []);
+      throw new Ht(Q(t), n.status, ((e = t.weak_password) === null || e === void 0 ? void 0 : e.reasons) || []);
     if (s === "session_not_found")
       throw new V();
   } else if (typeof t == "object" && t && typeof t.weak_password == "object" && t.weak_password && Array.isArray(t.weak_password.reasons) && t.weak_password.reasons.length && t.weak_password.reasons.reduce((i, o) => i && typeof o == "string", !0))
-    throw new Vt(Q(t), n.status, t.weak_password.reasons);
+    throw new Ht(Q(t), n.status, t.weak_password.reasons);
   throw new li(Q(t), n.status || 500, s);
 }
 const Di = (n, e, t, s) => {
@@ -4100,7 +4100,7 @@ function Xt(n = {}) {
     }
   };
 }
-function Vi() {
+function Hi() {
   if (typeof globalThis != "object")
     try {
       Object.defineProperty(Object.prototype, "__magic__", {
@@ -4124,7 +4124,7 @@ class Cs extends Error {
     super(e), this.isAcquireTimeout = !0;
   }
 }
-class Hi extends Cs {
+class Vi extends Cs {
 }
 async function Wi(n, e, t) {
   ae.debug && console.log("@supabase/gotrue-js: navigatorLock: acquire lock", n, e);
@@ -4147,7 +4147,7 @@ async function Wi(n, e, t) {
       }
     } else {
       if (e === 0)
-        throw ae.debug && console.log("@supabase/gotrue-js: navigatorLock: not immediately available", n), new Hi(`Acquiring an exclusive Navigator LockManager lock "${n}" immediately failed`);
+        throw ae.debug && console.log("@supabase/gotrue-js: navigatorLock: not immediately available", n), new Vi(`Acquiring an exclusive Navigator LockManager lock "${n}" immediately failed`);
       if (ae.debug)
         try {
           const i = await globalThis.navigator.locks.query();
@@ -4159,7 +4159,7 @@ async function Wi(n, e, t) {
     }
   }));
 }
-Vi();
+Hi();
 const Ki = {
   url: ri,
   storageKey: ii,
@@ -4388,7 +4388,7 @@ class Se {
       } else
         throw new Ae("You must provide either an email or phone number and a password");
       const { data: s, error: r } = t;
-      return r ? { data: { user: null, session: null }, error: r } : !s || !s.session || !s.user ? { data: { user: null, session: null }, error: new Ie() } : (s.session && (await this._saveSession(s.session), await this._notifyAllSubscribers("SIGNED_IN", s.session)), {
+      return r ? { data: { user: null, session: null }, error: r } : !s || !s.session || !s.user ? { data: { user: null, session: null }, error: new Te() } : (s.session && (await this._saveSession(s.session), await this._notifyAllSubscribers("SIGNED_IN", s.session)), {
         data: Object.assign({ user: s.user, session: s.session }, s.weak_password ? { weakPassword: s.weak_password } : null),
         error: r
       });
@@ -4506,7 +4506,7 @@ class Se {
         throw w;
       return !g || !g.session || !g.user ? {
         data: { user: null, session: null },
-        error: new Ie()
+        error: new Te()
       } : (g.session && (await this._saveSession(g.session), await this._notifyAllSubscribers("SIGNED_IN", g.session)), { data: Object.assign({}, g), error: w });
     } catch (g) {
       if (_(g))
@@ -4525,11 +4525,11 @@ class Se {
         },
         xform: U
       });
-      if (await z(this.storage, `${this.storageKey}-code-verifier`), o)
+      if (await H(this.storage, `${this.storageKey}-code-verifier`), o)
         throw o;
       return !i || !i.session || !i.user ? {
         data: { user: null, session: null, redirectType: null },
-        error: new Ie()
+        error: new Te()
       } : (i.session && (await this._saveSession(i.session), await this._notifyAllSubscribers("SIGNED_IN", i.session)), { data: Object.assign(Object.assign({}, i), { redirectType: r ?? null }), error: o });
     } catch (i) {
       if (_(i))
@@ -4556,7 +4556,7 @@ class Se {
       }), { data: l, error: u } = a;
       return u ? { data: { user: null, session: null }, error: u } : !l || !l.session || !l.user ? {
         data: { user: null, session: null },
-        error: new Ie()
+        error: new Te()
       } : (l.session && (await this._saveSession(l.session), await this._notifyAllSubscribers("SIGNED_IN", l.session)), { data: l, error: u });
     } catch (t) {
       if (_(t))
@@ -4818,7 +4818,7 @@ class Se {
       const t = await G(this.storage, this.storageKey);
       if (this._debug("#getSession()", "session from storage", t), t !== null && (this._isValidSession(t) ? e = t : (this._debug("#getSession()", "session from storage is not valid"), await this._removeSession())), !e)
         return { data: { session: null }, error: null };
-      const s = e.expires_at ? e.expires_at * 1e3 - Date.now() < Ve : !1;
+      const s = e.expires_at ? e.expires_at * 1e3 - Date.now() < He : !1;
       if (this._debug("#__loadSession()", `session has${s ? "" : " not"} expired`, "expires_at", e.expires_at), !s) {
         if (this.userStorage) {
           const o = await G(this.userStorage, this.storageKey + "-user");
@@ -4867,7 +4867,7 @@ class Se {
       });
     } catch (t) {
       if (_(t))
-        return ui(t) && (await this._removeSession(), await z(this.storage, `${this.storageKey}-code-verifier`)), { data: { user: null }, error: t };
+        return ui(t) && (await this._removeSession(), await H(this.storage, `${this.storageKey}-code-verifier`)), { data: { user: null }, error: t };
       throw t;
     }
   }
@@ -5075,7 +5075,7 @@ class Se {
         if (a && !(ci(a) && (a.status === 404 || a.status === 401 || a.status === 403)))
           return { error: a };
       }
-      return e !== "others" && (await this._removeSession(), await z(this.storage, `${this.storageKey}-code-verifier`)), { error: null };
+      return e !== "others" && (await this._removeSession(), await H(this.storage, `${this.storageKey}-code-verifier`)), { error: null };
     });
   }
   /**
@@ -5223,7 +5223,7 @@ class Se {
         xform: U
       })), (r, i) => {
         const o = 200 * Math.pow(2, r);
-        return i && He(i) && // retryable only if the request can be sent before the backoff overflows the tick duration
+        return i && Ve(i) && // retryable only if the request can be sent before the backoff overflows the tick duration
         Date.now() + o - s < ce;
       });
     } catch (s) {
@@ -5260,17 +5260,17 @@ class Se {
         !this.storage.isServer && Object.is(this.storage, this.userStorage) && !o && (o = { user: r.user }, await ue(this.userStorage, this.storageKey + "-user", o)), r.user = (e = o == null ? void 0 : o.user) !== null && e !== void 0 ? e : Ke();
       } else if (r && !r.user && !r.user) {
         const o = await G(this.storage, this.storageKey + "-user");
-        o && (o != null && o.user) ? (r.user = o.user, await z(this.storage, this.storageKey + "-user"), await ue(this.storage, this.storageKey, r)) : r.user = Ke();
+        o && (o != null && o.user) ? (r.user = o.user, await H(this.storage, this.storageKey + "-user"), await ue(this.storage, this.storageKey, r)) : r.user = Ke();
       }
       if (this._debug(s, "session from storage", r), !this._isValidSession(r)) {
         this._debug(s, "session is not valid"), r !== null && await this._removeSession();
         return;
       }
-      const i = ((t = r.expires_at) !== null && t !== void 0 ? t : 1 / 0) * 1e3 - Date.now() < Ve;
-      if (this._debug(s, `session has${i ? "" : " not"} expired with margin of ${Ve}s`), i) {
+      const i = ((t = r.expires_at) !== null && t !== void 0 ? t : 1 / 0) * 1e3 - Date.now() < He;
+      if (this._debug(s, `session has${i ? "" : " not"} expired with margin of ${He}s`), i) {
         if (this.autoRefreshToken && r.refresh_token) {
           const { error: o } = await this._callRefreshToken(r.refresh_token);
-          o && (console.error(o), He(o) || (this._debug(s, "refresh failed with a non-retryable error, removing the session", o), await this._removeSession()));
+          o && (console.error(o), Ve(o) || (this._debug(s, "refresh failed with a non-retryable error, removing the session", o), await this._removeSession()));
         }
       } else if (r.user && r.user.__isUserNotAvailableProxy === !0)
         try {
@@ -5309,7 +5309,7 @@ class Se {
     } catch (i) {
       if (this._debug(r, "error", i), _(i)) {
         const o = { session: null, error: i };
-        return He(i) || await this._removeSession(), (t = this.refreshingDeferred) === null || t === void 0 || t.resolve(o), o;
+        return Ve(i) || await this._removeSession(), (t = this.refreshingDeferred) === null || t === void 0 || t.resolve(o), o;
       }
       throw (s = this.refreshingDeferred) === null || s === void 0 || s.reject(i), i;
     } finally {
@@ -5358,7 +5358,7 @@ class Se {
     }
   }
   async _removeSession() {
-    this._debug("#_removeSession()"), await z(this.storage, this.storageKey), await z(this.storage, this.storageKey + "-code-verifier"), await z(this.storage, this.storageKey + "-user"), this.userStorage && await z(this.userStorage, this.storageKey + "-user"), await this._notifyAllSubscribers("SIGNED_OUT", null);
+    this._debug("#_removeSession()"), await H(this.storage, this.storageKey), await H(this.storage, this.storageKey + "-code-verifier"), await H(this.storage, this.storageKey + "-user"), this.userStorage && await H(this.userStorage, this.storageKey + "-user"), await this._notifyAllSubscribers("SIGNED_OUT", null);
   }
   /**
    * Removes any registered visibilitychange callback.
@@ -5800,7 +5800,7 @@ class Xi {
    * Supabase Functions allows you to deploy and invoke edge functions.
    */
   get functions() {
-    return new Vs(this.functionsUrl.href, {
+    return new Hs(this.functionsUrl.href, {
       headers: this.headers,
       customFetch: this.fetch
     });
@@ -6069,8 +6069,8 @@ function Zt(n) {
   return typeof n.activeMs == "number" && n.activeMs > 0 ? n.activeMs : typeof n.leftAt == "number" && n.leftAt > n.enteredAt ? n.leftAt - n.enteredAt : 0;
 }
 let ee = {}, he = null, ke = !0, es = !1, F;
-const Ts = [];
-function Is(n) {
+const Is = [];
+function Ts(n) {
   if (typeof document > "u") return [];
   const e = n + "=", t = [];
   for (const s of ("; " + document.cookie).split("; ")) {
@@ -6122,7 +6122,7 @@ function at(n) {
 }
 function Ps(n) {
   const e = [];
-  for (const t of Is(n))
+  for (const t of Ts(n))
     try {
       const s = JSON.parse(t);
       s && typeof s == "object" && !Array.isArray(s) && e.push(s);
@@ -6292,10 +6292,10 @@ function bt() {
   return js() ? !1 : !ee.requireConsent || ke;
 }
 function js() {
-  return Is(ot).indexOf("0") !== -1;
+  return Ts(ot).indexOf("0") !== -1;
 }
 function yn(n) {
-  Ts.push(n);
+  Is.push(n);
 }
 function we(n) {
   const e = n !== ke;
@@ -6309,7 +6309,7 @@ function we(n) {
     }
   }
   if (e)
-    for (const t of Ts)
+    for (const t of Is)
       try {
         t(n);
       } catch {
@@ -6473,7 +6473,7 @@ function Cn() {
   }
 }
 let ts = !1;
-const H = class H {
+const q = class q {
   constructor(e) {
     m(this, "options");
     m(this, "supabaseService");
@@ -6491,11 +6491,16 @@ const H = class H {
     m(this, "pendingContentUpdate");
     m(this, "isSubmitting", !1);
     // Lock to prevent concurrent submissions
-    m(this, "autofieldStorageListenersSetup", !1);
-    // Flag to prevent duplicate storage listeners
-    m(this, "autofieldSettleTimer");
+    // Our injected autofield section and its per-field wrappers. Kept in
+    // memory while off the page so typed values survive being re-added.
+    m(this, "autofieldSection");
+    m(this, "autofieldWrappers", []);
     m(this, "autofieldObserver");
     m(this, "boundHandleAutofieldBlur", (e) => this.handleAutofieldBlur(e));
+    m(this, "boundSaveAutofieldToStorage", (e) => {
+      const t = e.target, s = q.AUTOFIELD_STORAGE_KEYS[t.name];
+      s && t.value && this.saveToSessionStorage(s, t.value);
+    });
     this.options = e, this.supabaseService = new vt(
       e.supabaseUrl,
       e.supabaseAnonKey
@@ -6603,7 +6608,7 @@ const H = class H {
     const s = new Promise((r) => {
       t = setTimeout(() => {
         console.warn("Basket fetch timed out, continuing without it"), r(null);
-      }, H.BASKET_FETCH_TIMEOUT_MS);
+      }, q.BASKET_FETCH_TIMEOUT_MS);
     });
     try {
       return await Promise.race([e, s]);
@@ -6618,8 +6623,7 @@ const H = class H {
     return r || i || o;
   }
   destroy() {
-    var e;
-    this.debounceTimer && (clearTimeout(this.debounceTimer), this.debounceTimer = void 0), this._urlCheckInterval && (clearInterval(this._urlCheckInterval), this._urlCheckInterval = void 0), this.autofieldSettleTimer && (clearTimeout(this.autofieldSettleTimer), this.autofieldSettleTimer = void 0), (e = this.autofieldObserver) == null || e.disconnect(), this.autofieldObserver = void 0, this._iframeObserver && (this._iframeObserver.disconnect(), this._iframeObserver = void 0), this.pendingContentUpdate && (this.handleContentUpdate(
+    this.debounceTimer && (clearTimeout(this.debounceTimer), this.debounceTimer = void 0), this._urlCheckInterval && (clearInterval(this._urlCheckInterval), this._urlCheckInterval = void 0), this.stopSyncingAutofields(), this._iframeObserver && (this._iframeObserver.disconnect(), this._iframeObserver = void 0), this.pendingContentUpdate && (this.handleContentUpdate(
       this.pendingContentUpdate.content,
       this.pendingContentUpdate.sessionId
     ), this.pendingContentUpdate = void 0), this.inputDetector && this.inputDetector.stopListening(), this.isInitialized = !1, this._sessionId = void 0, this.isSubmitting = !1, this.clearSessionIdFromStorage();
@@ -6822,70 +6826,73 @@ const H = class H {
   injectBookVisitAutofields(e) {
     if (typeof document > "u")
       return;
-    const t = document.getElementById("main_content_container");
-    if (!t) {
-      console.warn(
-        "main_content_container not found, cannot inject autofields"
-      );
-      return;
-    }
-    const s = this.getFieldsToInclude(e);
-    if (s.length === 0) {
+    const t = this.getFieldsToInclude(e);
+    if (t.length === 0) {
       console.log(
         "No relevant fields found in input_mapping for autofields"
       );
       return;
     }
-    const r = this.createBookVisitFormSection(s);
-    t.insertAdjacentHTML("afterbegin", r), this.syncAutofieldVisibility(), typeof MutationObserver < "u" && (this.autofieldObserver = new MutationObserver(
-      () => this.syncAutofieldVisibility()
+    const s = document.createElement("template");
+    s.innerHTML = this.createBookVisitFormSection(t), this.autofieldSection = s.content.querySelector(
+      "[data-ei-autofields]"
+    ), this.autofieldWrappers = Array.from(
+      this.autofieldSection.querySelectorAll(
+        "[data-ei-autofield]"
+      )
+    ), typeof MutationObserver < "u" && (this.autofieldObserver = new MutationObserver(
+      () => this.syncAutofields()
     ), this.autofieldObserver.observe(document.body, {
       childList: !0,
       subtree: !0
-    })), this.autofieldSettleTimer = setTimeout(() => {
-      var i;
-      this.autofieldSettleTimer = void 0, (i = this.autofieldObserver) == null || i.disconnect(), this.autofieldObserver = void 0, this.removeDuplicateAutofields(), this.autofieldStorageListenersSetup = !1, this.setupAutofieldListenersWithRetry();
-    }, H.AUTOFIELD_SETTLE_MS), this.setupAutofieldListenersWithRetry();
+    })), this.syncAutofields();
+  }
+  /**
+   * Stop keeping our autofields in sync with the page
+   */
+  stopSyncingAutofields() {
+    var e;
+    (e = this.autofieldObserver) == null || e.disconnect(), this.autofieldObserver = void 0;
+  }
+  /**
+   * Put each of our autofields on the page when BookVisit does not render
+   * its own version of it, and take it off when BookVisit does
+   */
+  syncAutofields() {
+    const e = this.autofieldSection;
+    if (!e)
+      return;
+    if (window.location.pathname !== "/checkout") {
+      this.stopSyncingAutofields(), e.remove();
+      return;
+    }
+    const t = document.getElementById("main_content_container");
+    if (!t)
+      return;
+    let s = !1;
+    const r = e.querySelector(
+      "[data-ei-autofield-grid]"
+    );
+    let i = null;
+    for (const o of this.autofieldWrappers) {
+      const a = !this.nativeAutofieldExists(
+        o.dataset.eiAutofield ?? ""
+      );
+      a && o.parentElement !== r ? (r.insertBefore(
+        o,
+        i ? i.nextSibling : r.firstChild
+      ), s = !0) : !a && o.parentElement === r && (o.remove(), s = !0), a && (i = o);
+    }
+    i && e.parentElement !== t ? (t.insertAdjacentElement("afterbegin", e), s = !0) : !i && e.parentElement && (e.remove(), s = !0), s && this.setupAutofieldListenersWithRetry();
   }
   /**
    * Check whether BookVisit itself renders an input for the given autofield,
    * ignoring the ones we injected
    */
   nativeAutofieldExists(e) {
-    const t = H.AUTOFIELD_SELECTORS[e];
+    const t = q.AUTOFIELD_SELECTORS[e];
     return !t || typeof document > "u" ? !1 : Array.from(document.querySelectorAll(t)).some(
       (s) => !s.closest("[data-ei-autofields]")
-    );
-  }
-  /**
-   * Hide each injected autofield while BookVisit renders its own version,
-   * and hide the whole section when none of ours are visible
-   */
-  syncAutofieldVisibility() {
-    const e = document.querySelector("[data-ei-autofields]");
-    if (!e)
-      return;
-    let t = !1;
-    e.querySelectorAll("[data-ei-autofield]").forEach((s) => {
-      const r = this.nativeAutofieldExists(
-        s.dataset.eiAutofield ?? ""
-      );
-      s.style.display = r ? "none" : "contents", t = t || !r;
-    }), e.style.display = t ? "" : "none";
-  }
-  /**
-   * Remove injected autofields that BookVisit also renders itself
-   */
-  removeDuplicateAutofields() {
-    const e = document.querySelector("[data-ei-autofields]");
-    if (!e)
-      return;
-    const t = [];
-    e.querySelectorAll("[data-ei-autofield]").forEach((s) => {
-      const r = s.dataset.eiAutofield ?? "";
-      this.nativeAutofieldExists(r) && (s.remove(), t.push(r));
-    }), e.querySelector("[data-ei-autofield]") || e.remove(), t.length > 0 && console.log(
-      `Autofields already present on page, removed ours: ${t.join(", ")}`
     );
   }
   /**
@@ -7015,7 +7022,7 @@ const H = class H {
    */
   createBookVisitFormSection(e) {
     const t = e.includes("firstName"), s = e.includes("lastName"), r = e.includes("email"), i = e.includes("phoneNumber"), o = this.getLocalizedText("email"), a = this.getLocalizedText("phoneNumber"), l = "bv:box-border bv:flex bv:h-[40px] bv:w-full bv:pl-[14px] bv:rounded-bv_inputRoundedCorners bv:border-solid bv:bv_inputBorder bv:disabled:cursor-not-allowed bv:disabled:opacity-50 bv:font-bv_bodyFontFamily bv:text-bv_bodyFontSize bv:placeholder:text-bv_inputColor/70 bv:focus:outline-hidden! bv:focus:ring-2 bv:bg-bv_inputBackground bv:text-bv_inputColor";
-    let u = '<div class="bv:m-0 bv:grid bv:gap-[10px] bv:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] bv:mt-[20px] bv:bv_small:grid-cols-1">';
+    let u = '<div data-ei-autofield-grid class="bv:m-0 bv:grid bv:gap-[10px] bv:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] bv:mt-[20px] bv:bv_small:grid-cols-1">';
     return t && (u += `
                 <div data-ei-autofield="firstName" style="display: contents;">
                 <label for="customer-firstName" class="bv:sr-only">Fornavn</label>
@@ -7145,47 +7152,47 @@ const H = class H {
     const r = this.getSynxisActualTotal(), i = this._synxisSessionIds;
     try {
       const Be = (e == null ? void 0 : e.ShoppingCart) || [], se = [];
-      for (const T of Be) {
-        const I = ((a = (o = T == null ? void 0 : T.UpdatedData) == null ? void 0 : o.itinerary) == null ? void 0 : a.reservations) || [];
-        for (const re of I)
+      for (const I of Be) {
+        const T = ((a = (o = I == null ? void 0 : I.UpdatedData) == null ? void 0 : o.itinerary) == null ? void 0 : a.reservations) || [];
+        for (const re of T)
           se.push({
             resv: re,
-            itineraryNumber: (T == null ? void 0 : T.Itemid) || ""
+            itineraryNumber: (I == null ? void 0 : I.Itemid) || ""
           });
       }
-      let Te = se;
+      let Ie = se;
       if (i != null && i.sbeRcDecoded) {
-        const T = se.filter(
-          ({ resv: I }) => I.id === i.sbeRcDecoded
+        const I = se.filter(
+          ({ resv: T }) => T.id === i.sbeRcDecoded
         );
-        T.length > 0 && (Te = T);
+        I.length > 0 && (Ie = I);
       }
-      Te === se && se.length > 1 && (Te = [...se].sort(
-        (T, I) => I.itineraryNumber.localeCompare(T.itineraryNumber)
+      Ie === se && se.length > 1 && (Ie = [...se].sort(
+        (I, T) => T.itineraryNumber.localeCompare(I.itineraryNumber)
       ).slice(0, 1));
-      for (const { resv: T } of Te) {
-        const I = T.extrasFromShopping || {}, re = T.stayCriteria || {}, St = T.guestCriteria || {}, P = I.prices || {}, kt = ((c = (u = (l = P == null ? void 0 : P.Total) == null ? void 0 : l.Price) == null ? void 0 : u.Total) == null ? void 0 : c.AmountWithTaxesFees) || ((f = (d = (h = P == null ? void 0 : P.Total) == null ? void 0 : h.Price) == null ? void 0 : d.Total) == null ? void 0 : f.Amount) || ((y = (p = P == null ? void 0 : P.Total) == null ? void 0 : p.Price) == null ? void 0 : y.Amount) || 0, Et = ((P == null ? void 0 : P.Daily) || []).map((q) => {
-          var Ct, Tt, It, At, Pt, xt, Ot, jt, $t, Rt;
+      for (const { resv: I } of Ie) {
+        const T = I.extrasFromShopping || {}, re = I.stayCriteria || {}, St = I.guestCriteria || {}, P = T.prices || {}, kt = ((c = (u = (l = P == null ? void 0 : P.Total) == null ? void 0 : l.Price) == null ? void 0 : u.Total) == null ? void 0 : c.AmountWithTaxesFees) || ((f = (d = (h = P == null ? void 0 : P.Total) == null ? void 0 : h.Price) == null ? void 0 : d.Total) == null ? void 0 : f.Amount) || ((y = (p = P == null ? void 0 : P.Total) == null ? void 0 : p.Price) == null ? void 0 : y.Amount) || 0, Et = ((P == null ? void 0 : P.Daily) || []).map((z) => {
+          var Ct, It, Tt, At, Pt, xt, Ot, jt, $t, Rt;
           return {
-            date: q.Date,
-            amount: ((Tt = (Ct = q.Price) == null ? void 0 : Ct.Total) == null ? void 0 : Tt.Amount) || ((It = q.Price) == null ? void 0 : It.Amount) || 0,
-            amountWithTax: ((Pt = (At = q.Price) == null ? void 0 : At.Total) == null ? void 0 : Pt.AmountWithTaxesFees) || 0,
-            tax: ((Ot = (xt = q.Price) == null ? void 0 : xt.Tax) == null ? void 0 : Ot.Amount) || 0,
-            fees: (($t = (jt = q.Price) == null ? void 0 : jt.Fees) == null ? void 0 : $t.Amount) || 0,
-            currency: (Rt = q.Price) == null ? void 0 : Rt.CurrencyCode,
-            inventory: q.AvailableInventory
+            date: z.Date,
+            amount: ((It = (Ct = z.Price) == null ? void 0 : Ct.Total) == null ? void 0 : It.Amount) || ((Tt = z.Price) == null ? void 0 : Tt.Amount) || 0,
+            amountWithTax: ((Pt = (At = z.Price) == null ? void 0 : At.Total) == null ? void 0 : Pt.AmountWithTaxesFees) || 0,
+            tax: ((Ot = (xt = z.Price) == null ? void 0 : xt.Tax) == null ? void 0 : Ot.Amount) || 0,
+            fees: (($t = (jt = z.Price) == null ? void 0 : jt.Fees) == null ? void 0 : $t.Amount) || 0,
+            currency: (Rt = z.Price) == null ? void 0 : Rt.CurrencyCode,
+            inventory: z.AvailableInventory
           };
         }), Ds = {
-          id: T.id,
-          confirmationNumber: T.confirmationNumber,
-          itineraryNumber: T.itineraryNumber,
-          name: I.displayname || "Room",
+          id: I.id,
+          confirmationNumber: I.confirmationNumber,
+          itineraryNumber: I.itineraryNumber,
+          name: T.displayname || "Room",
           roomCode: re.roomCode,
           rateCode: re.rateCode,
           price: kt,
           actualTotal: r,
-          dailyRate: I.amount || I.amountWithTaxesFees,
-          currency: I.currencyCode,
+          dailyRate: T.amount || T.amountWithTaxesFees,
+          currency: T.currencyCode,
           dailyPrices: Et,
           taxes: ((k = (w = (g = P == null ? void 0 : P.Total) == null ? void 0 : g.Price) == null ? void 0 : w.Tax) == null ? void 0 : k.Amount) || 0,
           fees: ((A = (b = (v = P == null ? void 0 : P.Total) == null ? void 0 : v.Price) == null ? void 0 : b.Fees) == null ? void 0 : A.Amount) || 0,
@@ -7194,22 +7201,22 @@ const H = class H {
           nights: Et.length || null,
           adults: St.numAdults || 1,
           children: St.numChildren || 0,
-          hotelId: String(T.hotelId),
-          chainId: String(T.chainId),
-          bedDescription: I.bedDescription,
-          bedType: I.bedType,
-          bedQuantity: I.bedQuantity,
-          maxRoomSize: I.maxRoomSize,
-          minRoomSize: I.minRoomSize,
-          guestLimit: I.guestLimit,
-          inventory: I.inventory,
-          bookingPolicyCode: I.bookingPolicyCode,
-          cancelPolicyCode: I.cancelPolicyCode,
-          status: T.status,
+          hotelId: String(I.hotelId),
+          chainId: String(I.chainId),
+          bedDescription: T.bedDescription,
+          bedType: T.bedType,
+          bedQuantity: T.bedQuantity,
+          maxRoomSize: T.maxRoomSize,
+          minRoomSize: T.minRoomSize,
+          guestLimit: T.guestLimit,
+          inventory: T.inventory,
+          bookingPolicyCode: T.bookingPolicyCode,
+          cancelPolicyCode: T.cancelPolicyCode,
+          status: I.status,
           type: "room",
           quantity: 1,
-          addons: T.addOns || [],
-          image: I.coverImage || ((wt = (_t = I.imageUrls) == null ? void 0 : _t[0]) == null ? void 0 : wt.Path) || null
+          addons: I.addOns || [],
+          image: T.coverImage || ((wt = (_t = T.imageUrls) == null ? void 0 : _t[0]) == null ? void 0 : wt.Path) || null
         };
         t.push(Ds), s += kt;
       }
@@ -7493,50 +7500,12 @@ const H = class H {
    * Set up event listeners on autofield inputs to store values in sessionStorage
    */
   setupAutofieldStorageListeners() {
-    if (typeof document > "u" || this.autofieldStorageListenersSetup)
-      return;
-    const e = document.querySelector(
-      'input[name="emailAddress"]'
-    );
-    e && (e.addEventListener("input", (r) => {
-      const i = r.target;
-      i.value && this.saveToSessionStorage("autofield_email", i.value);
-    }), e.addEventListener("blur", (r) => {
-      const i = r.target;
-      i.value && this.saveToSessionStorage("autofield_email", i.value);
-    }));
-    const t = document.querySelector(
-      'input[name="phoneCountryCode"]'
-    );
-    t && (t.addEventListener("input", (r) => {
-      const i = r.target;
-      i.value && this.saveToSessionStorage(
-        "autofield_phoneCountryCode",
-        i.value
+    typeof document > "u" || Object.keys(q.AUTOFIELD_STORAGE_KEYS).forEach((e) => {
+      const t = document.querySelector(
+        `input[name="${e}"]`
       );
-    }), t.addEventListener("blur", (r) => {
-      const i = r.target;
-      i.value && this.saveToSessionStorage(
-        "autofield_phoneCountryCode",
-        i.value
-      );
-    }));
-    const s = document.querySelector(
-      'input[name="phoneNumber"]'
-    );
-    s && (s.addEventListener("input", (r) => {
-      const i = r.target;
-      i.value && this.saveToSessionStorage(
-        "autofield_phoneNumber",
-        i.value
-      );
-    }), s.addEventListener("blur", (r) => {
-      const i = r.target;
-      i.value && this.saveToSessionStorage(
-        "autofield_phoneNumber",
-        i.value
-      );
-    })), (e || t || s) && (this.autofieldStorageListenersSetup = !0);
+      t == null || t.addEventListener("input", this.boundSaveAutofieldToStorage), t == null || t.addEventListener("blur", this.boundSaveAutofieldToStorage);
+    });
   }
   /**
    * Check if we're on the payment page and fill in fields from sessionStorage
@@ -7837,22 +7806,25 @@ const H = class H {
     this._urlCheckInterval = t;
   }
 };
-m(H, "BASKET_FETCH_TIMEOUT_MS", 8e3), /**
- * How long to wait for BookVisit to settle before deciding whether its
- * own fields are there to stay
- */
-m(H, "AUTOFIELD_SETTLE_MS", 1e3), /**
+m(q, "BASKET_FETCH_TIMEOUT_MS", 8e3), /**
  * Selectors that identify each autofield, whether rendered by BookVisit
  * itself or injected by us.
  */
-m(H, "AUTOFIELD_SELECTORS", {
+m(q, "AUTOFIELD_SELECTORS", {
   firstName: '#customer-firstName, input[name="firstName"]',
   lastName: '#customer-lastName, input[name="lastName"]',
   email: '#customer-emailAddress, input[name="emailAddress"]',
   phoneNumber: '#customer-phoneNumber, input[name="phoneNumber"]'
+}), /**
+ * sessionStorage key for each autofield input name
+ */
+m(q, "AUTOFIELD_STORAGE_KEYS", {
+  emailAddress: "autofield_email",
+  phoneCountryCode: "autofield_phoneCountryCode",
+  phoneNumber: "autofield_phoneNumber"
 });
-let ut = H;
-class Tn {
+let ut = q;
+class In {
   constructor(e) {
     m(this, "options");
     m(this, "supabaseService");
@@ -8082,7 +8054,7 @@ class Tn {
     return { ...this.formData };
   }
 }
-class In {
+class Tn {
   constructor(e) {
     // @ts-ignore
     m(this, "options");
@@ -8330,7 +8302,7 @@ class An {
         await i.initialize(), this.tools.set("abandonedCart", i);
       }
       if ((t = this.options.features) != null && t.organizationPipeline) {
-        const i = new Tn(
+        const i = new In(
           this.options
         );
         await i.initialize(), this.tools.set(
@@ -8341,7 +8313,7 @@ class An {
       if ((s = this.options.features) != null && s.enhancedInsights) {
         const i = async () => {
           if (this.tools.has("enhancedInsights")) return;
-          const o = new In(
+          const o = new Tn(
             this.options
           );
           await o.initialize(), this.tools.set("enhancedInsights", o);

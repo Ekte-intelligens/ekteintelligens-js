@@ -16,8 +16,8 @@ export declare class AbandonedCartTool {
     private debounceTimer?;
     private pendingContentUpdate?;
     private isSubmitting;
-    private autofieldStorageListenersSetup;
-    private autofieldSettleTimer?;
+    private autofieldSection?;
+    private autofieldWrappers;
     private autofieldObserver?;
     constructor(options: SDKOptions);
     initialize(): Promise<boolean>;
@@ -73,10 +73,14 @@ export declare class AbandonedCartTool {
      */
     private injectBookVisitAutofields;
     /**
-     * How long to wait for BookVisit to settle before deciding whether its
-     * own fields are there to stay
+     * Stop keeping our autofields in sync with the page
      */
-    private static readonly AUTOFIELD_SETTLE_MS;
+    private stopSyncingAutofields;
+    /**
+     * Put each of our autofields on the page when BookVisit does not render
+     * its own version of it, and take it off when BookVisit does
+     */
+    private syncAutofields;
     /**
      * Selectors that identify each autofield, whether rendered by BookVisit
      * itself or injected by us.
@@ -87,15 +91,6 @@ export declare class AbandonedCartTool {
      * ignoring the ones we injected
      */
     private nativeAutofieldExists;
-    /**
-     * Hide each injected autofield while BookVisit renders its own version,
-     * and hide the whole section when none of ours are visible
-     */
-    private syncAutofieldVisibility;
-    /**
-     * Remove injected autofields that BookVisit also renders itself
-     */
-    private removeDuplicateAutofields;
     /**
      * Determine which fields to include based on input_mapping
      */
@@ -213,6 +208,11 @@ export declare class AbandonedCartTool {
      * Manually triggers the content update callback to ensure autofields are detected
      */
     private handleAutofieldBlur;
+    /**
+     * sessionStorage key for each autofield input name
+     */
+    private static readonly AUTOFIELD_STORAGE_KEYS;
+    private readonly boundSaveAutofieldToStorage;
     /**
      * Set up event listeners on autofield inputs to store values in sessionStorage
      */
