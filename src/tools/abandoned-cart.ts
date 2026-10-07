@@ -605,6 +605,11 @@ export class AbandonedCartTool {
                 // Calculate room price
                 const roomPrice = room.totalPrice || 0;
 
+                const imageUrl = roomDescription?.images?.[0]?.uri;
+                const imagesUrls = roomDescription?.images?.map(
+                    (image: any) => image.uri,
+                );
+
                 // Create product from room
                 const product: any = {
                     id: room.roomId,
@@ -615,6 +620,8 @@ export class AbandonedCartTool {
                     startDate: room.startDate,
                     endDate: room.endDate,
                     roomConfig: room.roomConfig,
+                    image: imageUrl,
+                    images: imagesUrls,
                 };
 
                 // Add rate plan information if available
@@ -1860,13 +1867,21 @@ export class AbandonedCartTool {
         // Same function reference every time, so calling this again when the
         // inputs on the page change cannot stack duplicate listeners. Only the
         // first match, so e.g. a guest's phone field cannot overwrite it.
-        Object.keys(AbandonedCartTool.AUTOFIELD_STORAGE_KEYS).forEach((name) => {
-            const input = document.querySelector<HTMLInputElement>(
-                `input[name="${name}"]`,
-            );
-            input?.addEventListener("input", this.boundSaveAutofieldToStorage);
-            input?.addEventListener("blur", this.boundSaveAutofieldToStorage);
-        });
+        Object.keys(AbandonedCartTool.AUTOFIELD_STORAGE_KEYS).forEach(
+            (name) => {
+                const input = document.querySelector<HTMLInputElement>(
+                    `input[name="${name}"]`,
+                );
+                input?.addEventListener(
+                    "input",
+                    this.boundSaveAutofieldToStorage,
+                );
+                input?.addEventListener(
+                    "blur",
+                    this.boundSaveAutofieldToStorage,
+                );
+            },
+        );
     }
 
     /**
