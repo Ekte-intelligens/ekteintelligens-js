@@ -95,6 +95,14 @@ interface SDKOptions {
 
 ## Features
 
+**Elina PMS cart dates.** The Elina booking page carries the stay as ISO data
+attributes (`data-startdate`, `data-enddate`, `data-nights`, the same ones
+Elina's own analytics script reads). The cart scraper now copies them onto
+each product row as `startDate`/`endDate`/`nights`, per item when the item
+has them, otherwise from the page-level block. These are exact, so they feed
+reminder e-mails and reporting directly; the URL stay capture only fills in
+when the page has no attributes.
+
 ### Abandoned Cart Tracking
 
 The abandoned cart tool automatically tracks user input on your checkout forms and submits data to your Supabase edge function when email or phone number is detected.

@@ -1688,8 +1688,15 @@ export class AbandonedCartTool {
                 (this as any)._elinapmsSessionIds = sessionIds;
             }
 
+            // The stay is on the page as ISO data attributes (data-startdate /
+            // data-enddate / data-nights), read by Elina's own analytics
+            // script too. Per item when the item carries them, else the
+            // page-level block (one stay per cart). Exact, so safe for the
+            // reminder e-mails, unlike a remembered URL search.
+            const pageStay = this.readElinapmsStay(document);
             const products = Array.from(cartItems).map((el) => {
                 const cart = el as HTMLElement;
+                const stay = this.readElinapmsStay(cart) ?? pageStay;
                 return {
                     id: cart.dataset.id,
                     name: cart.dataset.tagname,
@@ -1699,6 +1706,7 @@ export class AbandonedCartTool {
                     category: cart.dataset.tagcategory,
                     locationId: cart.dataset.accid,
                     ratePlanId: cart.dataset.rateruleId,
+                    ...(stay ?? {}),
                 };
             });
 
@@ -1706,6 +1714,42 @@ export class AbandonedCartTool {
             return { products, total };
         } catch (error) {
             console.error("Error extracting Elina PMS basket:", error);
+            return null;
+        }
+    }
+
+    /**
+     * Stay dates from an Elina element (or the document): the element's own
+     * data-startdate/enddate, else the first descendant that carries them.
+     * Only ISO dates are accepted; nights is computed when absent.
+     */
+    private readElinapmsStay(
+        root: ParentNode & { dataset?: DOMStringMap },
+    ): { startDate: string; endDate: string; nights: number } | null {
+        try {
+            const own = (root as HTMLElement).dataset;
+            const holder: HTMLElement | null =
+                own && own.startdate && own.enddate
+                    ? (root as HTMLElement)
+                    : (root.querySelector("[data-startdate][data-enddate]") as HTMLElement | null);
+            if (!holder) return null;
+            const iso = /^(\d{4})-(\d{2})-(\d{2})/;
+            const start = iso.exec(holder.dataset.startdate ?? "");
+            const end = iso.exec(holder.dataset.enddate ?? "");
+            if (!start || !end) return null;
+            const startDate = start[0];
+            const endDate = end[0];
+            const computed = Math.round(
+                (Date.UTC(+end[1]!, +end[2]! - 1, +end[3]!) -
+                    Date.UTC(+start[1]!, +start[2]! - 1, +start[3]!)) /
+                    86_400_000,
+            );
+            if (computed < 1 || computed > 60) return null;
+            const declared = Number(holder.dataset.nights);
+            const nights =
+                Number.isInteger(declared) && declared > 0 ? declared : computed;
+            return { startDate, endDate, nights };
+        } catch {
             return null;
         }
     }

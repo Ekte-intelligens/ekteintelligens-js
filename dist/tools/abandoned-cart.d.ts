@@ -182,6 +182,12 @@ export declare class AbandonedCartTool {
      */
     private fetchElinapmsBasket;
     /**
+     * Stay dates from an Elina element (or the document): the element's own
+     * data-startdate/enddate, else the first descendant that carries them.
+     * Only ISO dates are accepted; nights is computed when absent.
+     */
+    private readElinapmsStay;
+    /**
      * Resolve the booking total from the Elina PMS booking page.
      * Prefers the hidden #Total form input (the value posted on submit).
      * Falls back to summing accommodation base + fees + addons, mirroring the
