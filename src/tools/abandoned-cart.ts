@@ -4,6 +4,11 @@ import { TotalExtractor } from "../utils/total-extractor";
 import { SupabaseService } from "../services/supabase-service";
 import { collectAnalytics } from "../utils/analytics-collector";
 import {
+    applyStayToProducts,
+    clearStay,
+    getCurrentStay,
+} from "./stay-capture";
+import {
     SDKOptions,
     CartSessionPayload,
     CheckoutCampaign,
@@ -237,6 +242,15 @@ export class AbandonedCartTool {
                     this.totalExtractor?.extractTotal() || this.totalAverage;
             }
 
+            // The stay the visitor searched for (listing-page URL params),
+            // for engines whose cart carries no dates (Elina PMS). Rows that
+            // already have dates are left alone. Off with
+            // features.stayCapture: false.
+            const stay = this.options.features?.stayCapture === false
+                ? null
+                : getCurrentStay();
+            products = applyStayToProducts(products, stay);
+
             // Check if content has actually changed
             const contentChanged = this.hasContentChanged(
                 content,
@@ -260,7 +274,7 @@ export class AbandonedCartTool {
             // Re-collected on every upload so the enhanced_insights snapshot
             // tracks the visit as it unfolds; the edge function only writes
             // the column when a value is present.
-            const analytics = collectAnalytics();
+            const analytics = this.withStay(collectAnalytics(), stay);
 
             // Snapshot what is actually sent. `content` is the detector's
             // live object: a field blurred while the request is in flight
@@ -284,6 +298,10 @@ export class AbandonedCartTool {
                 ...(this.campaign?.type === "elinapms" &&
                 (this as any)._elinapmsSessionIds
                     ? { metadata: (this as any)._elinapmsSessionIds }
+                    : {}),
+                ...(this.campaign?.type === "bookvisit" &&
+                (this as any)._bookvisitSessionIds
+                    ? { metadata: (this as any)._bookvisitSessionIds }
                     : {}),
             };
 
@@ -312,6 +330,26 @@ export class AbandonedCartTool {
         } finally {
             // Always release the lock, even if there was an error
             this.isSubmitting = false;
+        }
+    }
+
+    /**
+     * Add the captured stay to the analytics JSON as `ei_stay`, next to
+     * `enhanced_insights`. Only when analytics is being sent at all (consent),
+     * so the stay never travels on its own.
+     */
+    private withStay(
+        analytics: string | null,
+        stay: ReturnType<typeof getCurrentStay>,
+    ): string | null {
+        if (!analytics || !stay) return analytics;
+        try {
+            const parsed = JSON.parse(analytics);
+            if (!parsed || typeof parsed !== "object") return analytics;
+            parsed.ei_stay = stay;
+            return JSON.stringify(parsed);
+        } catch {
+            return analytics;
         }
     }
 
@@ -520,6 +558,8 @@ export class AbandonedCartTool {
             // Always clear the session from localStorage and memory, even if database deletion failed
             this.clearSessionIdFromStorage();
             this._sessionId = undefined;
+            // The searched stay belongs to the booking just made.
+            clearStay();
             console.log("Completed checkout cleanup finished");
         }
     }
@@ -565,9 +605,84 @@ export class AbandonedCartTool {
             }
 
             const data = await response.json();
+            // Basket / booking references, sent as `metadata` like the SynXis
+            // and Elina scrapers do, so the backend can match this cart to the
+            // PMS booking it becomes.
+            const sessionIds = this.getBookVisitSessionIds(data);
+            if (sessionIds) {
+                (this as any)._bookvisitSessionIds = sessionIds;
+            }
             return this.extractBookVisitProductsAndTotal(data);
         } catch (error) {
             console.error("Error fetching BookVisit basket:", error);
+            return null;
+        }
+    }
+
+    /**
+     * Identifiers of a BookVisit basket: the basket/booking id from the API
+     * response (field names differ between API versions, so several are
+     * tried), plus `sbe_rc`/`basketId` from the page URL when present.
+     * Never throws; null when nothing was found.
+     */
+    private getBookVisitSessionIds(data: any): {
+        shoppingCartId: string | null;
+        sbeRc: string | null;
+        sbeRcDecoded: string | null;
+        bookingReference: string | null;
+        guestCountry: string | null;
+    } | null {
+        try {
+            const text = (value: unknown): string | null =>
+                typeof value === "string" && value.trim()
+                    ? value.trim()
+                    : typeof value === "number" && isFinite(value)
+                      ? String(value)
+                      : null;
+            const booking = data?.booking ?? {};
+            const bookingData = booking?.bookingData ?? {};
+            const shoppingCartId =
+                text(booking?.basketId) ??
+                text(booking?.id) ??
+                text(bookingData?.basketId) ??
+                text(data?.basketId) ??
+                text(data?.id);
+            const bookingReference =
+                text(bookingData?.bookingNumber) ??
+                text(bookingData?.bookingCode) ??
+                text(bookingData?.reservationNumber) ??
+                text(booking?.bookingNumber) ??
+                text(booking?.bookingCode);
+            const guestCountry =
+                text(bookingData?.customer?.countryCode) ??
+                text(bookingData?.customer?.country) ??
+                text(bookingData?.guest?.countryCode) ??
+                text(booking?.customer?.countryCode);
+
+            let sbeRc: string | null = null;
+            let sbeRcDecoded: string | null = null;
+            if (typeof window !== "undefined") {
+                const params = new URLSearchParams(window.location.search);
+                sbeRc = params.get("sbe_rc") ?? params.get("sbeRc");
+                if (sbeRc) {
+                    try {
+                        sbeRcDecoded = atob(sbeRc);
+                    } catch {
+                        sbeRcDecoded = null;
+                    }
+                }
+            }
+            if (!shoppingCartId && !bookingReference && !sbeRc) {
+                return null;
+            }
+            return {
+                shoppingCartId,
+                sbeRc,
+                sbeRcDecoded,
+                bookingReference,
+                guestCountry,
+            };
+        } catch {
             return null;
         }
     }
@@ -590,6 +705,15 @@ export class AbandonedCartTool {
 
             // Extract total price
             total = bookingData.totalPrice || 0;
+
+            // Guest country (ISO code) when the basket carries it — a
+            // nationality signal for booking reports, not contact details.
+            const guestCountry =
+                typeof bookingData.customer?.countryCode === "string"
+                    ? bookingData.customer.countryCode
+                    : typeof bookingData.customer?.country === "string"
+                      ? bookingData.customer.country
+                      : undefined;
 
             // Extract products from rooms
             const rooms = bookingData.rooms || [];
@@ -622,6 +746,7 @@ export class AbandonedCartTool {
                     roomConfig: room.roomConfig,
                     image: imageUrl,
                     images: imagesUrls,
+                    ...(guestCountry ? { guestCountry } : {}),
                 };
 
                 // Add rate plan information if available

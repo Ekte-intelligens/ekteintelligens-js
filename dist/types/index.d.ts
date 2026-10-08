@@ -8,6 +8,14 @@ export interface SDKOptions {
         abandonedCart?: boolean;
         organizationPipeline?: boolean;
         enhancedInsights?: boolean;
+        /**
+         * Remember the check-in / check-out dates a visitor searched for
+         * (listing-page URL params such as `from`/`to`, `start`/`end`,
+         * `checkin`/`checkout`) and attach them to cart sessions whose
+         * products carry no dates, plus `ei_stay` in the analytics payload.
+         * Defaults to true. Persistence follows the analytics consent gate.
+         */
+        stayCapture?: boolean;
     };
     config?: {
         completedCheckout?: boolean;
@@ -77,6 +85,11 @@ export interface CartSessionPayload {
     url?: string;
     total?: number;
     id?: string;
+    /**
+     * JSON string: attribution payload (latest touch + first_* + history),
+     * `enhanced_insights`, `device` ('desktop' | 'mobile' | 'tablet') and,
+     * when a stay was captured, `ei_stay` (see StayParams).
+     */
     analytics?: string;
     metadata?: {
         sbeSessionId?: string | null;
@@ -84,7 +97,24 @@ export interface CartSessionPayload {
         sbeRc?: string | null;
         sbeRcDecoded?: string | null;
         bookingShoppingCart?: string | null;
+        /** BookVisit: booking number / code when the basket carries one. */
+        bookingReference?: string | null;
+        /** BookVisit: guest country code from the basket, when present. */
+        guestCountry?: string | null;
     };
+}
+/** A stay the visitor searched for, read from listing-page URL params. */
+export interface StayParams {
+    /** YYYY-MM-DD */
+    checkin: string;
+    /** YYYY-MM-DD */
+    checkout: string;
+    adults?: number;
+    children?: number;
+    /** ISO timestamp of the page view it was read from. */
+    captured_at: string;
+    /** origin + pathname of that page. */
+    url: string;
 }
 export interface CartSessionResponse {
     id: string;

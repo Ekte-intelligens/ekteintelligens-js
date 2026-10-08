@@ -94,6 +94,51 @@ interface PageVisit {
     activeMs?: number;
 }
 
+/**
+ * Page views that start more than this long after the previous one begin a
+ * new session — the GA convention. `session_count` is the number of such
+ * sessions in the history, where `visit_count` is the number of page views.
+ * MUST stay in sync with countSessions in the main repo's
+ * frontends/booking/src/utilities/enhancedInsights.ts.
+ */
+const SESSION_GAP_MS = 30 * 60 * 1000;
+
+export function countSessions(visits: PageVisit[]): number {
+    let sessions = 0;
+    let previousEnd = -Infinity;
+    const ordered = visits
+        .filter((v) => typeof v.enteredAt === "number")
+        .sort((a, b) => a.enteredAt - b.enteredAt);
+    for (const v of ordered) {
+        if (v.enteredAt - previousEnd > SESSION_GAP_MS) sessions += 1;
+        previousEnd = Math.max(v.enteredAt, v.enteredAt + visitMs(v));
+    }
+    return sessions;
+}
+
+/**
+ * Device class of this browser — never the raw user agent. Client hints
+ * first (Chromium), then a small UA check for the rest.
+ */
+export function detectDevice(): "desktop" | "mobile" | "tablet" | null {
+    try {
+        if (typeof navigator === "undefined") return null;
+        const ua = String(navigator.userAgent ?? "");
+        if (/ipad|tablet|playbook|silk/i.test(ua)) return "tablet";
+        if (/android(?!.*mobile)/i.test(ua)) return "tablet";
+        const hints = (navigator as any).userAgentData;
+        if (hints && typeof hints.mobile === "boolean") {
+            return hints.mobile ? "mobile" : "desktop";
+        }
+        if (/mobi|iphone|ipod|android|windows phone|opera mini/i.test(ua)) {
+            return "mobile";
+        }
+        return ua ? "desktop" : null;
+    } catch {
+        return null;
+    }
+}
+
 /** Foreground time on a visit, tolerating both shapes of stored history. */
 function visitMs(v: PageVisit): number {
     if (typeof v.activeMs === "number" && v.activeMs > 0) return v.activeMs;
@@ -463,6 +508,7 @@ function mergeInsights(
     const num = (v: unknown) =>
         typeof v === "number" && isFinite(v) ? v : 0;
     let visitCount = 0;
+    let sessionCount = 0;
     let totalTime = 0;
     const pages: string[] = [];
     const timePerPage: Record<string, number> = {};
@@ -470,6 +516,7 @@ function mergeInsights(
     let last: string | null = null;
     for (const s of all) {
         visitCount += num(s.visit_count);
+        sessionCount += num(s.session_count);
         totalTime += num(s.total_time_seconds);
         if (typeof s.pages === "string") {
             s.pages.split(",").forEach((p) => {
@@ -496,6 +543,11 @@ function mergeInsights(
         total_time_seconds: totalTime,
         pages: pages.join(","),
     };
+    // Summaries written before session_count existed carry none; only report
+    // it when every part did, so a partial sum never looks like the total.
+    if (all.every((s) => typeof s.session_count === "number")) {
+        merged.session_count = sessionCount;
+    }
     if (first) merged.first_visit_at = first;
     if (last) merged.last_visit_at = last;
     if (local && Array.isArray(local.visits)) merged.visits = local.visits;
@@ -924,6 +976,7 @@ export function readEnhancedInsights(): Record<string, unknown> | null {
             time_per_page: timePerPage,
             visits: visits.slice(-MAX_VISITS),
             visit_count: visits.length,
+            session_count: countSessions(visits),
             unique_pages: uniquePages.length,
             total_time_seconds: Math.round(totalTimeMs / 1000),
             pages: uniquePages.join(","),
@@ -968,6 +1021,10 @@ export function collectAnalytics(): string | null {
         if (enhancedInsights) {
             payload.enhanced_insights = enhancedInsights;
         }
+        // Device class (desktop/mobile/tablet) for the "nett vs mobil" split;
+        // top level, not per touch, and never the raw user agent.
+        const device = detectDevice();
+        if (device) payload.device = device;
         return Object.keys(payload).length > 0 ? JSON.stringify(payload) : null;
     } catch {
         return null;

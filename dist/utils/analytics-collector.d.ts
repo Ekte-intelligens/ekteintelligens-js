@@ -25,6 +25,23 @@
  * is configured with `requireConsent: true` it waits for consent signalled via
  * sdk.setConsent(true) or an auto-detected CMP (Cookiebot, OneTrust, TCF).
  */
+interface PageVisit {
+    page: string;
+    enteredAt: number;
+    leftAt?: number;
+    /**
+     * Milliseconds the page was actually visible, summed across every
+     * foreground segment of the visit. Absent on histories recorded before
+     * segment tracking existed, where leftAt - enteredAt is the best estimate.
+     */
+    activeMs?: number;
+}
+export declare function countSessions(visits: PageVisit[]): number;
+/**
+ * Device class of this browser — never the raw user agent. Client hints
+ * first (Chromium), then a small UA check for the rest.
+ */
+export declare function detectDevice(): "desktop" | "mobile" | "tablet" | null;
 export interface AnalyticsCollectorOptions {
     /**
      * Parent domain for the cross-subdomain cookie, e.g. ".site.com". When
@@ -104,4 +121,5 @@ export declare function readEnhancedInsights(): Record<string, unknown> | null;
  * not been granted.
  */
 export declare function collectAnalytics(): string | null;
+export {};
 //# sourceMappingURL=analytics-collector.d.ts.map

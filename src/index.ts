@@ -10,6 +10,7 @@ export type {
     CartSessionPayload,
     CartSessionResponse,
     DetectedProduct,
+    StayParams,
 } from "./types";
 
 // Global initialization function for easy usage

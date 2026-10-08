@@ -9,6 +9,7 @@ import {
     onAnalyticsConsentChange,
 } from "./utils/analytics-collector";
 import { LinkTrackingTool } from "./tools/link-tracking";
+import { startStayCapture } from "./tools/stay-capture";
 
 export class EkteIntelligensSDK {
     private options: SDKOptions;
@@ -37,6 +38,18 @@ export class EkteIntelligensSDK {
                 requireConsent: this.options.requireConsent,
                 shareInsightsAcrossSubdomains:
                     this.options.shareInsightsAcrossSubdomains,
+            });
+            // Remember the stay (check-in/check-out) the visitor searched for
+            // when a listing page puts it in the URL, so a cart captured on a
+            // later page can carry the dates. Persistence follows the same
+            // consent gate as attribution. features.stayCapture: false turns
+            // it off.
+            // Only for sites that capture carts: nothing is read or stored
+            // for customers who use the SDK for forms or tracking alone.
+            startStayCapture({
+                enabled:
+                    !!this.options.features?.abandonedCart &&
+                    this.options.features?.stayCapture !== false,
             });
             // Shortlink-open tracking always runs. It is a no-op unless the
             // URL carries an `?s=` funnel-subscriber parameter, so there is

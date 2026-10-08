@@ -28,6 +28,12 @@ export declare class AbandonedCartTool {
     private debouncedHandleContentUpdate;
     private handleContentUpdate;
     /**
+     * Add the captured stay to the analytics JSON as `ei_stay`, next to
+     * `enhanced_insights`. Only when analytics is being sent at all (consent),
+     * so the stay never travels on its own.
+     */
+    private withStay;
+    /**
      * The submission lock is held while the basket is fetched, so a basket
      * request that hangs must not hold it indefinitely. On timeout the update
      * goes out without basket data — the same path as a failed basket fetch.
@@ -64,6 +70,13 @@ export declare class AbandonedCartTool {
      * Fetch basket data from BookVisit API
      */
     private fetchBookVisitBasket;
+    /**
+     * Identifiers of a BookVisit basket: the basket/booking id from the API
+     * response (field names differ between API versions, so several are
+     * tried), plus `sbe_rc`/`basketId` from the page URL when present.
+     * Never throws; null when nothing was found.
+     */
+    private getBookVisitSessionIds;
     /**
      * Extract products and total from BookVisit API response
      */

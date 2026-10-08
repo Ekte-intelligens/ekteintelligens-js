@@ -66,9 +66,32 @@ interface SDKOptions {
     supabaseAnonKey?: string; // Optional - SDK uses our backend by default
     features?: {
         abandonedCart?: boolean; // Enable abandoned cart tracking
+        stayCapture?: boolean; // Remember searched check-in/check-out dates (default true)
     };
 }
 ```
+
+### Stay capture, device and session_count (v1.3.0)
+
+-   **Stay capture** (`features.stayCapture`, default `true`): on every page
+    view the SDK looks for stay dates in the URL query (`from`/`to` in US
+    `MM/DD/YYYY`, `start`/`end` in `DD/MM/YYYY`, plus `checkin`/`checkout`,
+    `check_in`/`check_out`, `arrival`/`departure`, `fromDate`/`toDate`,
+    `startDate`/`endDate` in ISO, `DD.MM.YYYY`, `DD/MM/YYYY` or `MM/DD/YYYY`;
+    optional numeric `adults`/`children`/`guests`). The latest stay is kept in
+    memory and, under the same consent gate as attribution, in localStorage
+    `ei_stay_params` for 7 days (cleared when a checkout completes). On cart
+    upload, product rows without `startDate`/`endDate` get them (plus
+    `nights`) from the captured stay, and the analytics payload carries
+    `ei_stay`:
+    `{ checkin: "2026-12-27", checkout: "2027-01-03", adults?, children?, captured_at: ISO, url: "https://site/path" }`.
+-   **`device`**: `"desktop" | "mobile" | "tablet"` at the top level of the
+    analytics payload (client hints first, then a small user-agent check; the
+    raw user agent is never stored).
+-   **`enhanced_insights.session_count`**: page views grouped into sessions by
+    30-minute gaps, next to `visit_count` (which counts page views).
+-   **BookVisit `metadata`**: basket id, booking reference and guest country
+    from the basket API, like the SynXis and Elina scrapers already send.
 
 ## Features
 
