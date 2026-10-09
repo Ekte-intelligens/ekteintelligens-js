@@ -147,11 +147,59 @@ export declare class AbandonedCartTool {
      * reservation with the highest itineraryNumber (most recently created).
      *
      * The API's Total.Amount is the list price, which doesn't reflect promo
-     * discounts that the SBE applies client-side at reservation time. We override
-     * the root `total` with the DOM-visible price (post-discount) and also expose
-     * it per-product as `actualTotal` for reference.
+     * discounts that the SBE applies client-side at reservation time. The root
+     * `total` is picked in this order:
+     *   1. the reservation captured from the SBE's own createReservation
+     *      response (post-discount, see installSynxisReservationCapture)
+     *   2. selectSynxisTotal(): the API total, or the DOM-visible price when it
+     *      looks like a plausible promo on it
+     * The DOM price is also exposed per-product as `actualTotal` for reference.
+     *
+     * Possible future fallback: the SBE's Redux store holds the same figure at
+     * reservation.byId[<id>].Prices.Total.Total, but reaching it goes through
+     * React internals, so it is deliberately not read here.
      */
     private extractSynxisCartApiData;
+    /**
+     * Pick the root total from the cart API sum and the DOM-visible price.
+     *
+     * The API total is the list price and the default. The DOM price is
+     * post-discount but parsed from locale-formatted text, so it only wins
+     * when it looks like a plausible promo on the API total: above zero, no
+     * higher than the API total (a promo never raises the price) and not cut
+     * by half or more. Anything else is logged and ignored. With no API total
+     * we take the DOM price, then the campaign average.
+     */
+    private selectSynxisTotal;
+    /**
+     * Wrap window.fetch and XMLHttpRequest so the SBE's createReservation
+     * response can be read as it goes past. The fetch Response is cloned and
+     * the XHR body is read after loadend; the page's own handling is never
+     * touched and nothing in here may throw. Installed once per page and only
+     * useful when the script also runs on the room-selection page. With
+     * nothing captured, extractSynxisCartApiData() silently falls back.
+     */
+    private installSynxisReservationCapture;
+    private isSynxisCreateReservationUrl;
+    private readSynxisReservationResponse;
+    /**
+     * Pull { id, total, originalTotal, currency } out of a createReservation
+     * response and keep it in memory + sessionStorage. The reservation may sit
+     * at the root or inside a wrapper (e.g. Reservations[0]), so the node is
+     * searched for rather than addressed. The first response's shape is logged
+     * once so the real layout can be confirmed on a live checkout.
+     */
+    private captureSynxisReservationResponse;
+    /**
+     * Find the first object that looks like a reservation (has an Id and
+     * Prices.Total.Total), searching a few levels into wrappers and arrays.
+     */
+    private findSynxisReservationNode;
+    /**
+     * Captured reservation by id: memory first, then the sessionStorage copy
+     * written on the room-selection page.
+     */
+    private getCapturedSynxisReservation;
     /**
      * Read the cart total as rendered on the SynXis checkout page.
      * Accounts for promo/discount adjustments applied client-side that
@@ -159,10 +207,19 @@ export declare class AbandonedCartTool {
      */
     private getSynxisActualTotal;
     /**
-     * Parse a locale-formatted price string like "12 980,50 kr" or "12,980.50 kr".
-     * Handles both Norwegian (space/comma) and English (comma/dot) formats.
+     * Parse a locale-formatted price string like "12 980,50 kr", "NOK 3,310"
+     * or "12,980.50 kr". See parseLocalizedNumber for the separator rules.
      */
     private parseSynxisPrice;
+    /**
+     * Parse a locale-formatted number. Everything but digits, ".", "," and
+     * "-" is dropped first (currency codes, nbsp, narrow nbsp). With both "."
+     * and "," present the rightmost one is the decimal mark. With only one
+     * kind present it is a thousands separator when it occurs more than once
+     * or when exactly three digits follow it ("3,310" is 3310, not 3.31);
+     * otherwise it is the decimal mark ("980,5", "980.50").
+     */
+    private parseLocalizedNumber;
     /**
      * Get SynXis session identifiers from cookies and URL parameters
      */
@@ -202,9 +259,8 @@ export declare class AbandonedCartTool {
     private getElinapmsSessionIds;
     /**
      * Parse a number string from the Elina PMS DOM. Handles both European
-     * ("2 840,00" or "2&nbsp;840,00") and US ("2,840.00") formats by detecting
-     * which of `.` and `,` is the rightmost separator and treating that as the
-     * decimal mark.
+     * ("2 840,00" or "2&nbsp;840,00") and US ("2,840.00" and "2,840") formats,
+     * see parseLocalizedNumber for the separator rules. Unparseable input is 0.
      */
     private parseElinapmsNumber;
     /**

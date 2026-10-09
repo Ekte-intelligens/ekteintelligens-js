@@ -520,6 +520,44 @@ interface CartSessionPayload {
 
 If `CheckoutCampaign.type` is a union type, add `"synxis"`.
 
+## Cart total: how it is picked (2026-10-10)
+
+The cart API total is the list price, not the promo price the checkout shows, and the
+DOM price is locale-formatted text ("NOK 3,310" was once parsed as 3.31). The root
+`total` in `extractSynxisCartApiData()` is therefore chosen in this order:
+
+1. **Captured createReservation response.** When the visitor picks a room the SBE POSTs
+   to `/gw/itinerary/v1/createReservation`; the response is what the checkout price
+   summary renders from. `installSynxisReservationCapture()` wraps `window.fetch` and
+   `XMLHttpRequest` (synxis campaigns only, installed in `initialize()`), clones the
+   response and stores `{ id, total, originalTotal, currency }` in memory and in
+   sessionStorage (`ei_synxis_resv_<id>`) so it survives the SPA move to `/checkout`.
+   `total` = `Prices.Total.Total.AmountWithTaxesFees` (fallback `.Amount`),
+   `originalTotal` = `Prices.Total.Total.OriginalAmount`. The reservation node is
+   searched for (root or inside a wrapper such as `Reservations[0]`), and the first
+   response's top-level keys + node path are logged once as
+   `SynXis: createReservation response keys: …` so the real shape can be confirmed on a
+   live checkout. Used when every active reservation has a capture. Requires the script
+   to run on the room-selection page too; without a capture it degrades silently.
+2. **`selectSynxisTotal(apiTotal, domTotal)`.** The API sum of the active reservations
+   is the default. The DOM price (`.price-summary_price span`) only wins when it is > 0,
+   no higher than the API total and above half of it (a promo lowers the price, never
+   raises it, and not by half or more); otherwise both values are logged with
+   `console.warn` and the API total stands. Without an API total: DOM price, then the
+   campaign average.
+
+Per product, `price` stays the API list price; `actualTotal` (DOM), `discountedTotal`
+and `originalTotal` (captured) are kept for reference.
+
+`parseSynxisPrice()` and `parseElinapmsNumber()` share `parseLocalizedNumber()`: strip
+everything but digits, `.`, `,` and `-`; with both separators the rightmost is the
+decimal mark; with one kind it is a thousands separator when it appears more than once
+or exactly three digits follow it, otherwise the decimal mark. Cases are in
+`tests/synxis-cart.test.ts`.
+
+The SBE's Redux store also holds the figure at `reservation.byId[<id>].Prices.Total.Total`,
+but only through React internals, so it is left as a possible future fallback.
+
 ## Notes
 
 - The `getCookie()` method already exists in the class from the BookVisit implementation — reuse it.

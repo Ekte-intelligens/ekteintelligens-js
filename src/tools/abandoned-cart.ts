@@ -17,6 +17,27 @@ import {
 
 let hasInitializedAutofields = false;
 
+/**
+ * Post-discount reservation price read from the SBE's own
+ * /gw/itinerary/v1/createReservation response. Kept module-level (and in
+ * sessionStorage) so it survives the tool being re-created on the SPA move
+ * from room selection to /checkout.
+ */
+interface SynxisCapturedReservation {
+    id: string;
+    total: number;
+    originalTotal: number | null;
+    currency: string | null;
+    hasDiscount?: boolean;
+    promotionDiscount?: number | null;
+}
+
+const SYNXIS_CREATE_RESERVATION_PATH = "/gw/itinerary/v1/createReservation";
+const SYNXIS_RESV_STORAGE_PREFIX = "ei_synxis_resv_";
+const synxisCapturedReservations = new Map<string, SynxisCapturedReservation>();
+let hasInstalledSynxisCapture = false;
+let hasLoggedSynxisReservationShape = false;
+
 export class AbandonedCartTool {
     private options: SDKOptions;
     private supabaseService: SupabaseService;
@@ -81,6 +102,13 @@ export class AbandonedCartTool {
 
             // Store campaign for later use
             this.campaign = campaign;
+
+            // SynXis: read the post-discount price off the SBE's own
+            // createReservation call. The call fires when the visitor picks a
+            // room, so the wrappers go in before anything else here.
+            if (campaign.type === "synxis") {
+                this.installSynxisReservationCapture();
+            }
 
             // Initialize input detector with the campaign's input mapping
             this.inputDetector = new InputDetector(campaign.input_mapping);
@@ -1333,9 +1361,17 @@ export class AbandonedCartTool {
      * reservation with the highest itineraryNumber (most recently created).
      *
      * The API's Total.Amount is the list price, which doesn't reflect promo
-     * discounts that the SBE applies client-side at reservation time. We override
-     * the root `total` with the DOM-visible price (post-discount) and also expose
-     * it per-product as `actualTotal` for reference.
+     * discounts that the SBE applies client-side at reservation time. The root
+     * `total` is picked in this order:
+     *   1. the reservation captured from the SBE's own createReservation
+     *      response (post-discount, see installSynxisReservationCapture)
+     *   2. selectSynxisTotal(): the API total, or the DOM-visible price when it
+     *      looks like a plausible promo on it
+     * The DOM price is also exposed per-product as `actualTotal` for reference.
+     *
+     * Possible future fallback: the SBE's Redux store holds the same figure at
+     * reservation.byId[<id>].Prices.Total.Total, but reaching it goes through
+     * React internals, so it is deliberately not read here.
      */
     private extractSynxisCartApiData(data: any): {
         products: any[];
@@ -1343,6 +1379,7 @@ export class AbandonedCartTool {
     } {
         const products: any[] = [];
         let total = 0;
+        const activeIds: string[] = [];
 
         const actualTotal = this.getSynxisActualTotal();
         const sessionIds = (this as any)._synxisSessionIds as
@@ -1392,6 +1429,10 @@ export class AbandonedCartTool {
                 const stay = resv.stayCriteria || {};
                 const guests = resv.guestCriteria || {};
                 const prices = extras.prices || {};
+                const captured = this.getCapturedSynxisReservation(resv.id);
+                if (resv.id) {
+                    activeIds.push(String(resv.id));
+                }
 
                 const totalPrice =
                     prices?.Total?.Price?.Total?.AmountWithTaxesFees ||
@@ -1418,6 +1459,8 @@ export class AbandonedCartTool {
                     rateCode: stay.rateCode,
                     price: totalPrice,
                     actualTotal: actualTotal,
+                    discountedTotal: captured?.total ?? null,
+                    originalTotal: captured?.originalTotal ?? null,
                     dailyRate: extras.amount || extras.amountWithTaxesFees,
                     currency: extras.currencyCode,
                     dailyPrices: dailyPrices,
@@ -1456,13 +1499,328 @@ export class AbandonedCartTool {
             console.error("SynXis: Error extracting cart API data:", error);
         }
 
-        if (actualTotal !== null && actualTotal > 0) {
-            total = actualTotal;
-        } else if (total === 0) {
-            total = this.totalAverage || 0;
+        // A captured createReservation response is the price the checkout
+        // summary renders from, so it wins when we have one for every active
+        // reservation. Otherwise weigh the API total against the DOM price.
+        const capturedTotals = activeIds.map(
+            (id) => this.getCapturedSynxisReservation(id)?.total ?? null,
+        );
+        if (
+            capturedTotals.length > 0 &&
+            capturedTotals.every((t) => t !== null && t > 0)
+        ) {
+            total = capturedTotals.reduce<number>(
+                (sum, t) => sum + (t as number),
+                0,
+            );
+        } else {
+            total = this.selectSynxisTotal(total, actualTotal);
         }
 
         return { products, total };
+    }
+
+    /**
+     * Pick the root total from the cart API sum and the DOM-visible price.
+     *
+     * The API total is the list price and the default. The DOM price is
+     * post-discount but parsed from locale-formatted text, so it only wins
+     * when it looks like a plausible promo on the API total: above zero, no
+     * higher than the API total (a promo never raises the price) and not cut
+     * by half or more. Anything else is logged and ignored. With no API total
+     * we take the DOM price, then the campaign average.
+     */
+    private selectSynxisTotal(
+        apiTotal: number,
+        domTotal: number | null,
+    ): number {
+        const dom = domTotal !== null && domTotal > 0 ? domTotal : null;
+
+        if (apiTotal > 0) {
+            if (dom !== null) {
+                if (dom <= apiTotal && dom > apiTotal * 0.5) {
+                    return dom;
+                }
+                console.warn(
+                    `SynXis: Ignoring DOM total ${dom}, API total is ${apiTotal}`,
+                );
+            }
+            return apiTotal;
+        }
+
+        if (dom !== null) {
+            return dom;
+        }
+        return this.totalAverage || 0;
+    }
+
+    /**
+     * Wrap window.fetch and XMLHttpRequest so the SBE's createReservation
+     * response can be read as it goes past. The fetch Response is cloned and
+     * the XHR body is read after loadend; the page's own handling is never
+     * touched and nothing in here may throw. Installed once per page and only
+     * useful when the script also runs on the room-selection page. With
+     * nothing captured, extractSynxisCartApiData() silently falls back.
+     */
+    private installSynxisReservationCapture(): void {
+        if (hasInstalledSynxisCapture || typeof window === "undefined") {
+            return;
+        }
+        hasInstalledSynxisCapture = true;
+
+        try {
+            if (typeof window.fetch === "function") {
+                const originalFetch = window.fetch;
+                window.fetch = (
+                    input: RequestInfo | URL,
+                    init?: RequestInit,
+                ) => {
+                    const promise = originalFetch.call(window, input, init);
+                    try {
+                        const url =
+                            typeof input === "string"
+                                ? input
+                                : input instanceof URL
+                                  ? input.href
+                                  : (input as Request)?.url;
+                        if (this.isSynxisCreateReservationUrl(url)) {
+                            promise.then(
+                                (resp) =>
+                                    this.readSynxisReservationResponse(resp),
+                                () => {
+                                    // The page handles its own failures
+                                },
+                            );
+                        }
+                    } catch {
+                        // Capture must never affect the page's request
+                    }
+                    return promise;
+                };
+            }
+        } catch (error) {
+            console.warn("SynXis: Could not wrap fetch:", error);
+        }
+
+        try {
+            const xhrProto =
+                typeof XMLHttpRequest !== "undefined"
+                    ? XMLHttpRequest.prototype
+                    : null;
+            if (xhrProto) {
+                const originalOpen = xhrProto.open;
+                const originalSend = xhrProto.send;
+                const tool = this;
+                xhrProto.open = function (
+                    this: XMLHttpRequest,
+                    ...args: any[]
+                ) {
+                    try {
+                        (this as any).__eiSynxisUrl = String(args[1] ?? "");
+                    } catch {
+                        // Ignore, the request just won't be inspected
+                    }
+                    return (originalOpen as any).apply(this, args);
+                };
+                xhrProto.send = function (
+                    this: XMLHttpRequest,
+                    ...args: any[]
+                ) {
+                    try {
+                        if (
+                            tool.isSynxisCreateReservationUrl(
+                                (this as any).__eiSynxisUrl,
+                            )
+                        ) {
+                            this.addEventListener("loadend", () => {
+                                try {
+                                    const body =
+                                        this.responseType === "" ||
+                                        this.responseType === "text"
+                                            ? JSON.parse(this.responseText)
+                                            : this.response;
+                                    tool.captureSynxisReservationResponse(body);
+                                } catch {
+                                    // Not JSON or not readable; nothing to keep
+                                }
+                            });
+                        }
+                    } catch {
+                        // Capture must never affect the page's request
+                    }
+                    return (originalSend as any).apply(this, args);
+                };
+            }
+        } catch (error) {
+            console.warn("SynXis: Could not wrap XMLHttpRequest:", error);
+        }
+    }
+
+    private isSynxisCreateReservationUrl(url: unknown): boolean {
+        return (
+            typeof url === "string" &&
+            url.toLowerCase().includes(
+                SYNXIS_CREATE_RESERVATION_PATH.toLowerCase(),
+            )
+        );
+    }
+
+    private readSynxisReservationResponse(resp: Response): void {
+        try {
+            if (!resp || !resp.ok) {
+                return;
+            }
+            resp.clone()
+                .json()
+                .then(
+                    (data) => this.captureSynxisReservationResponse(data),
+                    () => {
+                        // Not JSON; nothing to keep
+                    },
+                );
+        } catch {
+            // Never surface capture problems to the page
+        }
+    }
+
+    /**
+     * Pull { id, total, originalTotal, currency } out of a createReservation
+     * response and keep it in memory + sessionStorage. The reservation may sit
+     * at the root or inside a wrapper (e.g. Reservations[0]), so the node is
+     * searched for rather than addressed. The first response's shape is logged
+     * once so the real layout can be confirmed on a live checkout.
+     */
+    private captureSynxisReservationResponse(
+        data: any,
+    ): SynxisCapturedReservation | null {
+        try {
+            const found = this.findSynxisReservationNode(data);
+            if (!hasLoggedSynxisReservationShape) {
+                hasLoggedSynxisReservationShape = true;
+                console.log(
+                    "SynXis: createReservation response keys:",
+                    data && typeof data === "object"
+                        ? Object.keys(data)
+                        : typeof data,
+                    "reservation at:",
+                    found ? found.path || "<root>" : "<not found>",
+                );
+            }
+            if (!found) {
+                return null;
+            }
+
+            const node = found.node;
+            const totals =
+                node.Prices?.Total?.Total ?? node.prices?.Total?.Total ?? {};
+            const id = node.Id ?? node.id;
+            const total = Number(totals.AmountWithTaxesFees ?? totals.Amount);
+            if (!id || !Number.isFinite(total) || total <= 0) {
+                return null;
+            }
+
+            const original = Number(totals.OriginalAmount);
+            const captured: SynxisCapturedReservation = {
+                id: String(id),
+                total,
+                originalTotal:
+                    totals.OriginalAmount != null && Number.isFinite(original)
+                        ? original
+                        : null,
+                currency:
+                    node.CurrencyCode ??
+                    node.currencyCode ??
+                    node.Prices?.Total?.CurrencyCode ??
+                    totals.CurrencyCode ??
+                    null,
+                hasDiscount: node.hasDiscount ?? node.HasDiscount,
+                promotionDiscount:
+                    node.promotionDiscount ?? node.PromotionDiscount ?? null,
+            };
+
+            synxisCapturedReservations.set(captured.id, captured);
+            this.saveToSessionStorage(
+                SYNXIS_RESV_STORAGE_PREFIX + captured.id,
+                JSON.stringify(captured),
+            );
+            return captured;
+        } catch (error) {
+            console.warn(
+                "SynXis: Could not read createReservation response:",
+                error,
+            );
+            return null;
+        }
+    }
+
+    /**
+     * Find the first object that looks like a reservation (has an Id and
+     * Prices.Total.Total), searching a few levels into wrappers and arrays.
+     */
+    private findSynxisReservationNode(
+        data: any,
+        path = "",
+        depth = 0,
+    ): { node: any; path: string } | null {
+        if (!data || typeof data !== "object" || depth > 4) {
+            return null;
+        }
+
+        const totals = data.Prices?.Total?.Total ?? data.prices?.Total?.Total;
+        if (totals && typeof totals === "object" && (data.Id ?? data.id)) {
+            return { node: data, path };
+        }
+
+        const entries: Array<[string, any]> = Array.isArray(data)
+            ? data.map((value, index) => [String(index), value])
+            : Object.entries(data);
+        for (const [key, value] of entries) {
+            if (!value || typeof value !== "object") {
+                continue;
+            }
+            const hit = this.findSynxisReservationNode(
+                value,
+                path ? `${path}.${key}` : key,
+                depth + 1,
+            );
+            if (hit) {
+                return hit;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Captured reservation by id: memory first, then the sessionStorage copy
+     * written on the room-selection page.
+     */
+    private getCapturedSynxisReservation(
+        id: string | null | undefined,
+    ): SynxisCapturedReservation | null {
+        if (!id) {
+            return null;
+        }
+        const key = String(id);
+
+        const inMemory = synxisCapturedReservations.get(key);
+        if (inMemory) {
+            return inMemory;
+        }
+
+        const raw = this.getFromSessionStorage(SYNXIS_RESV_STORAGE_PREFIX + key);
+        if (!raw) {
+            return null;
+        }
+        try {
+            const parsed = JSON.parse(raw);
+            if (parsed && typeof parsed.total === "number") {
+                synxisCapturedReservations.set(key, parsed);
+                return parsed;
+            }
+        } catch {
+            // Corrupt entry; ignore it
+        }
+        return null;
     }
 
     /**
@@ -1484,11 +1842,28 @@ export class AbandonedCartTool {
     }
 
     /**
-     * Parse a locale-formatted price string like "12 980,50 kr" or "12,980.50 kr".
-     * Handles both Norwegian (space/comma) and English (comma/dot) formats.
+     * Parse a locale-formatted price string like "12 980,50 kr", "NOK 3,310"
+     * or "12,980.50 kr". See parseLocalizedNumber for the separator rules.
      */
     private parseSynxisPrice(text: string): number | null {
-        const cleaned = text.replace(/[^\d,\.-]/g, "");
+        return this.parseLocalizedNumber(text);
+    }
+
+    /**
+     * Parse a locale-formatted number. Everything but digits, ".", "," and
+     * "-" is dropped first (currency codes, nbsp, narrow nbsp). With both "."
+     * and "," present the rightmost one is the decimal mark. With only one
+     * kind present it is a thousands separator when it occurs more than once
+     * or when exactly three digits follow it ("3,310" is 3310, not 3.31);
+     * otherwise it is the decimal mark ("980,5", "980.50").
+     */
+    private parseLocalizedNumber(
+        text: string | null | undefined,
+    ): number | null {
+        if (text === null || text === undefined) {
+            return null;
+        }
+        const cleaned = String(text).replace(/[^\d,.-]/g, "");
         if (!cleaned) {
             return null;
         }
@@ -1497,12 +1872,22 @@ export class AbandonedCartTool {
         const lastComma = cleaned.lastIndexOf(",");
 
         let normalized: string;
-        if (lastDot === -1 && lastComma === -1) {
+        if (lastDot !== -1 && lastComma !== -1) {
+            normalized =
+                lastDot > lastComma
+                    ? cleaned.replace(/,/g, "")
+                    : cleaned.replace(/\./g, "").replace(",", ".");
+        } else if (lastDot === -1 && lastComma === -1) {
             normalized = cleaned;
-        } else if (lastDot > lastComma) {
-            normalized = cleaned.replace(/,/g, "");
         } else {
-            normalized = cleaned.replace(/\./g, "").replace(",", ".");
+            const sep = lastDot !== -1 ? "." : ",";
+            const last = Math.max(lastDot, lastComma);
+            const count = cleaned.split(sep).length - 1;
+            const digitsAfter = cleaned.length - last - 1;
+            const isThousands = count > 1 || digitsAfter === 3;
+            normalized = isThousands
+                ? cleaned.split(sep).join("")
+                : cleaned.replace(sep, ".");
         }
 
         const result = parseFloat(normalized);
@@ -1813,27 +2198,11 @@ export class AbandonedCartTool {
 
     /**
      * Parse a number string from the Elina PMS DOM. Handles both European
-     * ("2 840,00" or "2&nbsp;840,00") and US ("2,840.00") formats by detecting
-     * which of `.` and `,` is the rightmost separator and treating that as the
-     * decimal mark.
+     * ("2 840,00" or "2&nbsp;840,00") and US ("2,840.00" and "2,840") formats,
+     * see parseLocalizedNumber for the separator rules. Unparseable input is 0.
      */
     private parseElinapmsNumber(input: string | null | undefined): number {
-        if (input === null || input === undefined) return 0;
-        let s = String(input).replace(/[\s ]/g, "");
-        if (!s) return 0;
-
-        const lastComma = s.lastIndexOf(",");
-        const lastDot = s.lastIndexOf(".");
-        if (lastComma > lastDot) {
-            s = s.replace(/\./g, "").replace(",", ".");
-        } else if (lastDot > lastComma) {
-            s = s.replace(/,/g, "");
-        } else if (lastComma >= 0) {
-            s = s.replace(",", ".");
-        }
-
-        const n = parseFloat(s);
-        return isNaN(n) ? 0 : n;
+        return this.parseLocalizedNumber(input) ?? 0;
     }
 
     /**
