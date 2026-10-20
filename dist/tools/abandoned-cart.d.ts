@@ -21,7 +21,6 @@ export declare class AbandonedCartTool {
     private autofieldObserver?;
     private hasTrackedAutofieldsShown;
     private hasTrackedAutofieldsHidden;
-    private autofieldLogState?;
     constructor(options: SDKOptions);
     initialize(): Promise<boolean>;
     /**
@@ -97,11 +96,6 @@ export declare class AbandonedCartTool {
      * its own version of it, and take it off when BookVisit does
      */
     private syncAutofields;
-    /**
-     * Console log for the autofields, only when the state differs from the
-     * last one logged
-     */
-    private logAutofieldState;
     /**
      * Push a GA4 custom event for our autofields to the dataLayer. When
      * shown, ei_autofields lists the autofields on the page.
