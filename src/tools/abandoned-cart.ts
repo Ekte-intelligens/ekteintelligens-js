@@ -17,6 +17,9 @@ import {
 
 let hasInitializedAutofields = false;
 
+/** BookVisit's "Ansvarlig for bestilling" (booker) section on checkout */
+const BOOKER_SECTION = '[data-testid="checkout_responsible_for_booking_section"]';
+
 /**
  * Post-discount reservation price read from the SBE's own
  * /gw/itinerary/v1/createReservation response. Kept module-level (and in
@@ -62,6 +65,10 @@ export class AbandonedCartTool {
     private autofieldSection?: HTMLElement;
     private autofieldWrappers: HTMLElement[] = [];
     private autofieldObserver?: MutationObserver;
+    // GA4 dataLayer events go out at most once per page load, so the
+    // section flickering in and out does not inflate the counts
+    private hasTrackedAutofieldsShown = false;
+    private hasTrackedAutofieldsHidden = false;
 
     constructor(options: SDKOptions) {
         this.options = options;
@@ -142,15 +149,23 @@ export class AbandonedCartTool {
             }
 
             // Inject autofields for bookvisit campaigns if enabled
-            // This must happen before startListening() so autofields are in the DOM
+            // This must happen before startListening() so autofields are in the DOM.
+            // Not limited to loading on /checkout: BookVisit is an SPA, so
+            // visitors usually reach checkout without a page load. The
+            // autofields only show up while on checkout.
             if (
                 campaign.type === "bookvisit" &&
                 campaign.config?.bookvisit?.autofields === true &&
-                window.location.pathname === "/checkout" &&
                 !hasInitializedAutofields
             ) {
                 hasInitializedAutofields = true;
-                this.injectBookVisitAutofields(campaign.input_mapping);
+                // Runs on every page now, so a failure here must not stop
+                // cart tracking from starting below
+                try {
+                    this.injectBookVisitAutofields(campaign.input_mapping);
+                } catch (error) {
+                    console.error("Failed to inject BookVisit autofields:", error);
+                }
             }
 
             // Check if we're on the payment page and fill in fields from sessionStorage
@@ -448,6 +463,13 @@ export class AbandonedCartTool {
 
         // Stop syncing autofields so they are not re-added or re-attached
         this.stopSyncingAutofields();
+        if (this.autofieldSection) {
+            // Take our fields off the page and let a new instance (e.g. after
+            // the SDK is re-created) inject its own without duplicates
+            this.autofieldSection.remove();
+            this.autofieldSection = undefined;
+            hasInitializedAutofields = false;
+        }
 
         // Disconnect iframe observer if it exists
         if ((this as any)._iframeObserver) {
@@ -913,10 +935,12 @@ export class AbandonedCartTool {
             return;
         }
 
-        // Only relevant on checkout. Leaving it (SPA navigation) ends syncing.
-        if (window.location.pathname !== "/checkout") {
-            this.stopSyncingAutofields();
-            section.remove();
+        // Only relevant on checkout. Keep watching when off it, since SPA
+        // navigation can bring the visitor (back) to checkout at any time.
+        if (!this.isBookVisitCheckoutPage()) {
+            if (section.parentElement) {
+                section.remove();
+            }
             return;
         }
 
@@ -955,9 +979,18 @@ export class AbandonedCartTool {
             // Insert at the top of the container
             container.insertAdjacentElement("afterbegin", section);
             changed = true;
+            if (!this.hasTrackedAutofieldsShown) {
+                this.hasTrackedAutofieldsShown = true;
+                this.pushAutofieldsEvent("ei_autofields_shown");
+            }
         } else if (!previous && section.parentElement) {
             section.remove();
             changed = true;
+            // BookVisit now renders all the fields itself
+            if (!this.hasTrackedAutofieldsHidden) {
+                this.hasTrackedAutofieldsHidden = true;
+                this.pushAutofieldsEvent("ei_autofields_hidden");
+            }
         }
 
         if (changed) {
@@ -968,14 +1001,47 @@ export class AbandonedCartTool {
     }
 
     /**
+     * Push a GA4 custom event for our autofields to the dataLayer. When
+     * shown, ei_autofields lists the autofields on the page.
+     */
+    private pushAutofieldsEvent(
+        event: "ei_autofields_shown" | "ei_autofields_hidden",
+    ): void {
+        try {
+            const fields = this.autofieldWrappers
+                .filter((wrapper) => wrapper.isConnected)
+                .map((wrapper) => wrapper.dataset.eiAutofield)
+                .join(",");
+            const w = window as any;
+            w.dataLayer = w.dataLayer || [];
+            w.dataLayer.push({
+                event,
+                ...(fields ? { ei_autofields: fields } : {}),
+            });
+        } catch (error) {
+            console.warn("Failed to push autofields event to dataLayer:", error);
+        }
+    }
+
+    /**
+     * Check whether the current page is BookVisit's checkout page
+     */
+    private isBookVisitCheckoutPage(): boolean {
+        // Also matches a prefixed path, e.g. a language: /en/checkout
+        return /\/checkout\/?$/.test(window.location.pathname);
+    }
+
+    /**
      * Selectors that identify each autofield, whether rendered by BookVisit
-     * itself or injected by us.
+     * itself or injected by us. Inputs matched by name only count inside the
+     * booker section: the checkout can also have guest inputs with the same
+     * names, and those must not stop us from showing the booker fields.
      */
     private static readonly AUTOFIELD_SELECTORS: Record<string, string> = {
-        firstName: '#customer-firstName, input[name="firstName"]',
-        lastName: '#customer-lastName, input[name="lastName"]',
-        email: '#customer-emailAddress, input[name="emailAddress"]',
-        phoneNumber: '#customer-phoneNumber, input[name="phoneNumber"]',
+        firstName: `#customer-firstName, ${BOOKER_SECTION} input[name="firstName"]`,
+        lastName: `#customer-lastName, ${BOOKER_SECTION} input[name="lastName"]`,
+        email: `#customer-emailAddress, ${BOOKER_SECTION} input[name="emailAddress"]`,
+        phoneNumber: `#customer-phoneNumber, ${BOOKER_SECTION} input[name="phoneNumber"]`,
     };
 
     /**
@@ -2948,6 +3014,8 @@ export class AbandonedCartTool {
             if (currentUrl !== lastUrl) {
                 lastUrl = currentUrl;
                 this.checkAndFillPaymentPageFields();
+                // In case the navigation did not change the DOM (yet)
+                this.syncAutofields();
             }
         }, 500);
 

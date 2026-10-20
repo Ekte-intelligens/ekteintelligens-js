@@ -48,9 +48,13 @@ describe("BookVisit autofields injection", () => {
         expect(document.querySelectorAll("#customer-phoneNumber")).toHaveLength(1);
     };
 
+    const events = (name: string) =>
+        ((window as any).dataLayer as any[]).filter((e) => e.event === name);
+
     beforeEach(() => {
         window.history.replaceState({}, "", "/checkout");
         sessionStorage.clear();
+        (window as any).dataLayer = [];
     });
 
     afterEach(() => {
@@ -81,8 +85,10 @@ describe("BookVisit autofields injection", () => {
     it("injects only the fields that are missing", () => {
         document.body.innerHTML = `
             <div id="main_content_container">
-                <input name="emailAddress">
-                <input name="phoneNumber">
+                <div data-testid="checkout_responsible_for_booking_section">
+                    <input name="emailAddress">
+                    <input name="phoneNumber">
+                </div>
             </div>`;
 
         inject();
@@ -91,6 +97,23 @@ describe("BookVisit autofields injection", () => {
         expect(document.querySelectorAll('input[name="phoneNumber"]')).toHaveLength(1);
         expect(document.querySelectorAll("#customer-firstName")).toHaveLength(1);
         expect(document.querySelectorAll("#customer-lastName")).toHaveLength(1);
+    });
+
+    it("is not hidden by guest inputs with the same names", () => {
+        document.body.innerHTML = `
+            <div id="main_content_container">
+                <div data-testid="guest_info_section">
+                    <input name="firstName">
+                    <input name="lastName">
+                    <input name="emailAddress">
+                    <input name="phoneNumber">
+                </div>
+            </div>`;
+
+        inject();
+
+        expect(ours()).toHaveLength(1);
+        expectEachFieldOnce();
     });
 
     it("adds our fields whenever BookVisit removes its own, however late", async () => {
@@ -183,7 +206,7 @@ describe("BookVisit autofields injection", () => {
         expect(ours()).toHaveLength(0);
     });
 
-    it("stops syncing and removes our fields when leaving checkout", async () => {
+    it("removes our fields when leaving checkout and adds them back on return", async () => {
         document.body.innerHTML = `<div id="main_content_container"></div>`;
 
         inject();
@@ -192,9 +215,29 @@ describe("BookVisit autofields injection", () => {
         window.history.pushState({}, "", "/payment");
         document.body.appendChild(document.createElement("div"));
         await flushObservers();
-
         expect(ours()).toHaveLength(0);
-        expect((tool as any).autofieldObserver).toBeUndefined();
+
+        window.history.pushState({}, "", "/checkout");
+        document.body.appendChild(document.createElement("div"));
+        await flushObservers();
+        expect(ours()).toHaveLength(1);
+        expectEachFieldOnce();
+    });
+
+    it("injects when the visitor navigates to checkout from another page", async () => {
+        window.history.replaceState({}, "", "/rooms");
+        document.body.innerHTML = `<div id="main_content_container"></div>`;
+
+        inject();
+        expect(ours()).toHaveLength(0);
+
+        // SPA navigation to checkout, then BookVisit renders the new page
+        window.history.pushState({}, "", "/checkout/");
+        document.getElementById("main_content_container")!.innerHTML = "<div></div>";
+        await flushObservers();
+
+        expect(ours()).toHaveLength(1);
+        expectEachFieldOnce();
     });
 
     it("does not let a later input with the same name overwrite the saved value", () => {
@@ -213,6 +256,106 @@ describe("BookVisit autofields injection", () => {
         guestPhone.dispatchEvent(new Event("input"));
 
         expect(sessionStorage.getItem("autofield_phoneNumber")).toBe("12345678");
+    });
+
+    it("pushes a shown event with the fields on the page", () => {
+        document.body.innerHTML = `
+            <div id="main_content_container">
+                <div data-testid="checkout_responsible_for_booking_section">
+                    <input name="emailAddress">
+                </div>
+            </div>`;
+
+        inject();
+
+        expect(events("ei_autofields_shown")).toEqual([
+            { event: "ei_autofields_shown", ei_autofields: "firstName,lastName,phoneNumber" },
+        ]);
+        expect(events("ei_autofields_hidden")).toHaveLength(0);
+    });
+
+    it("pushes no events while BookVisit renders the fields itself", () => {
+        document.body.innerHTML = `<div id="main_content_container">${NATIVE_FIELDS}</div>`;
+
+        inject();
+
+        expect((window as any).dataLayer).toHaveLength(0);
+    });
+
+    it("pushes shown and hidden only once when the section flickers", async () => {
+        document.body.innerHTML = `<div id="main_content_container"></div>`;
+        const container = document.getElementById("main_content_container")!;
+
+        inject();
+        for (let i = 0; i < 3; i++) {
+            container.insertAdjacentHTML("beforeend", NATIVE_FIELDS);
+            await flushObservers();
+            expect(ours()).toHaveLength(0);
+            document.querySelector(NATIVE_SECTION)!.remove();
+            await flushObservers();
+            expect(ours()).toHaveLength(1);
+        }
+
+        // Re-rendered container and leaving and returning to checkout
+        document.body.innerHTML = `<div id="main_content_container"></div>`;
+        await flushObservers();
+        window.history.pushState({}, "", "/payment");
+        document.body.appendChild(document.createElement("div"));
+        await flushObservers();
+        window.history.pushState({}, "", "/checkout");
+        document.body.appendChild(document.createElement("div"));
+        await flushObservers();
+        expect(ours()).toHaveLength(1);
+
+        expect(events("ei_autofields_shown")).toHaveLength(1);
+        expect(events("ei_autofields_hidden")).toEqual([{ event: "ei_autofields_hidden" }]);
+    });
+
+    describe("through initialize()", () => {
+        const { SupabaseService } = jest.requireMock("../src/services/supabase-service");
+
+        const initialize = async () => {
+            SupabaseService.mockImplementationOnce(() => ({
+                getCheckoutCampaign: jest.fn().mockResolvedValue({
+                    id: "test-campaign-id",
+                    type: "bookvisit",
+                    config: { bookvisit: { autofields: true } },
+                    input_mapping: null,
+                }),
+                submitCartSession: jest.fn().mockResolvedValue({ success: true }),
+            }));
+            tool = new AbandonedCartTool(options);
+            expect(await tool.initialize()).toBe(true);
+        };
+
+        it("injects when initialized on another page and navigating to checkout", async () => {
+            window.history.replaceState({}, "", "/rooms");
+            document.body.innerHTML = `<div id="main_content_container"></div>`;
+
+            await initialize();
+            expect(ours()).toHaveLength(0);
+
+            window.history.pushState({}, "", "/checkout");
+            document.body.appendChild(document.createElement("div"));
+            await flushObservers();
+
+            expect(ours()).toHaveLength(1);
+            expectEachFieldOnce();
+        });
+
+        it("injects again, once, after the tool is destroyed and re-created", async () => {
+            document.body.innerHTML = `<div id="main_content_container"></div>`;
+
+            await initialize();
+            expect(ours()).toHaveLength(1);
+
+            tool.destroy();
+            expect(ours()).toHaveLength(0);
+
+            await initialize();
+            expect(ours()).toHaveLength(1);
+            expectEachFieldOnce();
+        });
     });
 
     it("settles without looping after our own changes", async () => {
