@@ -69,6 +69,9 @@ export class AbandonedCartTool {
     // section flickering in and out does not inflate the counts
     private hasTrackedAutofieldsShown = false;
     private hasTrackedAutofieldsHidden = false;
+    // Last state written to the console, so syncAutofields (which runs on
+    // every DOM change) only logs when something actually changes
+    private autofieldLogState?: string;
 
     constructor(options: SDKOptions) {
         this.options = options;
@@ -109,6 +112,11 @@ export class AbandonedCartTool {
 
             // Store campaign for later use
             this.campaign = campaign;
+            console.log("EI: checkout campaign loaded", {
+                type: campaign.type,
+                autofields: campaign.config?.bookvisit?.autofields === true,
+                path: window.location.pathname,
+            });
 
             // SynXis: read the post-discount price off the SBE's own
             // createReservation call. The call fires when the visitor picks a
@@ -166,6 +174,13 @@ export class AbandonedCartTool {
                 } catch (error) {
                     console.error("Failed to inject BookVisit autofields:", error);
                 }
+            } else if (campaign.type === "bookvisit") {
+                console.log(
+                    "EI autofields: not injecting:",
+                    hasInitializedAutofields
+                        ? "already injected by another SDK instance on this page"
+                        : "config.bookvisit.autofields is not true on the campaign",
+                );
             }
 
             // Check if we're on the payment page and fill in fields from sessionStorage
@@ -469,6 +484,7 @@ export class AbandonedCartTool {
             this.autofieldSection.remove();
             this.autofieldSection = undefined;
             hasInitializedAutofields = false;
+            console.log("EI autofields: stopped (tool destroyed)");
         }
 
         // Disconnect iframe observer if it exists
@@ -904,6 +920,11 @@ export class AbandonedCartTool {
             ),
         );
 
+        console.log("EI autofields: ready, watching the page for checkout", {
+            fields: fieldsToInclude,
+            path: window.location.pathname,
+        });
+
         if (typeof MutationObserver !== "undefined") {
             this.autofieldObserver = new MutationObserver(() =>
                 this.syncAutofields(),
@@ -912,6 +933,10 @@ export class AbandonedCartTool {
                 childList: true,
                 subtree: true,
             });
+        } else {
+            console.warn(
+                "EI autofields: MutationObserver unavailable, cannot follow page changes",
+            );
         }
 
         this.syncAutofields();
@@ -941,12 +966,19 @@ export class AbandonedCartTool {
             if (section.parentElement) {
                 section.remove();
             }
+            this.logAutofieldState("off checkout, section not on page", {
+                path: window.location.pathname,
+            });
             return;
         }
 
         // Not rendered yet (or being re-rendered), try again on the next change
         const container = document.getElementById("main_content_container");
         if (!container) {
+            this.logAutofieldState(
+                "on checkout, waiting for #main_content_container",
+                { path: window.location.pathname },
+            );
             return;
         }
 
@@ -993,10 +1025,41 @@ export class AbandonedCartTool {
             }
         }
 
+        if (previous) {
+            const shown = this.autofieldWrappers
+                .filter((wrapper) => wrapper.parentElement === grid)
+                .map((wrapper) => wrapper.dataset.eiAutofield)
+                .join(",");
+            this.logAutofieldState(`shown: ${shown}`);
+        } else {
+            this.logAutofieldState(
+                "hidden: BookVisit renders all the fields itself",
+            );
+        }
+
         if (changed) {
             // The inputs on the page changed, so attach listeners to the
             // current ones (both for InputDetector and sessionStorage)
             this.setupAutofieldListenersWithRetry();
+        }
+    }
+
+    /**
+     * Console log for the autofields, only when the state differs from the
+     * last one logged
+     */
+    private logAutofieldState(
+        state: string,
+        detail?: Record<string, unknown>,
+    ): void {
+        if (state === this.autofieldLogState) {
+            return;
+        }
+        this.autofieldLogState = state;
+        if (detail) {
+            console.log(`EI autofields: ${state}`, detail);
+        } else {
+            console.log(`EI autofields: ${state}`);
         }
     }
 

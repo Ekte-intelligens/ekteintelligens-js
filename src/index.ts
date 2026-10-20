@@ -1,4 +1,5 @@
 import { EkteIntelligensSDK } from "./sdk";
+import { version as SDK_VERSION } from "../package.json";
 
 export { EkteIntelligensSDK } from "./sdk";
 export type {
@@ -23,4 +24,8 @@ declare global {
 // Make SDK available globally when loaded as a script
 if (typeof window !== "undefined") {
     window.EkteIntelligensSDK = EkteIntelligensSDK;
+    // Lets us see in the console which build a visitor actually got
+    console.log(`EI SDK ${SDK_VERSION} loaded`, {
+        path: window.location.pathname,
+    });
 }

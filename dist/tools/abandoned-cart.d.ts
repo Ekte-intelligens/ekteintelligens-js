@@ -19,6 +19,9 @@ export declare class AbandonedCartTool {
     private autofieldSection?;
     private autofieldWrappers;
     private autofieldObserver?;
+    private hasTrackedAutofieldsShown;
+    private hasTrackedAutofieldsHidden;
+    private autofieldLogState?;
     constructor(options: SDKOptions);
     initialize(): Promise<boolean>;
     /**
@@ -95,8 +98,24 @@ export declare class AbandonedCartTool {
      */
     private syncAutofields;
     /**
+     * Console log for the autofields, only when the state differs from the
+     * last one logged
+     */
+    private logAutofieldState;
+    /**
+     * Push a GA4 custom event for our autofields to the dataLayer. When
+     * shown, ei_autofields lists the autofields on the page.
+     */
+    private pushAutofieldsEvent;
+    /**
+     * Check whether the current page is BookVisit's checkout page
+     */
+    private isBookVisitCheckoutPage;
+    /**
      * Selectors that identify each autofield, whether rendered by BookVisit
-     * itself or injected by us.
+     * itself or injected by us. Inputs matched by name only count inside the
+     * booker section: the checkout can also have guest inputs with the same
+     * names, and those must not stop us from showing the booker fields.
      */
     private static readonly AUTOFIELD_SELECTORS;
     /**

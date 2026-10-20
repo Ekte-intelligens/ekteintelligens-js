@@ -114,7 +114,7 @@ export class EkteIntelligensSDK {
             // console.log("EkteIntelligens SDK initialized successfully");
             return true;
         } catch (error) {
-            // console.error("Failed to initialize EkteIntelligens SDK:", error);
+            console.error("Failed to initialize EkteIntelligens SDK:", error);
             return false;
         }
     }
