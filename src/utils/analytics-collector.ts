@@ -693,6 +693,43 @@ export function setAnalyticsConsent(granted: boolean): void {
 
 type Touch = Record<string, unknown>;
 
+/**
+ * The `?s=` tracked-link code of the page the visitor came from, when that
+ * page is on this site. With `requireConsent` the landing page's touch is
+ * only stored once the CMP has answered; a visitor who moves on first leaves
+ * nothing stored, and the next page would seed a first touch without the
+ * code (main repo lead 41506, 2026-09-26). The referrer still carries it, so
+ * it is handed on. The page's own URL parameters win when present. MUST stay
+ * in sync with trackedLinkFromReferrer in the main repo's
+ * frontends/booking/src/boot/analytics.ts.
+ */
+const SHORT_LINK_CODE = /^[A-Za-z0-9]{4,8}$/;
+// Registrable domain, roughly: the last two labels, or three when the second
+// level is a short public suffix like co.uk / com.au, so two unrelated .co.uk
+// sites never count as the same site.
+function siteKey(hostname: string): string {
+    const parts = hostname.toLowerCase().split(".");
+    const second = parts[parts.length - 2] ?? "";
+    const top = parts[parts.length - 1] ?? "";
+    const keep =
+        parts.length >= 3 && second.length <= 3 && top.length === 2 ? 3 : 2;
+    return parts.slice(-keep).join(".");
+}
+export function trackedLinkFromReferrer(
+    referrer: string = typeof document === "undefined" ? "" : document.referrer,
+    hostname: string = typeof window === "undefined" ? "" : window.location.hostname
+): { s?: string } {
+    try {
+        if (!referrer) return {};
+        const url = new URL(referrer);
+        if (siteKey(url.hostname) !== siteKey(hostname)) return {};
+        const code = url.searchParams.get("s");
+        return code && SHORT_LINK_CODE.test(code) ? { s: code } : {};
+    } catch {
+        return {};
+    }
+}
+
 function captureCurrentPage(): Touch {
     const params: Record<string, string> = {};
     for (const [key, value] of new URL(
@@ -701,6 +738,7 @@ function captureCurrentPage(): Touch {
         params[key] = value;
     }
     return {
+        ...trackedLinkFromReferrer(),
         ...params,
         landing_page: window.location.origin + window.location.pathname,
         date_visited: new Date().toISOString(),

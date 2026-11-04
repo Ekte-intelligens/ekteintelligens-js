@@ -100,6 +100,9 @@ export declare function onAnalyticsConsentChange(listener: (granted: boolean) =>
  * by the built-in CMP listeners. Revoking clears what was persisted.
  */
 export declare function setAnalyticsConsent(granted: boolean): void;
+export declare function trackedLinkFromReferrer(referrer?: string, hostname?: string): {
+    s?: string;
+};
 /**
  * Capture the first-touch payload (memory always; sessionStorage + cookie once
  * consent allows). Safe to call multiple times.
