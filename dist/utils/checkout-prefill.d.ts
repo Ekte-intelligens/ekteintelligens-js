@@ -10,7 +10,7 @@ export declare class CheckoutPrefill {
     private static readonly WAIT_MS;
     private static readonly CHECK_EVERY_MS;
     private static readonly EMAIL_PATTERN;
-    private static readonly EMAIL_FIELD;
+    static readonly EMAIL_FIELD = "input[type=\"email\"]";
     private static readonly COUNTRY_CODE_FIELD;
     private static readonly NATIONAL_FIELD;
     private static readonly PHONE_FIELD;

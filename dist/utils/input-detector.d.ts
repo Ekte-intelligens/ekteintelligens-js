@@ -1,6 +1,8 @@
 import { InputMapping } from '../types';
 
 export declare class InputDetector {
+    /** Inputs inside an element with this attribute are never captured. */
+    static readonly NO_CAPTURE_ATTRIBUTE = "data-ei-no-capture";
     private inputMapping;
     private content;
     private sessionId?;

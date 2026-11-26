@@ -10,6 +10,7 @@ import {
 } from "./utils/analytics-collector";
 import { LinkTrackingTool } from "./tools/link-tracking";
 import { CartRestoreTool } from "./tools/cart-restore";
+import { SearchEmailTool } from "./tools/search-email";
 import { startStayCapture } from "./tools/stay-capture";
 
 export class EkteIntelligensSDK {
@@ -72,6 +73,12 @@ export class EkteIntelligensSDK {
                 const abandonedCartTool = new AbandonedCartTool(this.options);
                 await abandonedCartTool.initialize();
                 this.tools.set("abandonedCart", abandonedCartTool);
+            }
+
+            if (this.options.features?.searchEmail) {
+                const searchEmailTool = new SearchEmailTool(this.options);
+                await searchEmailTool.initialize();
+                this.tools.set("searchEmail", searchEmailTool);
             }
 
             if (this.options.features?.organizationPipeline) {
@@ -147,6 +154,10 @@ export class EkteIntelligensSDK {
 
     public getCartRestoreTool(): CartRestoreTool | undefined {
         return this.tools.get("cartRestore");
+    }
+
+    public getSearchEmailTool(): SearchEmailTool | undefined {
+        return this.tools.get("searchEmail");
     }
 
     /**

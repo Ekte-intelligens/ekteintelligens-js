@@ -1,6 +1,9 @@
 import { InputMapping } from "../types";
 
 export class InputDetector {
+    /** Inputs inside an element with this attribute are never captured. */
+    public static readonly NO_CAPTURE_ATTRIBUTE = "data-ei-no-capture";
+
     private inputMapping: InputMapping | null;
     private content: Record<string, any> = {};
     private sessionId?: string;
@@ -133,7 +136,8 @@ export class InputDetector {
             inputs.filter(
                 (input) =>
                     !this.isInputExcluded(input) &&
-                    !this.isSensitiveInput(input)
+                    !this.isSensitiveInput(input) &&
+                    !input.closest(`[${InputDetector.NO_CAPTURE_ATTRIBUTE}]`)
             );
 
         if (!this.inputMapping) {

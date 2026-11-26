@@ -1,0 +1,1 @@
+{"version":3,"file":"search-email-messages.d.ts","sourceRoot":"","sources":["../../src/utils/search-email-messages.ts"],"names":[],"mappings":"AAEA,KAAK,UAAU,GAAG,OAAO,CAAC;AAE1B;;;;GAIG;AACH,qBAAa,mBAAmB;IAC5B,OAAO,CAAC,MAAM,CAAC,QAAQ,CAAC,IAAI,CAM1B;IAEF,OAAO,CAAC,MAAM,CAAC,QAAQ,CAAC,cAAc,CAGpC;WAEY,GAAG,CAAC,GAAG,EAAE,UAAU,GAAG,MAAM;IAI1C,OAAO,CAAC,MAAM,CAAC,MAAM;CAaxB"}

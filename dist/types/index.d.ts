@@ -23,6 +23,12 @@ export interface SDKOptions {
          * `config.bookvisit.restore: true` on the checkout campaign.
          */
         cartRestore?: boolean;
+        /**
+         * BookVisit: an email field in the search box, below the guest
+         * picker, whose value is filled into the checkout form. Also needs
+         * `config.bookvisit.search_email: true` on the checkout campaign.
+         */
+        searchEmail?: boolean;
     };
     config?: {
         completedCheckout?: boolean;
@@ -73,6 +79,8 @@ export interface CheckoutCampaign {
             autofields?: boolean;
             /** Per-hotel switch for features.cartRestore. */
             restore?: boolean;
+            /** Per-hotel switch for features.searchEmail. */
+            search_email?: boolean;
         };
     };
 }

@@ -10,7 +10,7 @@ export class CheckoutPrefill {
     private static readonly WAIT_MS = 20000;
     private static readonly CHECK_EVERY_MS = 250;
     private static readonly EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    private static readonly EMAIL_FIELD = 'input[type="email"]';
+    public static readonly EMAIL_FIELD = 'input[type="email"]';
     private static readonly COUNTRY_CODE_FIELD = 'input[autocomplete="tel-country-code"]';
     private static readonly NATIONAL_FIELD = 'input[autocomplete="tel-national"]';
     private static readonly PHONE_FIELD = 'input[type="tel"]';
