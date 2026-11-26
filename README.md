@@ -67,6 +67,7 @@ interface SDKOptions {
     features?: {
         abandonedCart?: boolean; // Enable abandoned cart tracking
         stayCapture?: boolean; // Remember searched check-in/check-out dates (default true)
+        cartRestore?: boolean; // BookVisit: rebuild expired carts from abandoned-cart links (v1.4.0)
     };
 }
 ```
@@ -313,6 +314,80 @@ subscriber via the `create-event` edge function.
 -   It is a complete no-op when no `?s=` parameter is in the URL.
 -   Runs fire-and-forget, so it never delays SDK initialization.
 
+### BookVisit Cart Restore (v1.4.0)
+
+BookVisit's `bv_jwt` session expires after an hour, which empties the basket.
+When a visitor comes back through an abandoned-cart link
+(`?s=<id_short_encoded>&rt=<restore_token>`), cart restore rebuilds the basket
+and takes them to `/checkout`. Links without `rt` (sent before the token
+existed, or written by hand without `{{restore_token}}`) restore the rooms
+only: no email or phone prefill, and a new cart session.
+
+Enable it with `features.cartRestore: true` **and** `"restore": true` in the
+checkout campaign's `config.bookvisit`, so it can be switched on per hotel.
+
+1. Runs once per `?s=` value per browser session
+   (`sessionStorage.ei_cart_restore_attempted_ids`).
+2. Shows a full-page overlay and starts an 8-second timer. When the timer
+   expires, all requests are aborted, the overlay is removed and a "could
+   not restore" banner is shown. Closing the overlay cancels the restore.
+3. Reads the stored rooms from `get-checkout-session-restore`, waits for
+   BookVisit to issue a fresh `bv_jwt`, and does nothing if the basket
+   already has rooms.
+4. With a valid `rt`, adopts the original cart session id
+   (`localStorage.ei_session_id`), so a restore on another device keeps
+   updating the same cart session.
+5. Searches the same dates and guests and matches each room on `roomId` and
+   `ratePlanId`. Carts saved before v1.4.0 have no `ratePlanId` and are
+   matched on the rate plan name instead. A different rate is never
+   substituted.
+6. Adds the rooms, then does a full navigation to checkout, where the saved
+   email and phone number are filled in once the form renders. Fields the
+   visitor already filled are left alone. A split country code / number
+   (`autocomplete="tel-country-code"` / `"tel-national"`, as on BookVisit)
+   gets each part; a single `type="tel"` field gets `+<code><number>`.
+
+Rooms, email and phone only: add-ons and other guest details are not restored. A multi-room cart is
+restored completely or not at all. These banners are shown:
+
+| Outcome                                  | Banner                                          |
+| ---------------------------------------- | ----------------------------------------------- |
+| Restored, same price                     | none                                            |
+| Restored, price differs from stored cart | old and new price (on the checkout page)        |
+| Our promo code applied                   | the code and the amount saved                   |
+| Room or rate gone, or stay in the past   | "no longer available", visitor stays on page    |
+| Unknown link, API error or timeout       | "could not restore"                             |
+
+When the restore session carries a `promo_code`, the same search runs with and
+without the code. The search without the code is used to detect price
+changes, and the room is added with the promo rate's `hitKey`. Every outcome
+is recorded through `create-event` with `type: "cart_restore"`.
+
+#### Testing on a live booking site before release
+
+`npm run test:restore` builds the SDK and opens Chrome with two windows. It
+needs nothing deployed.
+
+1. Window 1 is the live booking site (Bardøla by default). Choose a room, go
+   to checkout and fill in any contact fields. The BookVisit basket and the
+   typed email/phone are captured and saved to `.restore-test/cart.json`.
+   Window 2 opens 15 seconds after the last change at checkout.
+2. Window 2 is a fresh browser profile, so it acts as another device. It
+   opens `/en/accommodation?s=…` with this build injected. The captured cart
+   is served in place of the `get-checkout-session-restore` edge function,
+   `config.bookvisit.restore` is treated as true, and nothing is written to
+   Supabase. The BookVisit calls are real.
+
+The terminal prints the BookVisit requests, the outcome, the landing page
+the banner and the rooms in the new basket. Options go after the script
+name, without dashes (`npm run test:restore reuse old-price=6000`):
+
+-   `reuse` skips window 1 and restores the last captured cart again.
+-   `old-price=6000` pretends the stored price was 6000, to show the
+    price-change banner.
+-   `promo=CODE` restores with a promo code, to show the savings banner.
+-   `hotel=highland` runs against Highland Lodge instead of Bardøla.
+
 ## API Reference
 
 ### EkteIntelligensSDK
@@ -323,6 +398,7 @@ subscriber via the `create-event` edge function.
 -   `destroy(): void` - Clean up resources and stop all tools
 -   `isInitialized(): boolean` - Check if SDK is initialized
 -   `getAbandonedCartTool(): AbandonedCartTool | undefined` - Get the abandoned cart tool instance
+-   `getCartRestoreTool(): CartRestoreTool | undefined` - Get the cart restore tool; `getLastOutcome()` returns this page's restore outcome
 
 ### AbandonedCartTool
 
@@ -381,6 +457,52 @@ Used by shortlink open tracking. Accepts:
 {
     id_short_encoded: string; // Encoded funnel-subscriber id from the ?s= param
     type: "funnel_subscriber";
+}
+```
+
+Cart restore also sends one event per restore attempt:
+
+```typescript
+{
+    id_short_encoded: string;
+    type: "cart_restore";
+    outcome: "restored" | "restored_price_changed" | "basket_exists"
+        | "unavailable" | "invalid_link" | "no_token" | "timeout"
+        | "cancelled" | "failed";
+}
+```
+
+### get-checkout-session-restore
+
+Used by cart restore. Called with the public anon key and ids taken from a
+URL. `id_short_encoded` can be guessed, so the session id, email and phone are
+only returned when `restore_token` matches the link's secret
+`funnels_subscribers.restore_token`; otherwise they are `null` and only the
+rooms come back. Nothing else personal is returned: no rest of `content`,
+analytics or URL. Rate limited per IP.
+
+Accepts:
+
+```typescript
+{
+    id_short_encoded: string; // the ?s= param
+    restore_token?: string; // the rt= param
+    organization_id: string;
+    checkout_campaign_id: string;
+}
+```
+
+and returns 404 for unknown links, links of another organisation, links older
+than 30 days and carts that are completed or empty, otherwise:
+
+```typescript
+interface CartRestoreSpec {
+    session_id: string | null; // the cart session, with a valid restore_token
+    products: any[]; // the session's products array, unchanged
+    promo_code?: string | null; // a code we issued for this cart, if any
+    email?: string | null; // the saved email, with a valid restore_token
+    phone?: string | null; // national ("12345678") or full ("+4712345678")
+    phone_country_code?: string | null; // digits ("47"), if stored separately
 }
 ```
 

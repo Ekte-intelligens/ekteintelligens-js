@@ -55,9 +55,10 @@ export declare class AbandonedCartTool {
      */
     private loadSessionIdFromStorage;
     /**
-     * Save session ID to localStorage
+     * Save session ID to localStorage. Public so a restored cart can adopt
+     * its original session before this tool initializes.
      */
-    private saveSessionIdToStorage;
+    static saveSessionIdToStorage(sessionId: string): void;
     /**
      * Clear session ID from localStorage
      */
@@ -117,10 +118,6 @@ export declare class AbandonedCartTool {
      * Check if any of the target field names exist in the input selectors
      */
     private hasInputSelector;
-    /**
-     * Get the user's locale from browser settings
-     */
-    private getUserLocale;
     /**
      * Get localized text for email and phone number fields
      */

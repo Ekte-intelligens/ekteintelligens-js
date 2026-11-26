@@ -3,6 +3,8 @@ import {
     CheckoutCampaign,
     CartSessionPayload,
     CartSessionResponse,
+    CartRestoreOutcome,
+    CartRestoreSpec,
     OrganizationPipelineCampaign,
     OrganizationPipelinePayload,
 } from "../types";
@@ -110,10 +112,15 @@ export class SupabaseService {
      * the function resolves `id_short_encoded` to a funnel subscriber and
      * writes an `opened_link` event for them.
      */
-    async createAssistantEvent(payload: {
-        id_short_encoded: string;
-        type: "funnel_subscriber";
-    }): Promise<boolean> {
+    async createAssistantEvent(
+        payload:
+            | { id_short_encoded: string; type: "funnel_subscriber" }
+            | {
+                  id_short_encoded: string;
+                  type: "cart_restore";
+                  outcome: CartRestoreOutcome;
+              },
+    ): Promise<boolean> {
         try {
             const { error } = await this.client.functions.invoke(
                 "create-event",
@@ -131,6 +138,60 @@ export class SupabaseService {
         } catch (error) {
             console.error("Error calling create-event function:", error);
             return false;
+        }
+    }
+
+    /**
+     * Read back the restorable part of a cart session for the `?s=` id of an
+     * abandoned-cart link. The session id and contact details are only
+     * returned when `restoreToken` (the link's `rt`) matches.
+     */
+    async getCartRestore(
+        shortId: string,
+        restoreToken: string | null,
+        organizationId: string,
+        checkoutCampaignId: string
+    ): Promise<CartRestoreSpec | null> {
+        try {
+            const { data, error } = await this.client.functions.invoke(
+                "get-checkout-session-restore",
+                {
+                    body: {
+                        id_short_encoded: shortId,
+                        restore_token: restoreToken ?? undefined,
+                        organization_id: organizationId,
+                        checkout_campaign_id: checkoutCampaignId,
+                    },
+                }
+            );
+
+            if (error) {
+                console.error(
+                    "Error calling get-checkout-session-restore function:",
+                    error
+                );
+                return null;
+            }
+
+            const spec = data as CartRestoreSpec | null;
+            if (!spec || !Array.isArray(spec.products)) {
+                return null;
+            }
+            const text = (value: unknown) =>
+                typeof value === "string" && value ? value : null;
+            return {
+                ...spec,
+                session_id: text(spec.session_id),
+                email: text(spec.email),
+                phone: text(spec.phone),
+                phone_country_code: text(spec.phone_country_code),
+            };
+        } catch (error) {
+            console.error(
+                "Error calling get-checkout-session-restore function:",
+                error
+            );
+            return null;
         }
     }
 

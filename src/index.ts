@@ -11,6 +11,8 @@ export type {
     CartSessionResponse,
     DetectedProduct,
     StayParams,
+    CartRestoreOutcome,
+    CartRestoreSpec,
 } from "./types";
 
 // Global initialization function for easy usage
