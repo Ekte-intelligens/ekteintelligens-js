@@ -3,6 +3,8 @@ import {
     CheckoutCampaign,
     CartSessionPayload,
     CartSessionResponse,
+    CartRestoreOutcome,
+    CartRestoreSpec,
     OrganizationPipelineCampaign,
     OrganizationPipelinePayload,
 } from "../types";
@@ -110,10 +112,15 @@ export class SupabaseService {
      * the function resolves `id_short_encoded` to a funnel subscriber and
      * writes an `opened_link` event for them.
      */
-    async createAssistantEvent(payload: {
-        id_short_encoded: string;
-        type: "funnel_subscriber";
-    }): Promise<boolean> {
+    async createAssistantEvent(
+        payload:
+            | { id_short_encoded: string; type: "funnel_subscriber" }
+            | {
+                  id_short_encoded: string;
+                  type: "cart_restore";
+                  outcome: CartRestoreOutcome;
+              },
+    ): Promise<boolean> {
         try {
             const { error } = await this.client.functions.invoke(
                 "create-event",
@@ -131,6 +138,53 @@ export class SupabaseService {
         } catch (error) {
             console.error("Error calling create-event function:", error);
             return false;
+        }
+    }
+
+    /**
+     * Read back the restorable part of a cart session (products, session id,
+     * our promo code) for the `?s=` id of an abandoned-cart link. The
+     * function never returns the session's contact details.
+     */
+    async getCartRestore(shortId: string): Promise<CartRestoreSpec | null> {
+        try {
+            const { data, error } = await this.client.functions.invoke(
+                "get-checkout-session-restore",
+                {
+                    body: { id_short_encoded: shortId },
+                }
+            );
+
+            if (error) {
+                console.error(
+                    "Error calling get-checkout-session-restore function:",
+                    error
+                );
+                return null;
+            }
+
+            const spec = data as CartRestoreSpec | null;
+            if (
+                !spec ||
+                typeof spec.session_id !== "string" ||
+                !Array.isArray(spec.products)
+            ) {
+                return null;
+            }
+            const text = (value: unknown) =>
+                typeof value === "string" ? value : null;
+            return {
+                ...spec,
+                email: text(spec.email),
+                phone: text(spec.phone),
+                phone_country_code: text(spec.phone_country_code),
+            };
+        } catch (error) {
+            console.error(
+                "Error calling get-checkout-session-restore function:",
+                error
+            );
+            return null;
         }
     }
 

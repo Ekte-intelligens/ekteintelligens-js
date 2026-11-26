@@ -9,6 +9,7 @@ import {
     onAnalyticsConsentChange,
 } from "./utils/analytics-collector";
 import { LinkTrackingTool } from "./tools/link-tracking";
+import { CartRestoreTool } from "./tools/cart-restore";
 import { startStayCapture } from "./tools/stay-capture";
 
 export class EkteIntelligensSDK {
@@ -57,6 +58,14 @@ export class EkteIntelligensSDK {
             const linkTrackingTool = new LinkTrackingTool(this.options);
             await linkTrackingTool.initialize();
             this.tools.set("linkTracking", linkTrackingTool);
+
+            // Before the abandoned-cart tool, so a restored cart's original
+            // session id is in storage when that tool loads it.
+            if (this.options.features?.cartRestore) {
+                const cartRestoreTool = new CartRestoreTool(this.options);
+                await cartRestoreTool.initialize();
+                this.tools.set("cartRestore", cartRestoreTool);
+            }
 
             // Initialize enabled features
             if (this.options.features?.abandonedCart) {
@@ -134,6 +143,10 @@ export class EkteIntelligensSDK {
 
     public getLinkTrackingTool(): LinkTrackingTool | undefined {
         return this.tools.get("linkTracking");
+    }
+
+    public getCartRestoreTool(): CartRestoreTool | undefined {
+        return this.tools.get("cartRestore");
     }
 
     /**

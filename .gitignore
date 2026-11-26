@@ -4,6 +4,7 @@ node_modules/
 # Build outputs
 # dist/ is tracked for jsDelivr CDN delivery from GitHub. Do NOT ignore it!
 build/
+.restore-test/
 
 # Test outputs
 coverage/

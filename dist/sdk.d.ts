@@ -3,6 +3,7 @@ import { AbandonedCartTool } from './tools/abandoned-cart';
 import { OrganizationPipelineTool } from './tools/organization-pipeline';
 import { EnhancedInsightsTool } from './tools/enhanced-insights';
 import { LinkTrackingTool } from './tools/link-tracking';
+import { CartRestoreTool } from './tools/cart-restore';
 
 export declare class EkteIntelligensSDK {
     private options;
@@ -14,6 +15,7 @@ export declare class EkteIntelligensSDK {
     getOrganizationPipelineTool(): OrganizationPipelineTool | undefined;
     getEnhancedInsightsTool(): EnhancedInsightsTool | undefined;
     getLinkTrackingTool(): LinkTrackingTool | undefined;
+    getCartRestoreTool(): CartRestoreTool | undefined;
     /**
      * Grant or revoke analytics-persistence consent. Wire this to the CMP's
      * consent callback when the SDK is configured with `requireConsent: true`

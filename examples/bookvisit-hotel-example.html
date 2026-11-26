@@ -381,6 +381,10 @@
                 checkoutCampaignId: "bookvisit-hotel-campaign",
                 features: {
                     abandonedCart: true,
+                    // Rebuild an expired basket when the visitor arrives
+                    // from an abandoned-cart link (?s=). Also needs
+                    // config.bookvisit.restore: true on the campaign.
+                    cartRestore: true,
                 },
             });
 

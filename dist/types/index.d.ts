@@ -16,6 +16,13 @@ export interface SDKOptions {
          * Defaults to true. Persistence follows the analytics consent gate.
          */
         stayCapture?: boolean;
+        /**
+         * BookVisit: when a visitor arrives from an abandoned-cart link
+         * (`?s=`) and their BookVisit session has expired, rebuild the cart
+         * from the stored session and continue to add-ons. Also needs
+         * `config.bookvisit.restore: true` on the checkout campaign.
+         */
+        cartRestore?: boolean;
     };
     config?: {
         completedCheckout?: boolean;
@@ -64,8 +71,89 @@ export interface CheckoutCampaign {
         bookvisit?: {
             channel_id: string;
             autofields?: boolean;
+            /** Per-hotel switch for features.cartRestore. */
+            restore?: boolean;
         };
     };
+}
+/** A room as stored in a BookVisit cart session's `products`. */
+export interface BookVisitRoomProduct extends DetectedProduct {
+    /** BookVisit roomId. */
+    id: string;
+    type: "room";
+    /** YYYY-MM-DD */
+    startDate: string;
+    /** YYYY-MM-DD */
+    endDate: string;
+    price: number;
+    /** Missing on sessions saved before v1.4.0; `ratePlan` (name) is the fallback. */
+    ratePlanId?: string;
+    ratePlan?: string;
+    roomConfig?: {
+        adults?: number;
+        childAges?: number[] | null;
+        [key: string]: any;
+    } | null;
+}
+/** What `get-checkout-session-restore` returns. */
+export interface CartRestoreSpec {
+    session_id: string;
+    products: DetectedProduct[];
+    /** A promo code we issued for this cart, applied on restore. */
+    promo_code?: string | null;
+    /**
+     * Contact details the cart was saved with, filled into checkout. Anyone
+     * holding the link can read them, so the link id must be unguessable.
+     */
+    email?: string | null;
+    /** The phone number, national ("12345678") or full ("+4712345678"). */
+    phone?: string | null;
+    /** Digits only ("47"), when the site stores it apart from the number. */
+    phone_country_code?: string | null;
+}
+/** Contact details carried from a restore to the checkout form. */
+export interface CheckoutContact {
+    email?: string;
+    phone?: string;
+    phoneCountryCode?: string;
+}
+export interface BookVisitRoomConfig {
+    adults: number;
+    childAges: number[];
+}
+export interface BookVisitSearchRequest {
+    startDate: string;
+    endDate: string;
+    roomConfigs: BookVisitRoomConfig[];
+    promoCode?: string;
+}
+/** One bookable rate from a BookVisit search, flattened. */
+export interface BookVisitSearchHit {
+    hitKey: string;
+    roomId: string | null;
+    ratePlanId: string | null;
+    ratePlanName: string | null;
+    /** Integer, in the basket's currency. */
+    price: number | null;
+    currency: string | null;
+    /** The guests this hit is for; rooms are matched on it. */
+    roomConfig: BookVisitRoomConfig | null;
+}
+export interface BookVisitSearchResult {
+    /** Sent back with every room added from this search. */
+    resultId: string;
+    hits: BookVisitSearchHit[];
+}
+export type CartRestoreOutcome = "restored" | "restored_price_changed" | "basket_exists" | "unavailable" | "invalid_link" | "no_token" | "timeout" | "cancelled" | "failed";
+export type CartRestoreNoticeKind = "priceChanged" | "promoApplied" | "unavailable" | "failed";
+export interface CartRestoreNotice {
+    kind: CartRestoreNoticeKind;
+    /** Integers, in `currency`. */
+    oldPrice?: number;
+    newPrice?: number;
+    savings?: number;
+    currency?: string | null;
+    promoCode?: string;
 }
 export interface Content {
     [key: string]: any;

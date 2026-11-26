@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Cart restore demo (mocked BookVisit + Supabase)</title>
+        <style>
+            body { font-family: system-ui, sans-serif; margin: 0; padding: 24px; background: #f4f1ec; color: #222; }
+            header { font-size: 20px; font-weight: 600; margin-bottom: 16px; }
+            nav a { display: inline-block; margin: 0 8px 8px 0; padding: 6px 10px; background: #fff; border-radius: 6px; color: #222; text-decoration: none; border: 1px solid #ddd; }
+            .card { background: #fff; border-radius: 8px; padding: 16px; margin-top: 16px; }
+            #log { white-space: pre-wrap; font-family: ui-monospace, monospace; font-size: 13px; }
+        </style>
+    </head>
+    <body>
+        <header>Bardøla Høyfjellshotell – <span id="page"></span></header>
+        <nav>
+            <a href="?scenario=happy&s=demo-happy">Happy path</a>
+            <a href="?scenario=price&s=demo-price">Price changed</a>
+            <a href="?scenario=promo&s=demo-promo">Promo code</a>
+            <a href="?scenario=soldout&s=demo-soldout">Sold out</a>
+            <a href="?scenario=invalid&s=demo-invalid">Unknown link</a>
+            <a href="?scenario=basket&s=demo-basket">Basket exists</a>
+            <a href="?scenario=hang&s=demo-hang">API hangs (8 s)</a>
+            <a href="?reset=1">Reset session</a>
+        </nav>
+        <div class="card">
+            <strong>Studio comfort</strong> · 23.–27. juni 2027 · 2 voksne<br />
+            Leilighet inkl. selvhushold
+        </div>
+        <div class="card"><div id="log"></div></div>
+
+        <script type="module">
+            import { CartRestoreTool } from "../src/tools/cart-restore.ts";
+            import { SupabaseService } from "../src/services/supabase-service.ts";
+
+            const params = new URLSearchParams(location.search);
+            const scenario = params.get("scenario") ?? "happy";
+            const logEl = document.getElementById("log");
+            const log = (line) => {
+                logEl.textContent += line + "\n";
+                sessionStorage.setItem("demo_log", logEl.textContent);
+            };
+            if (params.get("page") === "addons") {
+                logEl.textContent = (sessionStorage.getItem("demo_log") ?? "") + "--- add-ons page loaded ---\n";
+            }
+            sessionStorage.removeItem("demo_log");
+            document.getElementById("page").textContent =
+                params.get("page") === "addons" ? "/addons/optional-addons" : "/checkout";
+
+            if (params.get("reset")) {
+                sessionStorage.clear();
+                localStorage.removeItem("ei_session_id");
+                log("Session storage cleared.");
+            }
+
+            const ROOM_ID = "2c7d6905-c77b-4f20-be5d-6c27c6d35518";
+            const RATE_PLAN_ID = "rp-selvhushold";
+            const room = {
+                id: ROOM_ID, name: "Studio comfort", type: "room", price: 6584,
+                startDate: "2027-06-23", endDate: "2027-06-27", quantity: 1,
+                ratePlan: "Leilighet inkl. selvhushold", ratePlanId: RATE_PLAN_ID,
+                roomConfig: { adults: 2, childAges: null, sharerAge: null, ageGroupDescription: null },
+            };
+
+            SupabaseService.prototype.getCheckoutCampaign = async () => ({
+                id: "bardola", type: "bookvisit",
+                config: { bookvisit: { channel_id: "demo-channel", restore: true } },
+            });
+            SupabaseService.prototype.getCartRestore = async (shortId) => {
+                log(`get-checkout-session-restore(${shortId})`);
+                if (scenario === "invalid") return null;
+                return {
+                    session_id: "original-session-id",
+                    products: [room],
+                    promo_code: scenario === "promo" ? "VELKOMMEN10" : null,
+                };
+            };
+            SupabaseService.prototype.createAssistantEvent = async (payload) => {
+                log(`create-event ${JSON.stringify(payload)}`);
+                return true;
+            };
+
+            const reply = (body, delay = 400) =>
+                new Promise((resolve) => setTimeout(() => resolve(new Response(JSON.stringify(body), { status: 200 })), delay));
+            window.fetch = (url, init) => {
+                const body = init?.body ? JSON.parse(init.body) : null;
+                log(`BookVisit ${init?.method ?? "GET"} ${new URL(url).pathname} ${body ? JSON.stringify(body) : ""}`);
+                if (scenario === "hang") return new Promise(() => {});
+                if (url.includes("basket-v1")) {
+                    return reply({ booking: { bookingData: { rooms: scenario === "basket" ? [room] : [] } } });
+                }
+                if (url.includes("search-v1")) {
+                    const promo = body.filter?.promoCode;
+                    const price = scenario === "price" ? 7190 : promo ? 5926 : 6584;
+                    return reply({
+                        resultId: promo ? "result-promo" : "result-1",
+                        currencyCode: "NOK",
+                        ratePlanContent: [{ ratePlanId: RATE_PLAN_ID, name: "Leilighet inkl. selvhushold" }],
+                        roomsResult: scenario === "soldout" ? [] : [{
+                            roomId: ROOM_ID,
+                            isPackage: false,
+                            rateAlternatives: [{
+                                currency: "NOK",
+                                rateplanId: RATE_PLAN_ID,
+                                packageId: null,
+                                ratesPerRoomConfig: [{
+                                    roomConfig: { adults: 2, childAges: [] },
+                                    hitKey: promo ? "hit-promo" : "hit-1",
+                                    isLocked: false,
+                                    totalPrice: { priceInclVAT: price },
+                                }],
+                            }],
+                        }],
+                    });
+                }
+                return reply({ success: true });
+            };
+
+            CartRestoreTool.prototype.navigate = function (url) {
+                log(`navigate → ${url}`);
+                setTimeout(() => location.assign(`?scenario=${scenario}&page=addons`), 600);
+            };
+
+            setTimeout(() => (document.cookie = "bv_jwt=demo-token; path=/"), 500);
+
+            const tool = new CartRestoreTool({
+                organizationId: "demo", checkoutCampaignId: "bardola",
+                features: { cartRestore: true },
+            });
+            await tool.initialize();
+            log(`outcome: ${tool.getLastOutcome() ?? "(not run)"}`);
+            log(`ei_session_id: ${localStorage.getItem("ei_session_id")}`);
+        </script>
+    </body>
+</html>

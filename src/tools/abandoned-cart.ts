@@ -2,6 +2,8 @@ import { InputDetector } from "../utils/input-detector";
 import { ProductDetector } from "../utils/product-detector";
 import { TotalExtractor } from "../utils/total-extractor";
 import { SupabaseService } from "../services/supabase-service";
+import { BookVisitClient } from "../services/bookvisit-client";
+import { Locale } from "../utils/locale";
 import { collectAnalytics } from "../utils/analytics-collector";
 import {
     applyStayToProducts,
@@ -314,7 +316,7 @@ export class AbandonedCartTool {
                 this.inputDetector?.setSessionId(response.id);
 
                 // Store session ID in localStorage for persistence
-                this.saveSessionIdToStorage(response.id);
+                AbandonedCartTool.saveSessionIdToStorage(response.id);
 
                 // Update previous content after successful upload
                 this.previousContent = sentContent;
@@ -494,9 +496,10 @@ export class AbandonedCartTool {
     }
 
     /**
-     * Save session ID to localStorage
+     * Save session ID to localStorage. Public so a restored cart can adopt
+     * its original session before this tool initializes.
      */
-    private saveSessionIdToStorage(sessionId: string): void {
+    public static saveSessionIdToStorage(sessionId: string): void {
         if (typeof window !== "undefined" && window.localStorage) {
             try {
                 localStorage.setItem("ei_session_id", sessionId);
@@ -581,30 +584,11 @@ export class AbandonedCartTool {
             return null;
         }
 
-        // Get JWT token from cookies
-        const jwtToken = this.getCookie("bv_jwt");
-        if (!jwtToken) {
-            console.warn("BookVisit JWT token not found in cookies");
-            return null;
-        }
-
         try {
-            const url = `https://restapi.bookvisit.com/baskets/basket-v1?IncludePaymentHistory=false&ChannelId=${channelId}`;
-            const response = await fetch(url, {
-                credentials: "include",
-                headers: {
-                    authorization: `Bearer ${jwtToken}`,
-                },
-            });
-
-            if (!response.ok) {
-                console.error(
-                    `BookVisit API error: ${response.status} ${response.statusText}`,
-                );
+            const data = await new BookVisitClient(channelId).getBasket();
+            if (!data) {
                 return null;
             }
-
-            const data = await response.json();
             // Basket / booking references, sent as `metadata` like the SynXis
             // and Elina scrapers do, so the backend can match this cart to the
             // PMS booking it becomes.
@@ -752,6 +736,9 @@ export class AbandonedCartTool {
                 // Add rate plan information if available
                 if (room.priceInfo && room.priceInfo.length > 0) {
                     const ratePlanId = room.priceInfo[0].ratePlanId;
+                    if (ratePlanId) {
+                        product.ratePlanId = ratePlanId;
+                    }
                     const ratePlanDescription =
                         bookingData.ratePlanDescriptions?.find(
                             (desc: any) => desc.id === ratePlanId,
@@ -1077,33 +1064,10 @@ export class AbandonedCartTool {
     }
 
     /**
-     * Get the user's locale from browser settings
-     */
-    private getUserLocale(): string {
-        if (typeof navigator === "undefined") {
-            return "en"; // Default to English if navigator is not available
-        }
-
-        // Try to get locale from navigator.languages (preferred languages)
-        if (navigator.languages && navigator.languages.length > 0) {
-            const locale = navigator.languages[0];
-            // Extract language code (e.g., "en-US" -> "en", "nb-NO" -> "nb")
-            return locale.split("-")[0].toLowerCase();
-        }
-
-        // Fallback to navigator.language
-        if (navigator.language) {
-            return navigator.language.split("-")[0].toLowerCase();
-        }
-
-        return "en"; // Default to English
-    }
-
-    /**
      * Get localized text for email and phone number fields
      */
     private getLocalizedText(key: "email" | "phoneNumber"): string {
-        const locale = this.getUserLocale();
+        const locale = Locale.getUserLocale();
 
         // Translation map for email and phone number
         const translations: Record<string, Record<string, string>> = {
