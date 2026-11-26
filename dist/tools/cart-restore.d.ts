@@ -2,7 +2,7 @@ import { CartRestoreOutcome, SDKOptions } from '../types';
 
 /**
  * Rebuilds an expired BookVisit cart when the visitor returns through an
- * abandoned-cart link (`?s=<id_short_encoded>`).
+ * abandoned-cart link (`?s=<id_short_encoded>&rt=<restore_token>`).
  *
  * BookVisit's `bv_jwt` session expires after an hour, which empties the
  * basket. This tool reads the stored cart back, searches the same rooms and
@@ -15,6 +15,9 @@ import { CartRestoreOutcome, SDKOptions } from '../types';
  */
 export declare class CartRestoreTool {
     private static readonly URL_PARAM;
+    /** Secret per-link token; without it only the rooms come back. */
+    private static readonly TOKEN_PARAM;
+    private static readonly TOKEN_PATTERN;
     private static readonly ATTEMPTED_KEY;
     private static readonly NOTICES_KEY;
     private static readonly CONTACT_KEY;
@@ -65,12 +68,13 @@ export declare class CartRestoreTool {
     private buildNotices;
     /**
      * Checkout page on this site, keeping the language prefix (`/no/…`) and
-     * every query param except `s`.
+     * every query param except `s` and `rt`.
      */
     private continueUrl;
     private abortable;
     private today;
     private getShortId;
+    private getRestoreToken;
     private getAttemptedIds;
     private markAttempted;
     /** Notices for the page we navigate to, shown once it loads. */

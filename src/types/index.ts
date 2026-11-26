@@ -102,14 +102,15 @@ export interface BookVisitRoomProduct extends DetectedProduct {
 
 /** What `get-checkout-session-restore` returns. */
 export interface CartRestoreSpec {
-    session_id: string;
+    /**
+     * The cart session the link belongs to. Like the contact details below,
+     * only returned for links carrying their secret `rt` token.
+     */
+    session_id: string | null;
     products: DetectedProduct[];
     /** A promo code we issued for this cart, applied on restore. */
     promo_code?: string | null;
-    /**
-     * Contact details the cart was saved with, filled into checkout. Anyone
-     * holding the link can read them, so the link id must be unguessable.
-     */
+    /** Contact details the cart was saved with, filled into checkout. */
     email?: string | null;
     /** The phone number, national ("12345678") or full ("+4712345678"). */
     phone?: string | null;

@@ -206,7 +206,12 @@ describe("CartRestoreTool", () => {
         const tool = new CartRestoreTool(options);
         await tool.initialize();
 
-        expect(mockGetCartRestore).toHaveBeenCalledWith("abc123");
+        expect(mockGetCartRestore).toHaveBeenCalledWith(
+            "abc123",
+            null,
+            "org",
+            "bardola-campaign",
+        );
         const [, searchInit] = callsTo(SEARCH)[0];
         const searchBody = JSON.parse(String(searchInit.body));
         expect(searchInit.method).toBe("POST");
@@ -237,6 +242,42 @@ describe("CartRestoreTool", () => {
             type: "cart_restore",
             outcome: "restored",
         });
+    });
+
+    it("sends the link's restore token and leaves it out of the checkout url", async () => {
+        const token = "44444444-4444-4444-8444-444444444444";
+        setUrl(`?s=abc123&rt=${token}&lang=nb`);
+        await new CartRestoreTool(options).initialize();
+
+        expect(mockGetCartRestore).toHaveBeenCalledWith(
+            "abc123",
+            token,
+            "org",
+            "bardola-campaign",
+        );
+        expect(navigate).toHaveBeenCalledWith("/checkout?lang=nb");
+    });
+
+    it("ignores a malformed restore token", async () => {
+        setUrl("?s=abc123&rt=not-a-token");
+        await new CartRestoreTool(options).initialize();
+
+        expect(mockGetCartRestore.mock.calls[0][1]).toBeNull();
+    });
+
+    it("restores rooms without adopting a session when the link has no token", async () => {
+        mockGetCartRestore.mockResolvedValue({
+            session_id: null,
+            products: [storedRoom()],
+            email: null,
+        });
+        const tool = new CartRestoreTool(options);
+        await tool.initialize();
+
+        expect(navigate).toHaveBeenCalledWith("/checkout?lang=nb");
+        expect(tool.getLastOutcome()).toBe("restored");
+        expect(localStorage.getItem("ei_session_id")).toBeNull();
+        expect(sessionStorage.getItem(CONTACT_KEY)).toBeNull();
     });
 
     it("keeps the language prefix when continuing to checkout", async () => {

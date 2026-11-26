@@ -22,11 +22,11 @@ export declare class SupabaseService {
         outcome: CartRestoreOutcome;
     }): Promise<boolean>;
     /**
-     * Read back the restorable part of a cart session (products, session id,
-     * our promo code) for the `?s=` id of an abandoned-cart link. The
-     * function never returns the session's contact details.
+     * Read back the restorable part of a cart session for the `?s=` id of an
+     * abandoned-cart link. The session id and contact details are only
+     * returned when `restoreToken` (the link's `rt`) matches.
      */
-    getCartRestore(shortId: string): Promise<CartRestoreSpec | null>;
+    getCartRestore(shortId: string, restoreToken: string | null, organizationId: string, checkoutCampaignId: string): Promise<CartRestoreSpec | null>;
     getPipelineCampaign(campaignId: string): Promise<OrganizationPipelineCampaign | null>;
     runOrganizationPipeline(payload: OrganizationPipelinePayload): Promise<boolean>;
 }

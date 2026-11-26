@@ -1,18 +1,18 @@
 var ur = Object.defineProperty;
 var dr = (i, e, t) => e in i ? ur(i, e, { enumerable: !0, configurable: !0, writable: !0, value: t }) : i[e] = t;
-var g = (i, e, t) => dr(i, typeof e != "symbol" ? e + "" : e, t);
+var p = (i, e, t) => dr(i, typeof e != "symbol" ? e + "" : e, t);
 const le = class le {
   constructor(e) {
-    g(this, "inputMapping");
-    g(this, "content", {});
-    g(this, "sessionId");
-    g(this, "hasEmailOrPhone", !1);
-    g(this, "onContentUpdate");
+    p(this, "inputMapping");
+    p(this, "content", {});
+    p(this, "sessionId");
+    p(this, "hasEmailOrPhone", !1);
+    p(this, "onContentUpdate");
     // One stable reference: `.bind(this)` returns a new function on every
     // call, so removeEventListener(this.handleInputBlur.bind(this)) never
     // removed anything and a stop/start cycle stacked duplicate listeners.
     // Adding the same reference twice is a no-op, so restarts are safe too.
-    g(this, "boundHandleInputBlur", (e) => this.handleInputBlur(e));
+    p(this, "boundHandleInputBlur", (e) => this.handleInputBlur(e));
     this.inputMapping = this.cleanInputMapping(e);
   }
   cleanInputMapping(e) {
@@ -132,7 +132,7 @@ const le = class le {
 // Input types that never hold contact details worth recovering a cart
 // with. `password` is the one that matters: checkouts with a login or
 // create-account form had the password uploaded as session content.
-g(le, "IGNORED_INPUT_TYPES", /* @__PURE__ */ new Set([
+p(le, "IGNORED_INPUT_TYPES", /* @__PURE__ */ new Set([
   "password",
   "hidden",
   "file",
@@ -144,11 +144,11 @@ g(le, "IGNORED_INPUT_TYPES", /* @__PURE__ */ new Set([
 // Short fragments need boundaries so ordinary fields are not dropped:
 // "businessName" contains "ssn", "accNumber" contains "ccnumber",
 // "cardNotes" starts like "cardNo".
-g(le, "SENSITIVE_NAME", /passw|passord|pwd|cvc|cvv|card[-_ ]?(number|(num|no)([^a-z]|$))|security[-_ ]?code|kontonummer|account[-_ ]?number|personnummer|f[oø]dselsnummer|(^|[^a-z])(ssn|iban)([^a-z]|$)|(^|[^a-z])cc[-_]?(number|num|csc|exp)/i);
+p(le, "SENSITIVE_NAME", /passw|passord|pwd|cvc|cvv|card[-_ ]?(number|(num|no)([^a-z]|$))|security[-_ ]?code|kontonummer|account[-_ ]?number|personnummer|f[oø]dselsnummer|(^|[^a-z])(ssn|iban)([^a-z]|$)|(^|[^a-z])cc[-_]?(number|num|csc|exp)/i);
 let ft = le;
 class hr {
   constructor(e) {
-    g(this, "productMapping");
+    p(this, "productMapping");
     this.productMapping = this.cleanProductMapping(e);
   }
   cleanProductMapping(e) {
@@ -358,7 +358,7 @@ class hr {
 }
 class fr {
   constructor(e) {
-    g(this, "totalSelector");
+    p(this, "totalSelector");
     this.totalSelector = e ? this.cleanSelector(e) : void 0;
   }
   cleanSelector(e) {
@@ -509,8 +509,8 @@ class yr {
           throw new Qt(d);
         if (!d.ok)
           throw new Zt(d);
-        let f = ((s = d.headers.get("Content-Type")) !== null && s !== void 0 ? s : "text/plain").split(";")[0].trim(), p;
-        return f === "application/json" ? p = yield d.json() : f === "application/octet-stream" ? p = yield d.blob() : f === "text/event-stream" ? p = d : f === "multipart/form-data" ? p = yield d.formData() : p = yield d.text(), { data: p, error: null, response: d };
+        let f = ((s = d.headers.get("Content-Type")) !== null && s !== void 0 ? s : "text/plain").split(";")[0].trim(), g;
+        return f === "application/json" ? g = yield d.json() : f === "application/octet-stream" ? g = yield d.blob() : f === "text/event-stream" ? g = d : f === "multipart/form-data" ? g = yield d.formData() : g = yield d.text(), { data: g, error: null, response: d };
       } catch (r) {
         return {
           data: null,
@@ -570,10 +570,10 @@ var Es = F && F.__importDefault || function(i) {
   return i && i.__esModule ? i : { default: i };
 };
 Object.defineProperty(Xe, "__esModule", { value: !0 });
-const Cr = Es(kr), Ir = Es(Qe);
+const Ir = Es(kr), Cr = Es(Qe);
 let Ar = class {
   constructor(e) {
-    this.shouldThrowOnError = !1, this.method = e.method, this.url = e.url, this.headers = e.headers, this.schema = e.schema, this.body = e.body, this.shouldThrowOnError = e.shouldThrowOnError, this.signal = e.signal, this.isMaybeSingle = e.isMaybeSingle, e.fetch ? this.fetch = e.fetch : typeof fetch > "u" ? this.fetch = Cr.default : this.fetch = fetch;
+    this.shouldThrowOnError = !1, this.method = e.method, this.url = e.url, this.headers = e.headers, this.schema = e.schema, this.body = e.body, this.shouldThrowOnError = e.shouldThrowOnError, this.signal = e.signal, this.isMaybeSingle = e.isMaybeSingle, e.fetch ? this.fetch = e.fetch : typeof fetch > "u" ? this.fetch = Ir.default : this.fetch = fetch;
   }
   /**
    * If there's an error with the query, throwOnError will reject the promise by
@@ -624,7 +624,7 @@ let Ar = class {
           };
         }
         if (l && this.isMaybeSingle && (!((c = l == null ? void 0 : l.details) === null || c === void 0) && c.includes("0 rows")) && (l = null, h = 200, f = "OK"), l && this.shouldThrowOnError)
-          throw new Ir.default(l);
+          throw new Cr.default(l);
       }
       return {
         error: l,
@@ -1164,7 +1164,7 @@ var Rr = F && F.__importDefault || function(i) {
   return i && i.__esModule ? i : { default: i };
 };
 Object.defineProperty(Je, "__esModule", { value: !0 });
-const Ce = Rr(Le);
+const Ie = Rr(Le);
 let Dr = class {
   constructor(e, { headers: t = {}, schema: s, fetch: r }) {
     this.url = e, this.headers = t, this.schema = s, this.fetch = r;
@@ -1194,7 +1194,7 @@ let Dr = class {
     const r = t ? "HEAD" : "GET";
     let n = !1;
     const o = (e ?? "*").split("").map((a) => /\s/.test(a) && !n ? "" : (a === '"' && (n = !n), a)).join("");
-    return this.url.searchParams.set("select", o), s && (this.headers.Prefer = `count=${s}`), new Ce.default({
+    return this.url.searchParams.set("select", o), s && (this.headers.Prefer = `count=${s}`), new Ie.default({
       method: r,
       url: this.url,
       headers: this.headers,
@@ -1238,7 +1238,7 @@ let Dr = class {
         this.url.searchParams.set("columns", a.join(","));
       }
     }
-    return new Ce.default({
+    return new Ie.default({
       method: r,
       url: this.url,
       headers: this.headers,
@@ -1295,7 +1295,7 @@ let Dr = class {
         this.url.searchParams.set("columns", l.join(","));
       }
     }
-    return new Ce.default({
+    return new Ie.default({
       method: o,
       url: this.url,
       headers: this.headers,
@@ -1328,7 +1328,7 @@ let Dr = class {
    */
   update(e, { count: t } = {}) {
     const s = "PATCH", r = [];
-    return this.headers.Prefer && r.push(this.headers.Prefer), t && r.push(`count=${t}`), this.headers.Prefer = r.join(","), new Ce.default({
+    return this.headers.Prefer && r.push(this.headers.Prefer), t && r.push(`count=${t}`), this.headers.Prefer = r.join(","), new Ie.default({
       method: s,
       url: this.url,
       headers: this.headers,
@@ -1359,7 +1359,7 @@ let Dr = class {
    */
   delete({ count: e } = {}) {
     const t = "DELETE", s = [];
-    return e && s.push(`count=${e}`), this.headers.Prefer && s.unshift(this.headers.Prefer), this.headers.Prefer = s.join(","), new Ce.default({
+    return e && s.push(`count=${e}`), this.headers.Prefer && s.unshift(this.headers.Prefer), this.headers.Prefer = s.join(","), new Ie.default({
       method: t,
       url: this.url,
       headers: this.headers,
@@ -1378,12 +1378,12 @@ Object.defineProperty(Ze, "__esModule", { value: !0 });
 Ze.DEFAULT_HEADERS = void 0;
 const Lr = et;
 Ze.DEFAULT_HEADERS = { "X-Client-Info": `postgrest-js/${Lr.version}` };
-var Cs = F && F.__importDefault || function(i) {
+var Is = F && F.__importDefault || function(i) {
   return i && i.__esModule ? i : { default: i };
 };
 Object.defineProperty(Rt, "__esModule", { value: !0 });
-const Nr = Cs(Je), Ur = Cs(Le), Fr = Ze;
-let Mr = class Is {
+const Nr = Is(Je), Ur = Is(Le), Fr = Ze;
+let Mr = class Cs {
   // TODO: Add back shouldThrowOnError once we figure out the typings
   /**
    * Creates a PostgREST client.
@@ -1418,7 +1418,7 @@ let Mr = class Is {
    * @param schema - The schema to query
    */
   schema(e) {
-    return new Is(this.url, {
+    return new Cs(this.url, {
       headers: this.headers,
       schema: e,
       fetch: this.fetch
@@ -1497,8 +1497,8 @@ const {
   PostgrestQueryBuilder: So,
   PostgrestFilterBuilder: ko,
   PostgrestTransformBuilder: Eo,
-  PostgrestBuilder: Co,
-  PostgrestError: Io
+  PostgrestBuilder: Io,
+  PostgrestError: Co
 } = Br;
 function zr() {
   if (typeof WebSocket < "u")
@@ -1568,10 +1568,10 @@ class Rs {
     }, this.timerCalc(this.tries + 1));
   }
 }
-var I;
+var A;
 (function(i) {
   i.abstime = "abstime", i.bool = "bool", i.date = "date", i.daterange = "daterange", i.float4 = "float4", i.float8 = "float8", i.int2 = "int2", i.int4 = "int4", i.int4range = "int4range", i.int8 = "int8", i.int8range = "int8range", i.json = "json", i.jsonb = "jsonb", i.money = "money", i.numeric = "numeric", i.oid = "oid", i.reltime = "reltime", i.text = "text", i.time = "time", i.timestamp = "timestamp", i.timestamptz = "timestamptz", i.timetz = "timetz", i.tsrange = "tsrange", i.tstzrange = "tstzrange";
-})(I || (I = {}));
+})(A || (A = {}));
 const es = (i, e, t = {}) => {
   var s;
   const r = (s = t.skipTypes) !== null && s !== void 0 ? s : [];
@@ -1585,34 +1585,34 @@ const es = (i, e, t = {}) => {
     return en(e, t);
   }
   switch (i) {
-    case I.bool:
+    case A.bool:
       return Xr(e);
-    case I.float4:
-    case I.float8:
-    case I.int2:
-    case I.int4:
-    case I.int8:
-    case I.numeric:
-    case I.oid:
+    case A.float4:
+    case A.float8:
+    case A.int2:
+    case A.int4:
+    case A.int8:
+    case A.numeric:
+    case A.oid:
       return Qr(e);
-    case I.json:
-    case I.jsonb:
+    case A.json:
+    case A.jsonb:
       return Zr(e);
-    case I.timestamp:
+    case A.timestamp:
       return tn(e);
-    case I.abstime:
-    case I.date:
-    case I.daterange:
-    case I.int4range:
-    case I.int8range:
-    case I.money:
-    case I.reltime:
-    case I.text:
-    case I.time:
-    case I.timestamptz:
-    case I.timetz:
-    case I.tsrange:
-    case I.tstzrange:
+    case A.abstime:
+    case A.date:
+    case A.daterange:
+    case A.int4range:
+    case A.int8range:
+    case A.money:
+    case A.reltime:
+    case A.text:
+    case A.time:
+    case A.timestamptz:
+    case A.timetz:
+    case A.tsrange:
+    case A.tstzrange:
       return mt(e);
     default:
       return mt(e);
@@ -1789,8 +1789,8 @@ class Te {
     }), this.map(o, (l, u) => {
       const d = n[l];
       if (d) {
-        const h = u.map((m) => m.presence_ref), f = d.map((m) => m.presence_ref), p = u.filter((m) => f.indexOf(m.presence_ref) < 0), y = d.filter((m) => h.indexOf(m.presence_ref) < 0);
-        p.length > 0 && (a[l] = p), y.length > 0 && (c[l] = y);
+        const h = u.map((m) => m.presence_ref), f = d.map((m) => m.presence_ref), g = u.filter((m) => f.indexOf(m.presence_ref) < 0), y = d.filter((m) => h.indexOf(m.presence_ref) < 0);
+        g.length > 0 && (a[l] = g), y.length > 0 && (c[l] = y);
       } else
         a[l] = u;
     }), this.syncDiff(n, { joins: a, leaves: c }, s, r);
@@ -1930,17 +1930,17 @@ class Dt {
           e == null || e(W.SUBSCRIBED);
           return;
         } else {
-          const h = this.bindings.postgres_changes, f = (d = h == null ? void 0 : h.length) !== null && d !== void 0 ? d : 0, p = [];
+          const h = this.bindings.postgres_changes, f = (d = h == null ? void 0 : h.length) !== null && d !== void 0 ? d : 0, g = [];
           for (let y = 0; y < f; y++) {
-            const m = h[y], { filter: { event: b, schema: E, table: v, filter: w } } = m, A = u && u[y];
-            if (A && A.event === b && A.schema === E && A.table === v && A.filter === w)
-              p.push(Object.assign(Object.assign({}, m), { id: A.id }));
+            const m = h[y], { filter: { event: b, schema: E, table: v, filter: w } } = m, T = u && u[y];
+            if (T && T.event === b && T.schema === E && T.table === v && T.filter === w)
+              g.push(Object.assign(Object.assign({}, m), { id: T.id }));
             else {
               this.unsubscribe(), this.state = R.errored, e == null || e(W.CHANNEL_ERROR, new Error("mismatch between server and client bindings for postgres changes"));
               return;
             }
           }
-          this.bindings.postgres_changes = p, e && e(W.SUBSCRIBED);
+          this.bindings.postgres_changes = g, e && e(W.SUBSCRIBED);
           return;
         }
       }).receive("error", (u) => {
@@ -2093,14 +2093,14 @@ class Dt {
     if (t && !h)
       throw "channel onMessage callbacks must return the payload, modified or unmodified";
     ["insert", "update", "delete"].includes(o) ? (r = this.bindings.postgres_changes) === null || r === void 0 || r.filter((f) => {
-      var p, y, m;
-      return ((p = f.filter) === null || p === void 0 ? void 0 : p.event) === "*" || ((m = (y = f.filter) === null || y === void 0 ? void 0 : y.event) === null || m === void 0 ? void 0 : m.toLocaleLowerCase()) === o;
+      var g, y, m;
+      return ((g = f.filter) === null || g === void 0 ? void 0 : g.event) === "*" || ((m = (y = f.filter) === null || y === void 0 ? void 0 : y.event) === null || m === void 0 ? void 0 : m.toLocaleLowerCase()) === o;
     }).map((f) => f.callback(h, s)) : (n = this.bindings[o]) === null || n === void 0 || n.filter((f) => {
-      var p, y, m, b, E, v;
+      var g, y, m, b, E, v;
       if (["broadcast", "presence", "postgres_changes"].includes(o))
         if ("id" in f) {
-          const w = f.id, A = (p = f.filter) === null || p === void 0 ? void 0 : p.event;
-          return w && ((y = t.ids) === null || y === void 0 ? void 0 : y.includes(w)) && (A === "*" || (A == null ? void 0 : A.toLocaleLowerCase()) === ((m = t.data) === null || m === void 0 ? void 0 : m.type.toLocaleLowerCase()));
+          const w = f.id, T = (g = f.filter) === null || g === void 0 ? void 0 : g.event;
+          return w && ((y = t.ids) === null || y === void 0 ? void 0 : y.includes(w)) && (T === "*" || (T == null ? void 0 : T.toLocaleLowerCase()) === ((m = t.data) === null || m === void 0 ? void 0 : m.type.toLocaleLowerCase()));
         } else {
           const w = (E = (b = f == null ? void 0 : f.filter) === null || b === void 0 ? void 0 : b.event) === null || E === void 0 ? void 0 : E.toLocaleLowerCase();
           return w === "*" || w === ((v = t == null ? void 0 : t.event) === null || v === void 0 ? void 0 : v.toLocaleLowerCase());
@@ -2109,7 +2109,7 @@ class Dt {
         return f.type.toLocaleLowerCase() === o;
     }).map((f) => {
       if (typeof h == "object" && "ids" in h) {
-        const p = h.data, { schema: y, table: m, commit_timestamp: b, type: E, errors: v } = p;
+        const g = h.data, { schema: y, table: m, commit_timestamp: b, type: E, errors: v } = g;
         h = Object.assign(Object.assign({}, {
           schema: y,
           table: m,
@@ -2118,7 +2118,7 @@ class Dt {
           new: {},
           old: {},
           errors: v
-        }), this._getPayloadRecords(p));
+        }), this._getPayloadRecords(g));
       }
       f.callback(h, s);
     });
@@ -3245,9 +3245,9 @@ class yn extends mn {
   }
 }
 const vn = "2.53.0";
-let Ie = "";
-typeof Deno < "u" ? Ie = "deno" : typeof document < "u" ? Ie = "web" : typeof navigator < "u" && navigator.product === "ReactNative" ? Ie = "react-native" : Ie = "node";
-const bn = { "X-Client-Info": `supabase-js-${Ie}/${vn}` }, _n = {
+let Ce = "";
+typeof Deno < "u" ? Ce = "deno" : typeof document < "u" ? Ce = "web" : typeof navigator < "u" && navigator.product === "ReactNative" ? Ce = "react-native" : Ce = "node";
+const bn = { "X-Client-Info": `supabase-js-${Ce}/${vn}` }, _n = {
   headers: bn
 }, wn = {
   schema: "public"
@@ -3284,11 +3284,11 @@ var En = function(i, e, t, s) {
     l((s = s.apply(i, e || [])).next());
   });
 };
-const Cn = (i) => {
+const In = (i) => {
   let e;
   return i ? e = i : typeof fetch > "u" ? e = Ss : e = fetch, (...t) => e(...t);
-}, In = () => typeof Headers > "u" ? ks : Headers, An = (i, e, t) => {
-  const s = Cn(t), r = In();
+}, Cn = () => typeof Headers > "u" ? ks : Headers, An = (i, e, t) => {
+  const s = In(t), r = Cn();
   return (n, o) => En(void 0, void 0, void 0, function* () {
     var a;
     const c = (a = yield e()) !== null && a !== void 0 ? a : i;
@@ -3986,8 +3986,8 @@ class yi {
       if (u.error)
         throw u.error;
       const d = await u.json(), h = (o = u.headers.get("x-total-count")) !== null && o !== void 0 ? o : 0, f = (c = (a = u.headers.get("link")) === null || a === void 0 ? void 0 : a.split(",")) !== null && c !== void 0 ? c : [];
-      return f.length > 0 && (f.forEach((p) => {
-        const y = parseInt(p.split(";")[0].split("=")[1].substring(0, 1)), m = JSON.parse(p.split(";")[1].split("=")[1]);
+      return f.length > 0 && (f.forEach((g) => {
+        const y = parseInt(g.split(";")[0].split("=")[1].substring(0, 1)), m = JSON.parse(g.split(";")[1].split("=")[1]);
         l[`${m}Page`] = y;
       }), l.total = parseInt(h)), { data: Object.assign(Object.assign({}, d), l), error: null };
     } catch (l) {
@@ -4312,8 +4312,8 @@ class $e {
       let n;
       if ("email" in e) {
         const { email: u, password: d, options: h } = e;
-        let f = null, p = null;
-        this.flowType === "pkce" && ([f, p] = await ge(this.storage, this.storageKey)), n = await S(this.fetch, "POST", `${this.url}/signup`, {
+        let f = null, g = null;
+        this.flowType === "pkce" && ([f, g] = await ge(this.storage, this.storageKey)), n = await S(this.fetch, "POST", `${this.url}/signup`, {
           headers: this.headers,
           redirectTo: h == null ? void 0 : h.emailRedirectTo,
           body: {
@@ -4322,7 +4322,7 @@ class $e {
             data: (t = h == null ? void 0 : h.data) !== null && t !== void 0 ? t : {},
             gotrue_meta_security: { captcha_token: h == null ? void 0 : h.captchaToken },
             code_challenge: f,
-            code_challenge_method: p
+            code_challenge_method: g
           },
           xform: K
         });
@@ -4429,9 +4429,9 @@ class $e {
   }
   async signInWithSolana(e) {
     var t, s, r, n, o, a, c, l, u, d, h, f;
-    let p, y;
+    let g, y;
     if ("message" in e)
-      p = e.message, y = e.signature;
+      g = e.message, y = e.signature;
     else {
       const { chain: m, wallet: b, statement: E, options: v } = e;
       let w;
@@ -4450,34 +4450,34 @@ class $e {
           throw new Error("@supabase/auth-js: Both wallet and url must be specified in non-browser environments.");
         w = b;
       }
-      const A = new URL((t = v == null ? void 0 : v.url) !== null && t !== void 0 ? t : window.location.href);
+      const T = new URL((t = v == null ? void 0 : v.url) !== null && t !== void 0 ? t : window.location.href);
       if ("signIn" in w && w.signIn) {
         const k = await w.signIn(Object.assign(Object.assign(Object.assign({ issuedAt: (/* @__PURE__ */ new Date()).toISOString() }, v == null ? void 0 : v.signInWithSolana), {
           // non-overridable properties
           version: "1",
-          domain: A.host,
-          uri: A.href
+          domain: T.host,
+          uri: T.href
         }), E ? { statement: E } : null));
-        let C;
+        let I;
         if (Array.isArray(k) && k[0] && typeof k[0] == "object")
-          C = k[0];
+          I = k[0];
         else if (k && typeof k == "object" && "signedMessage" in k && "signature" in k)
-          C = k;
+          I = k;
         else
           throw new Error("@supabase/auth-js: Wallet method signIn() returned unrecognized value");
-        if ("signedMessage" in C && "signature" in C && (typeof C.signedMessage == "string" || C.signedMessage instanceof Uint8Array) && C.signature instanceof Uint8Array)
-          p = typeof C.signedMessage == "string" ? C.signedMessage : new TextDecoder().decode(C.signedMessage), y = C.signature;
+        if ("signedMessage" in I && "signature" in I && (typeof I.signedMessage == "string" || I.signedMessage instanceof Uint8Array) && I.signature instanceof Uint8Array)
+          g = typeof I.signedMessage == "string" ? I.signedMessage : new TextDecoder().decode(I.signedMessage), y = I.signature;
         else
           throw new Error("@supabase/auth-js: Wallet method signIn() API returned object without signedMessage and signature fields");
       } else {
         if (!("signMessage" in w) || typeof w.signMessage != "function" || !("publicKey" in w) || typeof w != "object" || !w.publicKey || !("toBase58" in w.publicKey) || typeof w.publicKey.toBase58 != "function")
           throw new Error("@supabase/auth-js: Wallet does not have a compatible signMessage() and publicKey.toBase58() API");
-        p = [
-          `${A.host} wants you to sign in with your Solana account:`,
+        g = [
+          `${T.host} wants you to sign in with your Solana account:`,
           w.publicKey.toBase58(),
           ...E ? ["", E, ""] : [""],
           "Version: 1",
-          `URI: ${A.href}`,
+          `URI: ${T.href}`,
           `Issued At: ${(r = (s = v == null ? void 0 : v.signInWithSolana) === null || s === void 0 ? void 0 : s.issuedAt) !== null && r !== void 0 ? r : (/* @__PURE__ */ new Date()).toISOString()}`,
           ...!((n = v == null ? void 0 : v.signInWithSolana) === null || n === void 0) && n.notBefore ? [`Not Before: ${v.signInWithSolana.notBefore}`] : [],
           ...!((o = v == null ? void 0 : v.signInWithSolana) === null || o === void 0) && o.expirationTime ? [`Expiration Time: ${v.signInWithSolana.expirationTime}`] : [],
@@ -4486,11 +4486,11 @@ class $e {
           ...!((l = v == null ? void 0 : v.signInWithSolana) === null || l === void 0) && l.requestId ? [`Request ID: ${v.signInWithSolana.requestId}`] : [],
           ...!((d = (u = v == null ? void 0 : v.signInWithSolana) === null || u === void 0 ? void 0 : u.resources) === null || d === void 0) && d.length ? [
             "Resources",
-            ...v.signInWithSolana.resources.map((C) => `- ${C}`)
+            ...v.signInWithSolana.resources.map((I) => `- ${I}`)
           ] : []
         ].join(`
 `);
-        const k = await w.signMessage(new TextEncoder().encode(p), "utf8");
+        const k = await w.signMessage(new TextEncoder().encode(g), "utf8");
         if (!k || !(k instanceof Uint8Array))
           throw new Error("@supabase/auth-js: Wallet signMessage() API returned an recognized value");
         y = k;
@@ -4499,7 +4499,7 @@ class $e {
     try {
       const { data: m, error: b } = await S(this.fetch, "POST", `${this.url}/token?grant_type=web3`, {
         headers: this.headers,
-        body: Object.assign({ chain: "solana", message: p, signature: Vn(y) }, !((h = e.options) === null || h === void 0) && h.captchaToken ? { gotrue_meta_security: { captcha_token: (f = e.options) === null || f === void 0 ? void 0 : f.captchaToken } } : null),
+        body: Object.assign({ chain: "solana", message: g, signature: Vn(y) }, !((h = e.options) === null || h === void 0) && h.captchaToken ? { gotrue_meta_security: { captcha_token: (f = e.options) === null || f === void 0 ? void 0 : f.captchaToken } } : null),
         xform: K
       });
       if (b)
@@ -5017,8 +5017,8 @@ class $e {
       c && (h = parseInt(c));
       const f = h - u;
       f * 1e3 <= be && console.warn(`@supabase/gotrue-js: Session as retrieved from URL expires in ${f}s, should have been closer to ${d}s`);
-      const p = h - d;
-      u - p >= 120 ? console.warn("@supabase/gotrue-js: Session as retrieved from URL was issued over 120s ago, URL could be stale", p, h, u) : u - p < 0 && console.warn("@supabase/gotrue-js: Session as retrieved from URL was issued in the future? Check the device clock for skew", p, h, u);
+      const g = h - d;
+      u - g >= 120 ? console.warn("@supabase/gotrue-js: Session as retrieved from URL was issued over 120s ago, URL could be stale", g, h, u) : u - g < 0 && console.warn("@supabase/gotrue-js: Session as retrieved from URL was issued in the future? Check the device clock for skew", g, h, u);
       const { data: y, error: m } = await this._getUser(n);
       if (m)
         throw m;
@@ -5683,9 +5683,9 @@ class $e {
     try {
       let s = e;
       if (!s) {
-        const { data: f, error: p } = await this.getSession();
-        if (p || !f.session)
-          return { data: null, error: p };
+        const { data: f, error: g } = await this.getSession();
+        if (g || !f.session)
+          return { data: null, error: g };
         s = f.session.access_token;
       }
       const { header: r, payload: n, signature: o, raw: { header: a, payload: c } } = lt(s);
@@ -5758,7 +5758,7 @@ var Ei = function(i, e, t, s) {
     l((s = s.apply(i, e || [])).next());
   });
 };
-class Ci {
+class Ii {
   /**
    * Create a new client for use in the browser.
    * @param supabaseUrl The unique Supabase URL which is supplied when you create a new project in your project dashboard.
@@ -5925,7 +5925,7 @@ class Ci {
     (e === "TOKEN_REFRESHED" || e === "SIGNED_IN") && this.changedAccessToken !== s ? this.changedAccessToken = s : e === "SIGNED_OUT" && (this.realtime.setAuth(), t == "STORAGE" && this.auth.signOut(), this.changedAccessToken = void 0);
   }
 }
-const Ii = (i, e, t) => new Ci(i, e, t);
+const Ci = (i, e, t) => new Ii(i, e, t);
 function Ai() {
   if (typeof window < "u" || typeof process > "u" || process.version === void 0 || process.version === null)
     return !1;
@@ -5935,9 +5935,9 @@ function Ai() {
 Ai() && console.warn("⚠️  Node.js 18 and below are deprecated and will no longer be supported in future versions of @supabase/supabase-js. Please upgrade to Node.js 20 or later. For more information, visit: https://github.com/orgs/supabase/discussions/37217");
 class st {
   constructor(e, t) {
-    g(this, "client");
+    p(this, "client");
     const s = e || "https://yoflhmaayrceswiwvxba.supabase.co", r = t || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlvZmxobWFheXJjZXN3aXd2eGJhIiwicm9sZSI6ImFub24iLCJpYXQiOjE2NzI5MzQ4MzUsImV4cCI6MTk4ODUxMDgzNX0.dq8OdZylVnB1Gwa_nYLALxUHk2NOPmRlhS_YbA7E8pg";
-    this.client = Ii(s, r);
+    this.client = Ci(s, r);
   }
   async getCheckoutCampaign(e) {
     try {
@@ -6005,37 +6005,43 @@ class st {
     }
   }
   /**
-   * Read back the restorable part of a cart session (products, session id,
-   * our promo code) for the `?s=` id of an abandoned-cart link. The
-   * function never returns the session's contact details.
+   * Read back the restorable part of a cart session for the `?s=` id of an
+   * abandoned-cart link. The session id and contact details are only
+   * returned when `restoreToken` (the link's `rt`) matches.
    */
-  async getCartRestore(e) {
+  async getCartRestore(e, t, s, r) {
     try {
-      const { data: t, error: s } = await this.client.functions.invoke(
+      const { data: n, error: o } = await this.client.functions.invoke(
         "get-checkout-session-restore",
         {
-          body: { id_short_encoded: e }
+          body: {
+            id_short_encoded: e,
+            restore_token: t ?? void 0,
+            organization_id: s,
+            checkout_campaign_id: r
+          }
         }
       );
-      if (s)
+      if (o)
         return console.error(
           "Error calling get-checkout-session-restore function:",
-          s
+          o
         ), null;
-      const r = t;
-      if (!r || typeof r.session_id != "string" || !Array.isArray(r.products))
+      const a = n;
+      if (!a || !Array.isArray(a.products))
         return null;
-      const n = (o) => typeof o == "string" ? o : null;
+      const c = (l) => typeof l == "string" && l ? l : null;
       return {
-        ...r,
-        email: n(r.email),
-        phone: n(r.phone),
-        phone_country_code: n(r.phone_country_code)
+        ...a,
+        session_id: c(a.session_id),
+        email: c(a.email),
+        phone: c(a.phone),
+        phone_country_code: c(a.phone_country_code)
       };
-    } catch (t) {
+    } catch (n) {
       return console.error(
         "Error calling get-checkout-session-restore function:",
-        t
+        n
       ), null;
     }
   }
@@ -6221,7 +6227,7 @@ const D = class D {
     return typeof e == "string" && e.trim() ? e.trim() : typeof e == "number" && isFinite(e) ? String(e) : null;
   }
 };
-g(D, "API_BASE", "https://restapi.bookvisit.com"), g(D, "BASKET_PATH", "/baskets/basket-v1"), g(D, "SEARCH_PATH", "/accommodation/search-v1"), g(D, "ADD_ROOM_PATH", "/baskets/rooms/add-v1"), g(D, "TOKEN_COOKIE", "bv_jwt"), g(D, "TOKEN_POLL_MS", 200), g(D, "SEARCH_FILTER", {
+p(D, "API_BASE", "https://restapi.bookvisit.com"), p(D, "BASKET_PATH", "/baskets/basket-v1"), p(D, "SEARCH_PATH", "/accommodation/search-v1"), p(D, "ADD_ROOM_PATH", "/baskets/rooms/add-v1"), p(D, "TOKEN_COOKIE", "bv_jwt"), p(D, "TOKEN_POLL_MS", 200), p(D, "SEARCH_FILTER", {
   roomContent: "Full",
   packageContent: "Full",
   addOnContent: "Full",
@@ -6277,7 +6283,7 @@ function Ui(i) {
   let e = 0, t = -1 / 0;
   const s = i.filter((r) => typeof r.enteredAt == "number").sort((r, n) => r.enteredAt - n.enteredAt);
   for (const r of s)
-    r.enteredAt - t > Ni && (e += 1), t = Math.max(r.enteredAt, r.enteredAt + Ct(r));
+    r.enteredAt - t > Ni && (e += 1), t = Math.max(r.enteredAt, r.enteredAt + It(r));
   return e;
 }
 function Fi() {
@@ -6291,7 +6297,7 @@ function Fi() {
     return null;
   }
 }
-function Ct(i) {
+function It(i) {
   return typeof i.activeMs == "number" && i.activeMs > 0 ? i.activeMs : typeof i.leftAt == "number" && i.leftAt > i.enteredAt ? i.leftAt - i.enteredAt : 0;
 }
 let de = {}, we = null, De = !0, ms = !1, V;
@@ -6339,7 +6345,7 @@ function xe(i, e) {
     return !1;
   }
 }
-function It(i) {
+function Ct(i) {
   try {
     const e = Js();
     document.cookie = `${i}=` + (e ? `; domain=.${e}` : "") + "; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
@@ -6381,7 +6387,7 @@ function Mi(i) {
   );
 }
 function Bi() {
-  It(Pe);
+  Ct(Pe);
 }
 function qi() {
   const i = Ys(Pe);
@@ -6474,8 +6480,8 @@ function Vi(i, e) {
         f
       ))
         c[m] = (c[m] ?? 0) + s(b);
-    const p = typeof h.first_visit_at == "string" ? h.first_visit_at : null, y = typeof h.last_visit_at == "string" ? h.last_visit_at : null;
-    p && (!l || p < l) && (l = p), y && (!u || y > u) && (u = y);
+    const g = typeof h.first_visit_at == "string" ? h.first_visit_at : null, y = typeof h.last_visit_at == "string" ? h.last_visit_at : null;
+    g && (!l || g < l) && (l = g), y && (!u || y > u) && (u = y);
   }
   const d = {
     time_per_page: c,
@@ -6526,9 +6532,9 @@ function er(i) {
 function Oe(i) {
   const e = i !== De;
   if (De = i, i)
-    It(Et), tr();
+    Ct(Et), tr();
   else {
-    xe(Et, 0), Bi(), It(Ut);
+    xe(Et, 0), Bi(), Ct(Ut);
     try {
       sessionStorage.removeItem(rt);
     } catch {
@@ -6655,10 +6661,10 @@ function rr() {
       const u = sr(l.page);
       u && n.indexOf(u) === -1 && n.push(u);
     }
-    const o = t.reduce((l, u) => l + Ct(u), 0), a = {};
+    const o = t.reduce((l, u) => l + It(u), 0), a = {};
     for (const l of t) {
       const u = Zi(l.page);
-      u && (a[u] = (a[u] ?? 0) + Ct(l));
+      u && (a[u] = (a[u] ?? 0) + It(l));
     }
     const c = {};
     return Object.entries(a).slice(0, $i).forEach(([l, u]) => {
@@ -6762,8 +6768,8 @@ function oo(i) {
   for (const [l, u, d] of io) {
     const h = t.get(l), f = t.get(u);
     if (!h || !f) continue;
-    const p = _s(h, d), y = _s(f, d), m = [];
-    for (const b of p)
+    const g = _s(h, d), y = _s(f, d), m = [];
+    for (const b of g)
       for (const E of y)
         ir(b, E) && m.push({ checkin: b, checkout: E });
     m.length > 0 && s.push(m);
@@ -6881,29 +6887,29 @@ function ho(i, e, t = so) {
 let ws = !1;
 const z = class z {
   constructor(e) {
-    g(this, "options");
-    g(this, "supabaseService");
-    g(this, "inputDetector");
-    g(this, "productDetector");
-    g(this, "totalExtractor");
-    g(this, "campaign");
-    g(this, "totalAverage", 0);
-    g(this, "_sessionId");
-    g(this, "isInitialized", !1);
-    g(this, "previousContent", {});
-    g(this, "previousProducts", []);
-    g(this, "previousTotal", 0);
-    g(this, "debounceTimer");
-    g(this, "pendingContentUpdate");
-    g(this, "isSubmitting", !1);
+    p(this, "options");
+    p(this, "supabaseService");
+    p(this, "inputDetector");
+    p(this, "productDetector");
+    p(this, "totalExtractor");
+    p(this, "campaign");
+    p(this, "totalAverage", 0);
+    p(this, "_sessionId");
+    p(this, "isInitialized", !1);
+    p(this, "previousContent", {});
+    p(this, "previousProducts", []);
+    p(this, "previousTotal", 0);
+    p(this, "debounceTimer");
+    p(this, "pendingContentUpdate");
+    p(this, "isSubmitting", !1);
     // Lock to prevent concurrent submissions
     // Our injected autofield section and its per-field wrappers. Kept in
     // memory while off the page so typed values survive being re-added.
-    g(this, "autofieldSection");
-    g(this, "autofieldWrappers", []);
-    g(this, "autofieldObserver");
-    g(this, "boundHandleAutofieldBlur", (e) => this.handleAutofieldBlur(e));
-    g(this, "boundSaveAutofieldToStorage", (e) => {
+    p(this, "autofieldSection");
+    p(this, "autofieldWrappers", []);
+    p(this, "autofieldObserver");
+    p(this, "boundHandleAutofieldBlur", (e) => this.handleAutofieldBlur(e));
+    p(this, "boundSaveAutofieldToStorage", (e) => {
       const t = e.target, s = z.AUTOFIELD_STORAGE_KEYS[t.name];
       s && t.value && this.saveToSessionStorage(s, t.value);
     });
@@ -6961,45 +6967,45 @@ const z = class z {
     }
     this.isSubmitting = !0;
     try {
-      let f = [], p = this.totalAverage;
+      let f = [], g = this.totalAverage;
       if (((s = this.campaign) == null ? void 0 : s.type) === "bookvisit") {
-        const C = await this.withBasketTimeout(
+        const I = await this.withBasketTimeout(
           this.fetchBookVisitBasket()
         );
-        C && (f = C.products, p = C.total);
+        I && (f = I.products, g = I.total);
       } else if (((r = this.campaign) == null ? void 0 : r.type) === "synxis") {
-        const C = await this.withBasketTimeout(
+        const I = await this.withBasketTimeout(
           this.fetchSynxisBasket()
         );
-        C && (f = C.products, p = C.total);
+        I && (f = I.products, g = I.total);
       } else if (((n = this.campaign) == null ? void 0 : n.type) === "elinapms") {
-        const C = await this.fetchElinapmsBasket();
-        C && (f = C.products, p = C.total);
+        const I = await this.fetchElinapmsBasket();
+        I && (f = I.products, g = I.total);
       } else
-        f = ((o = this.productDetector) == null ? void 0 : o.detectProducts()) || [], p = ((a = this.totalExtractor) == null ? void 0 : a.extractTotal()) || this.totalAverage;
+        f = ((o = this.productDetector) == null ? void 0 : o.detectProducts()) || [], g = ((a = this.totalExtractor) == null ? void 0 : a.extractTotal()) || this.totalAverage;
       const y = ((c = this.options.features) == null ? void 0 : c.stayCapture) === !1 ? null : lo();
       if (f = ho(f, y), !this.hasContentChanged(
         e,
         f,
-        p
+        g
       )) {
         console.log("Content unchanged, skipping upload");
         return;
       }
-      const b = typeof window < "u" ? window.location.href : "", E = this._sessionId || t, v = this.withStay(eo(), y), w = { ...e }, A = {
+      const b = typeof window < "u" ? window.location.href : "", E = this._sessionId || t, v = this.withStay(eo(), y), w = { ...e }, T = {
         organization_id: this.options.organizationId,
         checkout_campaign_id: this.options.checkoutCampaignId,
         content: w,
         products: f,
         url: b,
-        total: p,
+        total: g,
         id: E,
         ...v ? { analytics: v } : {},
         ...((l = this.campaign) == null ? void 0 : l.type) === "synxis" && this._synxisSessionIds ? { metadata: this._synxisSessionIds } : {},
         ...((u = this.campaign) == null ? void 0 : u.type) === "elinapms" && this._elinapmsSessionIds ? { metadata: this._elinapmsSessionIds } : {},
         ...((d = this.campaign) == null ? void 0 : d.type) === "bookvisit" && this._bookvisitSessionIds ? { metadata: this._bookvisitSessionIds } : {}
-      }, k = await this.supabaseService.submitCartSession(A);
-      k && k.id ? (this._sessionId = k.id, (h = this.inputDetector) == null || h.setSessionId(k.id), z.saveSessionIdToStorage(k.id), this.previousContent = w, this.previousProducts = [...f], this.previousTotal = p, console.log("Cart session updated successfully:", k.id)) : console.error("Failed to submit cart session");
+      }, k = await this.supabaseService.submitCartSession(T);
+      k && k.id ? (this._sessionId = k.id, (h = this.inputDetector) == null || h.setSessionId(k.id), z.saveSessionIdToStorage(k.id), this.previousContent = w, this.previousProducts = [...f], this.previousTotal = g, console.log("Cart session updated successfully:", k.id)) : console.error("Failed to submit cart session");
     } catch (f) {
       console.error("Error handling content update:", f);
     } finally {
@@ -7167,11 +7173,11 @@ const z = class z {
   getBookVisitSessionIds(e) {
     var t, s, r, n;
     try {
-      const o = (p) => typeof p == "string" && p.trim() ? p.trim() : typeof p == "number" && isFinite(p) ? String(p) : null, a = (e == null ? void 0 : e.booking) ?? {}, c = (a == null ? void 0 : a.bookingData) ?? {}, l = o(a == null ? void 0 : a.basketId) ?? o(a == null ? void 0 : a.id) ?? o(c == null ? void 0 : c.basketId) ?? o(e == null ? void 0 : e.basketId) ?? o(e == null ? void 0 : e.id), u = o(c == null ? void 0 : c.bookingNumber) ?? o(c == null ? void 0 : c.bookingCode) ?? o(c == null ? void 0 : c.reservationNumber) ?? o(a == null ? void 0 : a.bookingNumber) ?? o(a == null ? void 0 : a.bookingCode), d = o((t = c == null ? void 0 : c.customer) == null ? void 0 : t.countryCode) ?? o((s = c == null ? void 0 : c.customer) == null ? void 0 : s.country) ?? o((r = c == null ? void 0 : c.guest) == null ? void 0 : r.countryCode) ?? o((n = a == null ? void 0 : a.customer) == null ? void 0 : n.countryCode);
+      const o = (g) => typeof g == "string" && g.trim() ? g.trim() : typeof g == "number" && isFinite(g) ? String(g) : null, a = (e == null ? void 0 : e.booking) ?? {}, c = (a == null ? void 0 : a.bookingData) ?? {}, l = o(a == null ? void 0 : a.basketId) ?? o(a == null ? void 0 : a.id) ?? o(c == null ? void 0 : c.basketId) ?? o(e == null ? void 0 : e.basketId) ?? o(e == null ? void 0 : e.id), u = o(c == null ? void 0 : c.bookingNumber) ?? o(c == null ? void 0 : c.bookingCode) ?? o(c == null ? void 0 : c.reservationNumber) ?? o(a == null ? void 0 : a.bookingNumber) ?? o(a == null ? void 0 : a.bookingCode), d = o((t = c == null ? void 0 : c.customer) == null ? void 0 : t.countryCode) ?? o((s = c == null ? void 0 : c.customer) == null ? void 0 : s.country) ?? o((r = c == null ? void 0 : c.guest) == null ? void 0 : r.countryCode) ?? o((n = a == null ? void 0 : a.customer) == null ? void 0 : n.countryCode);
       let h = null, f = null;
       if (typeof window < "u") {
-        const p = new URLSearchParams(window.location.search);
-        if (h = p.get("sbe_rc") ?? p.get("sbeRc"), h)
+        const g = new URLSearchParams(window.location.search);
+        if (h = g.get("sbe_rc") ?? g.get("sbeRc"), h)
           try {
             f = atob(h);
           } catch {
@@ -7203,14 +7209,14 @@ const z = class z {
       s = a.totalPrice || 0;
       const c = typeof ((n = a.customer) == null ? void 0 : n.countryCode) == "string" ? a.customer.countryCode : typeof ((o = a.customer) == null ? void 0 : o.country) == "string" ? a.customer.country : void 0, l = a.rooms || [], u = a.roomDescriptions || [], d = a.addOnDescriptions || [];
       l.forEach((f) => {
-        var w, A, k, C;
-        const p = u.find(
+        var w, T, k, I;
+        const g = u.find(
           ($) => $.id === f.roomId
-        ), y = f.totalPrice || 0, m = (A = (w = p == null ? void 0 : p.images) == null ? void 0 : w[0]) == null ? void 0 : A.uri, b = (k = p == null ? void 0 : p.images) == null ? void 0 : k.map(
+        ), y = f.totalPrice || 0, m = (T = (w = g == null ? void 0 : g.images) == null ? void 0 : w[0]) == null ? void 0 : T.uri, b = (k = g == null ? void 0 : g.images) == null ? void 0 : k.map(
           ($) => $.uri
         ), E = {
           id: f.roomId,
-          name: (p == null ? void 0 : p.name) || "Room",
+          name: (g == null ? void 0 : g.name) || "Room",
           price: y,
           quantity: 1,
           type: "room",
@@ -7224,7 +7230,7 @@ const z = class z {
         if (f.priceInfo && f.priceInfo.length > 0) {
           const $ = f.priceInfo[0].ratePlanId;
           $ && (E.ratePlanId = $);
-          const J = (C = a.ratePlanDescriptions) == null ? void 0 : C.find(
+          const J = (I = a.ratePlanDescriptions) == null ? void 0 : I.find(
             (H) => H.id === $
           );
           J && (E.ratePlan = J.name);
@@ -7247,15 +7253,15 @@ const z = class z {
           }
         });
       }), (a.optionalAddOns || []).forEach((f) => {
-        const p = f.totalPrice || 0;
-        if (p > 0) {
+        const g = f.totalPrice || 0;
+        if (g > 0) {
           const y = d.find(
             (m) => m.id === f.addOnId
           );
           t.push({
             id: f.addOnId,
             name: (y == null ? void 0 : y.name) || "Add-on",
-            price: p,
+            price: g,
             quantity: f.numberOfUnits || 1,
             type: "addon",
             roomId: f.roomId,
@@ -7591,7 +7597,7 @@ const z = class z {
    * it per-product as `actualTotal` for reference.
    */
   extractSynxisCartApiData(e) {
-    var o, a, c, l, u, d, h, f, p, y, m, b, E, v, w, A, k, C, $, J;
+    var o, a, c, l, u, d, h, f, g, y, m, b, E, v, w, T, k, I, $, J;
     const t = [];
     let s = 0;
     const r = this.getSynxisActualTotal(), n = this._synxisSessionIds;
@@ -7616,7 +7622,7 @@ const z = class z {
         (P, x) => x.itineraryNumber.localeCompare(P.itineraryNumber)
       ).slice(0, 1));
       for (const { resv: P } of Ue) {
-        const x = P.extrasFromShopping || {}, fe = P.stayCriteria || {}, Ft = P.guestCriteria || {}, O = x.prices || {}, Mt = ((u = (l = (c = O == null ? void 0 : O.Total) == null ? void 0 : c.Price) == null ? void 0 : l.Total) == null ? void 0 : u.AmountWithTaxesFees) || ((f = (h = (d = O == null ? void 0 : O.Total) == null ? void 0 : d.Price) == null ? void 0 : h.Total) == null ? void 0 : f.Amount) || ((y = (p = O == null ? void 0 : O.Total) == null ? void 0 : p.Price) == null ? void 0 : y.Amount) || 0, Bt = ((O == null ? void 0 : O.Daily) || []).map((X) => {
+        const x = P.extrasFromShopping || {}, fe = P.stayCriteria || {}, Ft = P.guestCriteria || {}, O = x.prices || {}, Mt = ((u = (l = (c = O == null ? void 0 : O.Total) == null ? void 0 : c.Price) == null ? void 0 : l.Total) == null ? void 0 : u.AmountWithTaxesFees) || ((f = (h = (d = O == null ? void 0 : O.Total) == null ? void 0 : d.Price) == null ? void 0 : h.Total) == null ? void 0 : f.Amount) || ((y = (g = O == null ? void 0 : O.Total) == null ? void 0 : g.Price) == null ? void 0 : y.Amount) || 0, Bt = ((O == null ? void 0 : O.Daily) || []).map((X) => {
           var qt, zt, Ht, Kt, Vt, Wt, Gt, Jt, Yt, Xt;
           return {
             date: X.Date,
@@ -7640,9 +7646,9 @@ const z = class z {
           currency: x.currencyCode,
           dailyPrices: Bt,
           taxes: ((E = (b = (m = O == null ? void 0 : O.Total) == null ? void 0 : m.Price) == null ? void 0 : b.Tax) == null ? void 0 : E.Amount) || 0,
-          fees: ((A = (w = (v = O == null ? void 0 : O.Total) == null ? void 0 : v.Price) == null ? void 0 : w.Fees) == null ? void 0 : A.Amount) || 0,
+          fees: ((T = (w = (v = O == null ? void 0 : O.Total) == null ? void 0 : v.Price) == null ? void 0 : w.Fees) == null ? void 0 : T.Amount) || 0,
           startDate: (k = fe.startDate) == null ? void 0 : k.split("T")[0],
-          endDate: (C = fe.endDate) == null ? void 0 : C.split("T")[0],
+          endDate: (I = fe.endDate) == null ? void 0 : I.split("T")[0],
           nights: Bt.length || null,
           adults: Ft.numAdults || 1,
           children: Ft.numChildren || 0,
@@ -8030,11 +8036,11 @@ const z = class z {
           ), f.dispatchEvent(
             new Event("change", { bubbles: !0 })
           ));
-          const p = o.getElementById(
+          const g = o.getElementById(
             "registrationManualPhonePrefix"
           );
-          if (p) {
-            const y = p.querySelector(
+          if (g) {
+            const y = g.querySelector(
               ".css-1yh68ch-singleValue"
             );
             y && (y.textContent = l);
@@ -8086,10 +8092,10 @@ const z = class z {
     try {
       const h = this.getFromSessionStorage("autofield_email"), f = this.getFromSessionStorage(
         "autofield_phoneCountryCode"
-      ), p = this.getFromSessionStorage(
+      ), g = this.getFromSessionStorage(
         "autofield_phoneNumber"
       );
-      if (!h && !f && !p)
+      if (!h && !f && !g)
         return;
       let y = "*";
       if (e.src)
@@ -8107,7 +8113,7 @@ const z = class z {
           type: "ekteintelligens-autofill",
           email: h || null,
           phoneCountryCode: f || null,
-          phoneNumber: p || null
+          phoneNumber: g || null
         },
         // Format 2: Dibs/Nets Easy-specific formats
         ...m || b ? [
@@ -8115,27 +8121,27 @@ const z = class z {
             type: "dibs-autofill",
             email: h || null,
             phoneCountryCode: f || null,
-            phoneNumber: p || null
+            phoneNumber: g || null
           },
           {
             type: "nets-easy-autofill",
             email: h || null,
             phoneCountryCode: f || null,
-            phoneNumber: p || null
+            phoneNumber: g || null
           },
           {
             action: "autofill",
             data: {
               email: h || null,
               phoneCountryCode: f || null,
-              phoneNumber: p || null
+              phoneNumber: g || null
             }
           },
           {
             event: "customer-data",
             customer: {
               email: h || null,
-              phone: p ? `${f || ""}${p}` : null,
+              phone: g ? `${f || ""}${g}` : null,
               phoneCountryCode: f || null
             }
           }
@@ -8145,7 +8151,7 @@ const z = class z {
           action: "autofill-fields",
           email: h || null,
           phoneCountryCode: f || null,
-          phoneNumber: p || null
+          phoneNumber: g || null
         }
       ];
       E.forEach((w) => {
@@ -8159,14 +8165,14 @@ const z = class z {
           iframeSrc: ((d = e.src) == null ? void 0 : d.substring(0, 100)) || "unknown",
           email: h ? "***" : null,
           phoneCountryCode: f,
-          phoneNumber: p ? "***" : null,
+          phoneNumber: g ? "***" : null,
           targetOrigin: y
         }
       ), this.tryIframeUrlParameters(
         e,
         h,
         f,
-        p
+        g
       );
     } catch (h) {
       console.warn("Failed to send postMessage to iframe:", h);
@@ -8281,11 +8287,11 @@ const z = class z {
     this._urlCheckInterval = t;
   }
 };
-g(z, "BASKET_FETCH_TIMEOUT_MS", 8e3), /**
+p(z, "BASKET_FETCH_TIMEOUT_MS", 8e3), /**
  * Selectors that identify each autofield, whether rendered by BookVisit
  * itself or injected by us.
  */
-g(z, "AUTOFIELD_SELECTORS", {
+p(z, "AUTOFIELD_SELECTORS", {
   firstName: '#customer-firstName, input[name="firstName"]',
   lastName: '#customer-lastName, input[name="lastName"]',
   email: '#customer-emailAddress, input[name="emailAddress"]',
@@ -8293,7 +8299,7 @@ g(z, "AUTOFIELD_SELECTORS", {
 }), /**
  * sessionStorage key for each autofield input name
  */
-g(z, "AUTOFIELD_STORAGE_KEYS", {
+p(z, "AUTOFIELD_STORAGE_KEYS", {
   emailAddress: "autofield_email",
   phoneCountryCode: "autofield_phoneCountryCode",
   phoneNumber: "autofield_phoneNumber"
@@ -8301,14 +8307,14 @@ g(z, "AUTOFIELD_STORAGE_KEYS", {
 let Ge = z;
 class fo {
   constructor(e) {
-    g(this, "options");
-    g(this, "supabaseService");
-    g(this, "campaign");
-    g(this, "formData", {});
-    g(this, "inputListeners", []);
-    g(this, "buttonListeners", []);
-    g(this, "submitListener");
-    g(this, "isInitialized", !1);
+    p(this, "options");
+    p(this, "supabaseService");
+    p(this, "campaign");
+    p(this, "formData", {});
+    p(this, "inputListeners", []);
+    p(this, "buttonListeners", []);
+    p(this, "submitListener");
+    p(this, "isInitialized", !1);
     this.options = e, this.supabaseService = new st(
       e.supabaseUrl,
       e.supabaseAnonKey
@@ -8532,21 +8538,21 @@ class fo {
 class po {
   constructor(e) {
     // @ts-ignore
-    g(this, "options");
-    g(this, "isInitialized", !1);
-    g(this, "currentPage", "");
-    g(this, "currentVisitStartTime", 0);
+    p(this, "options");
+    p(this, "isInitialized", !1);
+    p(this, "currentPage", "");
+    p(this, "currentVisitStartTime", 0);
     /** Start of the current foreground segment; 0 while paused. */
-    g(this, "segmentStart", 0);
-    g(this, "data", { visits: [] });
-    g(this, "storageKey", "ei_enhanced_insights");
-    g(this, "popstateHandler");
+    p(this, "segmentStart", 0);
+    p(this, "data", { visits: [] });
+    p(this, "storageKey", "ei_enhanced_insights");
+    p(this, "popstateHandler");
     // private pushstateHandler?: () => void;
     // private replacestateHandler?: () => void;
-    g(this, "beforeunloadHandler");
-    g(this, "visibilityChangeHandler");
-    g(this, "originalPushState");
-    g(this, "originalReplaceState");
+    p(this, "beforeunloadHandler");
+    p(this, "visibilityChangeHandler");
+    p(this, "originalPushState");
+    p(this, "originalReplaceState");
     this.options = e;
   }
   async initialize() {
@@ -8676,8 +8682,8 @@ class po {
 }
 const ue = class ue {
   constructor(e) {
-    g(this, "supabaseService");
-    g(this, "isInitialized", !1);
+    p(this, "supabaseService");
+    p(this, "isInitialized", !1);
     this.supabaseService = new st(
       e.supabaseUrl,
       e.supabaseAnonKey
@@ -8751,13 +8757,13 @@ const ue = class ue {
   }
 };
 /** URL query parameter carrying the encoded funnel-subscriber id. */
-g(ue, "URL_PARAM", "s"), /** sessionStorage key holding the short ids already tracked this session. */
-g(ue, "STORAGE_KEY", "ei_tracked_subscriber_ids");
+p(ue, "URL_PARAM", "s"), /** sessionStorage key holding the short ids already tracked this session. */
+p(ue, "STORAGE_KEY", "ei_tracked_subscriber_ids");
 let xt = ue;
 const te = class te {
   constructor() {
-    g(this, "overlay");
-    g(this, "banners", []);
+    p(this, "overlay");
+    p(this, "banners", []);
   }
   showLoading(e, t, s) {
     if (typeof document > "u" || this.overlay)
@@ -8841,7 +8847,7 @@ const te = class te {
     e.id = te.STYLE_ID, e.textContent = "@keyframes ei-restore-spin{to{transform:rotate(360deg)}}", document.head.appendChild(e);
   }
 };
-g(te, "STYLE_ID", "ei-restore-style"), g(te, "Z_INDEX", "2147483646");
+p(te, "STYLE_ID", "ei-restore-style"), p(te, "Z_INDEX", "2147483646");
 let Ot = te;
 const B = class B {
   static get(e) {
@@ -8881,7 +8887,7 @@ const B = class B {
     return t ? `${r} ${t}` : r;
   }
 };
-g(B, "TEXT", {
+p(B, "TEXT", {
   en: {
     restoring: "Restoring your booking…",
     close: "Close",
@@ -8922,17 +8928,17 @@ g(B, "TEXT", {
     unavailable: "Leider ist das gewählte Zimmer für Ihre Daten nicht mehr verfügbar. Bitte wählen Sie ein anderes Zimmer oder andere Daten.",
     failed: "Ihre Buchung konnte nicht wiederhergestellt werden. Bitte suchen Sie erneut."
   }
-}), g(B, "LOCALE_ALIASES", {
+}), p(B, "LOCALE_ALIASES", {
   no: "nb",
   nn: "nb"
 });
 let ee = B;
 const L = class L {
   constructor() {
-    g(this, "stopWaiting");
+    p(this, "stopWaiting");
     /** Fields the visitor interacted with, or that held a value of theirs. */
-    g(this, "visitorFields", /* @__PURE__ */ new WeakSet());
-    g(this, "filledFields", /* @__PURE__ */ new WeakSet());
+    p(this, "visitorFields", /* @__PURE__ */ new WeakSet());
+    p(this, "filledFields", /* @__PURE__ */ new WeakSet());
   }
   /** The usable parts of a stored contact, or null when there are none. */
   static clean(e, t, s) {
@@ -9014,17 +9020,17 @@ const L = class L {
     s ? s.call(e, t) : e.value = t, e.dispatchEvent(new Event("input", { bubbles: !0 })), e.dispatchEvent(new Event("change", { bubbles: !0 }));
   }
 };
-g(L, "WAIT_MS", 2e4), g(L, "CHECK_EVERY_MS", 250), g(L, "EMAIL_PATTERN", /^[^\s@]+@[^\s@]+\.[^\s@]+$/), g(L, "EMAIL_FIELD", 'input[type="email"]'), g(L, "COUNTRY_CODE_FIELD", 'input[autocomplete="tel-country-code"]'), g(L, "NATIONAL_FIELD", 'input[autocomplete="tel-national"]'), g(L, "PHONE_FIELD", 'input[type="tel"]');
+p(L, "WAIT_MS", 2e4), p(L, "CHECK_EVERY_MS", 250), p(L, "EMAIL_PATTERN", /^[^\s@]+@[^\s@]+\.[^\s@]+$/), p(L, "EMAIL_FIELD", 'input[type="email"]'), p(L, "COUNTRY_CODE_FIELD", 'input[autocomplete="tel-country-code"]'), p(L, "NATIONAL_FIELD", 'input[autocomplete="tel-national"]'), p(L, "PHONE_FIELD", 'input[type="tel"]');
 let je = L;
-const T = class T {
+const C = class C {
   constructor(e) {
-    g(this, "options");
-    g(this, "supabaseService");
-    g(this, "overlay", new Ot());
-    g(this, "controller");
-    g(this, "isInitialized", !1);
-    g(this, "lastOutcome");
-    g(this, "prefill", new je());
+    p(this, "options");
+    p(this, "supabaseService");
+    p(this, "overlay", new Ot());
+    p(this, "controller");
+    p(this, "isInitialized", !1);
+    p(this, "lastOutcome");
+    p(this, "prefill", new je());
     this.options = e, this.supabaseService = new st(
       e.supabaseUrl,
       e.supabaseAnonKey
@@ -9084,7 +9090,7 @@ const T = class T {
     );
     const a = setTimeout(() => {
       n = !0, s.abort(), this.overlay.hideLoading();
-    }, T.TIMEOUT_MS);
+    }, C.TIMEOUT_MS);
     let c = [];
     try {
       const l = await this.restore(
@@ -9106,14 +9112,19 @@ const T = class T {
     }
   }
   async restore(e, t, s, r) {
-    var p;
+    var g;
     const n = {
       outcome: "failed",
       notices: [{ kind: "failed" }]
     };
     r.current = "spec";
     const o = await this.abortable(
-      this.supabaseService.getCartRestore(e),
+      this.supabaseService.getCartRestore(
+        e,
+        this.getRestoreToken(),
+        this.options.organizationId,
+        this.options.checkoutCampaignId
+      ),
       s
     ), a = o ? this.getRestorableRooms(o) : null;
     if (!o || !a)
@@ -9129,8 +9140,8 @@ const T = class T {
       return n;
     if (Re.basketHasRooms(u))
       return { outcome: "basket_exists", notices: [] };
-    Ge.saveSessionIdToStorage(o.session_id), r.current = "search";
-    const d = ((p = o.promo_code) == null ? void 0 : p.trim()) || void 0, h = [];
+    o.session_id && Ge.saveSessionIdToStorage(o.session_id), r.current = "search";
+    const d = ((g = o.promo_code) == null ? void 0 : g.trim()) || void 0, h = [];
     for (const y of this.groupByStay(a)) {
       const m = {
         startDate: y[0].startDate,
@@ -9174,7 +9185,7 @@ const T = class T {
     return t.length === 0 ? null : t.every(
       (r) => {
         var n;
-        return typeof r.id == "string" && r.id.length > 0 && T.DATE_PATTERN.test(r.startDate ?? "") && T.DATE_PATTERN.test(r.endDate ?? "") && r.endDate > r.startDate && Number.isInteger((n = r.roomConfig) == null ? void 0 : n.adults) && r.roomConfig.adults > 0;
+        return typeof r.id == "string" && r.id.length > 0 && C.DATE_PATTERN.test(r.startDate ?? "") && C.DATE_PATTERN.test(r.endDate ?? "") && r.endDate > r.startDate && Number.isInteger((n = r.roomConfig) == null ? void 0 : n.adults) && r.roomConfig.adults > 0;
       }
     ) ? t : null;
   }
@@ -9259,14 +9270,14 @@ const T = class T {
   }
   /**
    * Checkout page on this site, keeping the language prefix (`/no/…`) and
-   * every query param except `s`.
+   * every query param except `s` and `rt`.
    */
   continueUrl() {
     var r;
     const e = new URLSearchParams(window.location.search);
-    e.delete(T.URL_PARAM);
+    e.delete(C.URL_PARAM), e.delete(C.TOKEN_PARAM);
     const t = e.toString();
-    return `${((r = T.LANGUAGE_PREFIX.exec(window.location.pathname)) == null ? void 0 : r[0]) ?? ""}${T.CONTINUE_PATH}${t ? `?${t}` : ""}`;
+    return `${((r = C.LANGUAGE_PREFIX.exec(window.location.pathname)) == null ? void 0 : r[0]) ?? ""}${C.CONTINUE_PATH}${t ? `?${t}` : ""}`;
   }
   abortable(e, t) {
     return new Promise((s, r) => {
@@ -9287,9 +9298,18 @@ const T = class T {
   getShortId() {
     try {
       const e = new URLSearchParams(window.location.search).get(
-        T.URL_PARAM
+        C.URL_PARAM
       );
       return e && e.trim() ? e.trim() : null;
+    } catch {
+      return null;
+    }
+  }
+  getRestoreToken() {
+    var e;
+    try {
+      const t = (e = new URLSearchParams(window.location.search).get(C.TOKEN_PARAM)) == null ? void 0 : e.trim();
+      return t && C.TOKEN_PATTERN.test(t) ? t : null;
     } catch {
       return null;
     }
@@ -9297,7 +9317,7 @@ const T = class T {
   getAttemptedIds() {
     try {
       const e = JSON.parse(
-        sessionStorage.getItem(T.ATTEMPTED_KEY) ?? "[]"
+        sessionStorage.getItem(C.ATTEMPTED_KEY) ?? "[]"
       );
       return Array.isArray(e) ? e : [];
     } catch {
@@ -9307,7 +9327,7 @@ const T = class T {
   markAttempted(e) {
     try {
       sessionStorage.setItem(
-        T.ATTEMPTED_KEY,
+        C.ATTEMPTED_KEY,
         JSON.stringify([...this.getAttemptedIds(), e])
       );
     } catch (t) {
@@ -9319,7 +9339,7 @@ const T = class T {
     if (e.length !== 0)
       try {
         sessionStorage.setItem(
-          T.NOTICES_KEY,
+          C.NOTICES_KEY,
           JSON.stringify(e)
         );
       } catch (t) {
@@ -9329,7 +9349,7 @@ const T = class T {
   storePendingContact(e) {
     if (e)
       try {
-        sessionStorage.setItem(T.CONTACT_KEY, JSON.stringify(e));
+        sessionStorage.setItem(C.CONTACT_KEY, JSON.stringify(e));
       } catch (t) {
         console.warn("Failed to persist cart restore contact:", t);
       }
@@ -9338,7 +9358,7 @@ const T = class T {
   fillPendingContact() {
     let e = null;
     try {
-      e = sessionStorage.getItem(T.CONTACT_KEY), sessionStorage.removeItem(T.CONTACT_KEY);
+      e = sessionStorage.getItem(C.CONTACT_KEY), sessionStorage.removeItem(C.CONTACT_KEY);
     } catch {
       return;
     }
@@ -9354,8 +9374,8 @@ const T = class T {
   showPendingNotices() {
     let e = [];
     try {
-      const t = sessionStorage.getItem(T.NOTICES_KEY);
-      sessionStorage.removeItem(T.NOTICES_KEY);
+      const t = sessionStorage.getItem(C.NOTICES_KEY);
+      sessionStorage.removeItem(C.NOTICES_KEY);
       const s = t ? JSON.parse(t) : [];
       e = Array.isArray(s) ? s : [];
     } catch {
@@ -9369,13 +9389,14 @@ const T = class T {
     );
   }
 };
-g(T, "URL_PARAM", "s"), g(T, "ATTEMPTED_KEY", "ei_cart_restore_attempted_ids"), g(T, "NOTICES_KEY", "ei_cart_restore_notices"), g(T, "CONTACT_KEY", "ei_cart_restore_contact"), g(T, "TIMEOUT_MS", 8e3), g(T, "CONTINUE_PATH", "/checkout"), g(T, "DATE_PATTERN", /^\d{4}-\d{2}-\d{2}$/), g(T, "LANGUAGE_PREFIX", /^\/[a-z]{2}(?=\/)/);
-let jt = T;
+p(C, "URL_PARAM", "s"), /** Secret per-link token; without it only the rooms come back. */
+p(C, "TOKEN_PARAM", "rt"), p(C, "TOKEN_PATTERN", /^[0-9a-f-]{36}$/i), p(C, "ATTEMPTED_KEY", "ei_cart_restore_attempted_ids"), p(C, "NOTICES_KEY", "ei_cart_restore_notices"), p(C, "CONTACT_KEY", "ei_cart_restore_contact"), p(C, "TIMEOUT_MS", 8e3), p(C, "CONTINUE_PATH", "/checkout"), p(C, "DATE_PATTERN", /^\d{4}-\d{2}-\d{2}$/), p(C, "LANGUAGE_PREFIX", /^\/[a-z]{2}(?=\/)/);
+let jt = C;
 class go {
   constructor(e) {
-    g(this, "options");
-    g(this, "tools", /* @__PURE__ */ new Map());
-    g(this, "_isInitialized", !1);
+    p(this, "options");
+    p(this, "tools", /* @__PURE__ */ new Map());
+    p(this, "_isInitialized", !1);
     this.options = e;
   }
   async initialize() {

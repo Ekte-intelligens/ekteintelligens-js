@@ -317,8 +317,11 @@ subscriber via the `create-event` edge function.
 ### BookVisit Cart Restore (v1.4.0)
 
 BookVisit's `bv_jwt` session expires after an hour, which empties the basket.
-When a visitor comes back through an abandoned-cart link (`?s=`), cart restore
-rebuilds the basket and takes them to `/addons/optional-addons`.
+When a visitor comes back through an abandoned-cart link
+(`?s=<id_short_encoded>&rt=<restore_token>`), cart restore rebuilds the basket
+and takes them to `/checkout`. Links without `rt` (sent before the token
+existed, or written by hand without `{{restore_token}}`) restore the rooms
+only: no email or phone prefill, and a new cart session.
 
 Enable it with `features.cartRestore: true` **and** `"restore": true` in the
 checkout campaign's `config.bookvisit`, so it can be switched on per hotel.
@@ -331,8 +334,9 @@ checkout campaign's `config.bookvisit`, so it can be switched on per hotel.
 3. Reads the stored rooms from `get-checkout-session-restore`, waits for
    BookVisit to issue a fresh `bv_jwt`, and does nothing if the basket
    already has rooms.
-4. Adopts the original cart session id (`localStorage.ei_session_id`), so a
-   restore on another device keeps updating the same cart session.
+4. With a valid `rt`, adopts the original cart session id
+   (`localStorage.ei_session_id`), so a restore on another device keeps
+   updating the same cart session.
 5. Searches the same dates and guests and matches each room on `roomId` and
    `ratePlanId`. Carts saved before v1.4.0 have no `ratePlanId` and are
    matched on the rate plan name instead. A different rate is never
@@ -470,20 +474,33 @@ Cart restore also sends one event per restore attempt:
 
 ### get-checkout-session-restore
 
-Used by cart restore. Called with the public anon key and an id taken from a
-URL, so anyone holding the link can read the response. It returns the email
-and phone number (to fill in at checkout) and nothing else personal: no rest
-of `content`, analytics or URL. `id_short_encoded` must therefore be
-unguessable.
-Accepts `{ id_short_encoded: string }` and returns `null`/an error for
-unknown, completed or deleted sessions, otherwise:
+Used by cart restore. Called with the public anon key and ids taken from a
+URL. `id_short_encoded` can be guessed, so the session id, email and phone are
+only returned when `restore_token` matches the link's secret
+`funnels_subscribers.restore_token`; otherwise they are `null` and only the
+rooms come back. Nothing else personal is returned: no rest of `content`,
+analytics or URL. Rate limited per IP.
+
+Accepts:
+
+```typescript
+{
+    id_short_encoded: string; // the ?s= param
+    restore_token?: string; // the rt= param
+    organization_id: string;
+    checkout_campaign_id: string;
+}
+```
+
+and returns 404 for unknown links, links of another organisation, links older
+than 30 days and carts that are completed or empty, otherwise:
 
 ```typescript
 interface CartRestoreSpec {
-    session_id: string; // the cart session the link belongs to
+    session_id: string | null; // the cart session, with a valid restore_token
     products: any[]; // the session's products array, unchanged
     promo_code?: string | null; // a code we issued for this cart, if any
-    email?: string | null; // the email the cart was saved with
+    email?: string | null; // the saved email, with a valid restore_token
     phone?: string | null; // national ("12345678") or full ("+4712345678")
     phone_country_code?: string | null; // digits ("47"), if stored separately
 }

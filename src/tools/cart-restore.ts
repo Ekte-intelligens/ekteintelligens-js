@@ -39,7 +39,7 @@ interface MatchedRoom {
 
 /**
  * Rebuilds an expired BookVisit cart when the visitor returns through an
- * abandoned-cart link (`?s=<id_short_encoded>`).
+ * abandoned-cart link (`?s=<id_short_encoded>&rt=<restore_token>`).
  *
  * BookVisit's `bv_jwt` session expires after an hour, which empties the
  * basket. This tool reads the stored cart back, searches the same rooms and
@@ -52,6 +52,9 @@ interface MatchedRoom {
  */
 export class CartRestoreTool {
     private static readonly URL_PARAM = "s";
+    /** Secret per-link token; without it only the rooms come back. */
+    private static readonly TOKEN_PARAM = "rt";
+    private static readonly TOKEN_PATTERN = /^[0-9a-f-]{36}$/i;
     private static readonly ATTEMPTED_KEY = "ei_cart_restore_attempted_ids";
     private static readonly NOTICES_KEY = "ei_cart_restore_notices";
     private static readonly CONTACT_KEY = "ei_cart_restore_contact";
@@ -228,7 +231,12 @@ export class CartRestoreTool {
 
         stage.current = "spec";
         const spec = await this.abortable(
-            this.supabaseService.getCartRestore(shortId),
+            this.supabaseService.getCartRestore(
+                shortId,
+                this.getRestoreToken(),
+                this.options.organizationId,
+                this.options.checkoutCampaignId,
+            ),
             signal,
         );
         const rooms = spec ? this.getRestorableRooms(spec) : null;
@@ -258,7 +266,9 @@ export class CartRestoreTool {
 
         // Keep uploading to the original cart session, so restoring on a new
         // device does not start a second session (and a second email).
-        AbandonedCartTool.saveSessionIdToStorage(spec.session_id);
+        if (spec.session_id) {
+            AbandonedCartTool.saveSessionIdToStorage(spec.session_id);
+        }
 
         stage.current = "search";
         const promoCode = spec.promo_code?.trim() || undefined;
@@ -467,11 +477,12 @@ export class CartRestoreTool {
 
     /**
      * Checkout page on this site, keeping the language prefix (`/no/…`) and
-     * every query param except `s`.
+     * every query param except `s` and `rt`.
      */
     private continueUrl(): string {
         const params = new URLSearchParams(window.location.search);
         params.delete(CartRestoreTool.URL_PARAM);
+        params.delete(CartRestoreTool.TOKEN_PARAM);
         const query = params.toString();
         const language =
             CartRestoreTool.LANGUAGE_PREFIX.exec(window.location.pathname)?.[0] ?? "";
@@ -504,6 +515,17 @@ export class CartRestoreTool {
                 CartRestoreTool.URL_PARAM,
             );
             return value && value.trim() ? value.trim() : null;
+        } catch {
+            return null;
+        }
+    }
+
+    private getRestoreToken(): string | null {
+        try {
+            const value = new URLSearchParams(window.location.search)
+                .get(CartRestoreTool.TOKEN_PARAM)
+                ?.trim();
+            return value && CartRestoreTool.TOKEN_PATTERN.test(value) ? value : null;
         } catch {
             return null;
         }

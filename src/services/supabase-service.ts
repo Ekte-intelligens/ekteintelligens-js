@@ -142,16 +142,26 @@ export class SupabaseService {
     }
 
     /**
-     * Read back the restorable part of a cart session (products, session id,
-     * our promo code) for the `?s=` id of an abandoned-cart link. The
-     * function never returns the session's contact details.
+     * Read back the restorable part of a cart session for the `?s=` id of an
+     * abandoned-cart link. The session id and contact details are only
+     * returned when `restoreToken` (the link's `rt`) matches.
      */
-    async getCartRestore(shortId: string): Promise<CartRestoreSpec | null> {
+    async getCartRestore(
+        shortId: string,
+        restoreToken: string | null,
+        organizationId: string,
+        checkoutCampaignId: string
+    ): Promise<CartRestoreSpec | null> {
         try {
             const { data, error } = await this.client.functions.invoke(
                 "get-checkout-session-restore",
                 {
-                    body: { id_short_encoded: shortId },
+                    body: {
+                        id_short_encoded: shortId,
+                        restore_token: restoreToken ?? undefined,
+                        organization_id: organizationId,
+                        checkout_campaign_id: checkoutCampaignId,
+                    },
                 }
             );
 
@@ -164,17 +174,14 @@ export class SupabaseService {
             }
 
             const spec = data as CartRestoreSpec | null;
-            if (
-                !spec ||
-                typeof spec.session_id !== "string" ||
-                !Array.isArray(spec.products)
-            ) {
+            if (!spec || !Array.isArray(spec.products)) {
                 return null;
             }
             const text = (value: unknown) =>
-                typeof value === "string" ? value : null;
+                typeof value === "string" && value ? value : null;
             return {
                 ...spec,
+                session_id: text(spec.session_id),
                 email: text(spec.email),
                 phone: text(spec.phone),
                 phone_country_code: text(spec.phone_country_code),
